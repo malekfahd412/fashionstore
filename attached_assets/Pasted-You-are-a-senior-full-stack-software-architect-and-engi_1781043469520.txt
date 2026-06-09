@@ -1,0 +1,327 @@
+You are a senior full-stack software architect and engineer.
+
+Build a complete production-ready bilingual (Arabic & English) e-commerce platform specialized in clothing.
+
+The project must be structured, scalable, secure, and maintainable.
+
+Tech Stack:
+
+* React + TypeScript
+* Node.js + Express
+* PostgreSQL
+* Prisma ORM
+* Tailwind CSS
+* JWT Authentication
+* Google OAuth
+* Cloudinary image storage
+* Recharts for analytics
+* Responsive Mobile First Design
+
+Project Structure:
+
+* Frontend
+* Backend API
+* Database
+* Admin Dashboard
+* Vendor Dashboard
+* Customer Dashboard
+
+Languages:
+
+* Arabic (RTL)
+* English (LTR)
+* Language switcher available globally
+
+User Roles:
+
+1. Super Admin
+2. Vendor/Seller
+3. Customer
+
+Authentication:
+
+* Register/Login with email and password
+* Google Sign-In
+* Password reset
+* Email verification system
+* Secure authentication and authorization
+
+Database Design:
+
+Users
+
+* id
+* name
+* email
+* password
+* role
+* avatar
+* createdAt
+
+Products
+
+* id
+* name_ar
+* name_en
+* description_ar
+* description_en
+* categoryId
+* vendorId
+* price
+* salePrice
+* sku
+* featured
+* active
+* createdAt
+
+Product Variants
+
+* id
+* productId
+* color
+* size
+* stockQuantity
+
+Product Images
+
+* id
+* productId
+* imageUrl
+* isPrimary
+
+Categories
+
+* id
+* name_ar
+* name_en
+* parentCategoryId
+
+Orders
+
+* id
+* userId
+* totalPrice
+* paymentMethod
+* status
+* createdAt
+
+Order Items
+
+* id
+* orderId
+* productVariantId
+* quantity
+* price
+
+Coupons
+
+* id
+* code
+* discountType
+* discountValue
+* startDate
+* endDate
+* usageLimit
+
+Reviews
+
+* id
+* productId
+* userId
+* rating
+* comment
+* images
+
+Wishlist
+
+* id
+* userId
+* productId
+
+Notifications
+
+* id
+* userId
+* title
+* message
+* isRead
+
+Required Store Features:
+
+Homepage:
+
+* Hero banners
+* Featured products
+* New arrivals
+* Best sellers
+* Categories section
+* Promotional offers
+
+Product Features:
+
+* Multiple images
+* Multiple colors
+* Multiple sizes
+* Inventory tracking
+* Product zoom
+* Product reviews
+* Product ratings
+* Related products
+
+Search & Filters:
+
+* Search by product name
+* Search by category
+* Search by size
+* Search by color
+* Search by price
+* Sorting options
+
+Shopping Cart:
+
+* Add to cart
+* Update quantity
+* Remove item
+* Save for later
+
+Checkout:
+
+* Vodafone Cash
+* InstaPay
+* Cash on Delivery
+
+Payment System:
+Current:
+
+* Vodafone Cash
+* InstaPay
+* Cash on Delivery
+
+Future Ready:
+
+* Visa
+* Mastercard
+* Paymob
+* Stripe
+* PayPal
+
+Order Statuses:
+
+* New
+* Under Review
+* Contacted Customer
+* Preparing
+* Shipped
+* Delivered
+* Cancelled
+* Returned
+
+Customer Dashboard:
+
+* Profile management
+* Order history
+* Wishlist
+* Notifications
+* Address management
+
+Vendor Dashboard:
+
+* Add products
+* Edit products
+* Upload images
+* Manage stock
+* View orders
+* Sales analytics
+
+Admin Dashboard:
+
+* User management
+* Vendor management
+* Product management
+* Category management
+* Coupon management
+* Banner management
+* Order management
+* Review management
+* Notification management
+
+Analytics Dashboard:
+
+* Daily sales
+* Monthly sales
+* Revenue charts
+* Orders charts
+* Best selling products
+* Customer growth
+* Vendor performance
+
+Inventory Management:
+
+* Low stock alerts
+* Out of stock alerts
+* Inventory reports
+
+Reviews System:
+
+* Star ratings
+* Customer comments
+* Customer uploaded images
+
+Wishlist System:
+
+* Add/remove favorites
+* Wishlist page
+
+SEO:
+
+* Dynamic meta tags
+* Sitemap generation
+* SEO friendly URLs
+* Open Graph tags
+
+Performance:
+
+* Lazy loading
+* Image optimization
+* Pagination
+* Caching where applicable
+
+Security:
+
+* Rate limiting
+* Input validation
+* Password hashing
+* SQL injection protection
+* XSS protection
+* Role-based access control
+
+UI/UX:
+
+* Modern premium design inspired by major e-commerce platforms
+* Responsive for mobile, tablet, and desktop
+* Clean dashboard layouts
+* Elegant product cards
+* Smooth animations
+
+Development Instructions:
+
+1. Create the database schema first.
+2. Generate Prisma models.
+3. Build backend APIs.
+4. Build authentication.
+5. Build frontend store.
+6. Build dashboards.
+7. Build analytics.
+8. Seed sample data.
+9. Ensure the project runs successfully.
+10. Create complete documentation.
+
+At the end provide:
+
+* Folder structure
+* API documentation
+* Database schema
+* Setup instructions
+* Deployment instructions for Replit Cloud
+
+Build the application professionally as a real commercial e-commerce platform.
