@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, numeric, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, numeric, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -17,7 +17,13 @@ export const productsTable = pgTable("products", {
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
+}, (t) => [
+  index("products_category_id_idx").on(t.categoryId),
+  index("products_vendor_id_idx").on(t.vendorId),
+  index("products_active_idx").on(t.active),
+  index("products_featured_idx").on(t.featured),
+  index("products_created_at_idx").on(t.createdAt),
+]);
 
 export const productVariantsTable = pgTable("product_variants", {
   id: serial("id").primaryKey(),
@@ -26,7 +32,9 @@ export const productVariantsTable = pgTable("product_variants", {
   size: text("size").notNull(),
   stockQuantity: integer("stock_quantity").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("product_variants_product_id_idx").on(t.productId),
+]);
 
 export const productImagesTable = pgTable("product_images", {
   id: serial("id").primaryKey(),
@@ -34,7 +42,9 @@ export const productImagesTable = pgTable("product_images", {
   imageUrl: text("image_url").notNull(),
   isPrimary: boolean("is_primary").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("product_images_product_id_idx").on(t.productId),
+]);
 
 export const insertProductSchema = createInsertSchema(productsTable).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertProductVariantSchema = createInsertSchema(productVariantsTable).omit({ id: true, createdAt: true });

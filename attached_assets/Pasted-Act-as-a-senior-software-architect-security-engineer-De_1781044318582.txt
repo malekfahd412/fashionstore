@@ -1,0 +1,110 @@
+Act as a senior software architect, security engineer, DevOps engineer, and performance optimization specialist.
+
+The e-commerce platform is already built and working.
+
+Your task is NOT to rebuild anything.
+
+Perform a complete production-readiness audit and upgrade.
+
+Analyze the entire codebase and implement all missing improvements.
+
+Focus on the following areas:
+
+1. Security
+
+* Rate limiting on all APIs
+* CSRF protection
+* XSS protection
+* SQL injection protection
+* Secure JWT handling
+* Refresh token support
+* Secure password reset flow
+* Secure file upload validation
+* Request validation on all endpoints
+* Role escalation prevention
+* Audit logs for admin actions
+
+2. Performance
+
+* Database query optimization
+* Eliminate N+1 queries
+* Add indexes where needed
+* Lazy loading
+* Pagination everywhere
+* Image optimization
+* Caching strategy
+* Reduce unnecessary re-renders
+
+3. Scalability
+
+* Refactor code where needed
+* Service layer architecture
+* Repository pattern where useful
+* Proper folder structure
+* Reusable components
+* API versioning support
+* Environment configuration management
+
+4. Monitoring & Logging
+
+* Centralized logging
+* Error tracking system
+* Request logging
+* Admin activity logs
+* Health check endpoint
+* Performance metrics endpoint
+
+5. Backup & Recovery
+
+* Database backup strategy
+* Restore procedure documentation
+* Data integrity checks
+
+6. SEO
+
+* Structured data
+* Open Graph tags
+* Dynamic metadata
+* Canonical URLs
+* Sitemap generation
+* Robots.txt
+
+7. Accessibility
+
+* Keyboard navigation
+* ARIA labels
+* Screen reader compatibility
+* Contrast checks
+
+8. Production Deployment
+
+* Production environment configuration
+* Environment variable validation
+* Build optimization
+* Security headers
+* Compression
+* Deployment checklist
+
+9. Testing
+
+* Unit tests
+* Integration tests
+* Critical user flow tests
+* Authentication tests
+* Checkout tests
+
+10. Documentation
+    Generate:
+
+* Architecture documentation
+* Security report
+* Performance report
+* Deployment guide
+* Maintenance guide
+
+Finally provide:
+
+* List of issues found
+* List of fixes implemented
+* Remaining recommendations
+* Production readiness score out of 100

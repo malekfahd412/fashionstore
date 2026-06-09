@@ -19,7 +19,23 @@ import VendorDashboard from "@/pages/VendorDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: (failureCount, error) => {
+        const status = (error as { status?: number })?.status;
+        if (status && status < 500) return false;
+        return failureCount < 2;
+      },
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 function Router() {
   return (

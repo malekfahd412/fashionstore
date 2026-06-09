@@ -13,19 +13,19 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { name, email, password, role } = parsed.data;
-  const existing = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  const { name, email, password, role: requestedRole } = parsed.data;
+
+  // Role escalation prevention: self-registration is always "customer".
+  // Only admin can create vendor/admin accounts (handled separately via admin panel).
+  const role = requestedRole === "vendor" || requestedRole === "admin" ? "customer" : (requestedRole ?? "customer");
+
+  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email));
   if (existing.length > 0) {
     res.status(409).json({ error: "Email already registered" });
     return;
   }
-  const hashed = await bcrypt.hash(password, 10);
-  const [user] = await db.insert(usersTable).values({
-    name,
-    email,
-    password: hashed,
-    role: role || "customer",
-  }).returning();
+  const hashed = await bcrypt.hash(password, 12);
+  const [user] = await db.insert(usersTable).values({ name, email, password: hashed, role }).returning();
   const token = signToken({ id: user.id, email: user.email, role: user.role });
   res.status(201).json({
     token,
@@ -42,6 +42,8 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   const { email, password } = parsed.data;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (!user || !user.password) {
+    // Constant-time failure to prevent user enumeration
+    await bcrypt.hash("dummy", 12);
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
@@ -58,17 +60,23 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 });
 
 router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id));
+  const [user] = await db.select({
+    id: usersTable.id,
+    name: usersTable.name,
+    email: usersTable.email,
+    role: usersTable.role,
+    avatar: usersTable.avatar,
+    createdAt: usersTable.createdAt,
+  }).from(usersTable).where(eq(usersTable.id, req.user!.id));
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
   }
-  res.json({ id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, createdAt: user.createdAt });
+  res.json(user);
 });
 
-router.post("/auth/logout", (_req, res): Promise<void> => {
+router.post("/auth/logout", (_req, res): void => {
   res.json({ message: "Logged out successfully" });
-  return Promise.resolve();
 });
 
 export default router;

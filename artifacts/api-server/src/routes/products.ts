@@ -9,25 +9,60 @@ import {
 
 const router: IRouter = Router();
 
+// ── Batch-enrichment (eliminates N+1 queries) ─────────────────────────────────
+async function batchEnrichProducts(products: (typeof productsTable.$inferSelect)[]) {
+  if (products.length === 0) return [];
+  const ids = products.map(p => p.id);
+  const catIds = [...new Set(products.map(p => p.categoryId))];
+  const vendorIds = [...new Set(products.map(p => p.vendorId))];
+
+  const [variants, images, categories, vendors, reviews] = await Promise.all([
+    db.select().from(productVariantsTable).where(inArray(productVariantsTable.productId, ids)),
+    db.select().from(productImagesTable).where(inArray(productImagesTable.productId, ids)),
+    db.select({ id: categoriesTable.id, nameEn: categoriesTable.nameEn }).from(categoriesTable).where(inArray(categoriesTable.id, catIds)),
+    db.select({ id: usersTable.id, name: usersTable.name }).from(usersTable).where(inArray(usersTable.id, vendorIds)),
+    db.select({ productId: reviewsTable.productId, rating: reviewsTable.rating }).from(reviewsTable).where(inArray(reviewsTable.productId, ids)),
+  ]);
+
+  const variantsByProduct = new Map<number, typeof variants>();
+  for (const v of variants) {
+    if (!variantsByProduct.has(v.productId)) variantsByProduct.set(v.productId, []);
+    variantsByProduct.get(v.productId)!.push(v);
+  }
+  const imagesByProduct = new Map<number, typeof images>();
+  for (const img of images) {
+    if (!imagesByProduct.has(img.productId)) imagesByProduct.set(img.productId, []);
+    imagesByProduct.get(img.productId)!.push(img);
+  }
+  const reviewsByProduct = new Map<number, number[]>();
+  for (const r of reviews) {
+    if (!reviewsByProduct.has(r.productId)) reviewsByProduct.set(r.productId, []);
+    reviewsByProduct.get(r.productId)!.push(r.rating);
+  }
+  const catMap = new Map(categories.map(c => [c.id, c.nameEn]));
+  const vendorMap = new Map(vendors.map(v => [v.id, v.name]));
+
+  return products.map(p => {
+    const ratings = reviewsByProduct.get(p.id) ?? [];
+    const averageRating = ratings.length > 0 ? Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10 : 0;
+    return {
+      ...p,
+      price: Number(p.price),
+      salePrice: p.salePrice ? Number(p.salePrice) : null,
+      categoryName: catMap.get(p.categoryId) ?? "",
+      vendorName: vendorMap.get(p.vendorId) ?? "",
+      averageRating,
+      reviewCount: ratings.length,
+      images: imagesByProduct.get(p.id) ?? [],
+      variants: variantsByProduct.get(p.id) ?? [],
+    };
+  });
+}
+
+// Keep single-product helper (used in create/update responses)
 async function enrichProduct(product: typeof productsTable.$inferSelect) {
-  const variants = await db.select().from(productVariantsTable).where(eq(productVariantsTable.productId, product.id));
-  const images = await db.select().from(productImagesTable).where(eq(productImagesTable.productId, product.id));
-  const [cat] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, product.categoryId));
-  const [vendor] = await db.select().from(usersTable).where(eq(usersTable.id, product.vendorId));
-  const reviews = await db.select({ rating: reviewsTable.rating }).from(reviewsTable).where(eq(reviewsTable.productId, product.id));
-  const reviewCount = reviews.length;
-  const averageRating = reviewCount > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviewCount : 0;
-  return {
-    ...product,
-    price: Number(product.price),
-    salePrice: product.salePrice ? Number(product.salePrice) : null,
-    categoryName: cat?.nameEn ?? "",
-    vendorName: vendor?.name ?? "",
-    averageRating: Math.round(averageRating * 10) / 10,
-    reviewCount,
-    images,
-    variants,
-  };
+  const [enriched] = await batchEnrichProducts([product]);
+  return enriched;
 }
 
 router.get("/products", optionalAuth, async (req, res): Promise<void> => {
@@ -47,15 +82,16 @@ router.get("/products", optionalAuth, async (req, res): Promise<void> => {
   if (sortBy === "price_asc") orderBy = asc(productsTable.price);
   else if (sortBy === "price_desc") orderBy = desc(productsTable.price);
 
-  const products = await db.select().from(productsTable)
-    .where(and(...conditions))
-    .orderBy(orderBy)
-    .limit(Number(limit))
-    .offset((Number(page) - 1) * Number(limit));
+  const [products, total] = await Promise.all([
+    db.select().from(productsTable)
+      .where(and(...conditions))
+      .orderBy(orderBy)
+      .limit(Math.min(Number(limit), 100))
+      .offset((Number(page) - 1) * Math.min(Number(limit), 100)),
+    db.$count(productsTable, and(...conditions)),
+  ]);
 
-  const total = await db.$count(productsTable, and(...conditions));
-  const enriched = await Promise.all(products.map(enrichProduct));
-
+  const enriched = await batchEnrichProducts(products);
   res.json({ products: enriched, total, page: Number(page), limit: Number(limit) });
 });
 
@@ -63,45 +99,42 @@ router.get("/products/featured", async (_req, res): Promise<void> => {
   const products = await db.select().from(productsTable)
     .where(and(eq(productsTable.featured, true), eq(productsTable.active, true)))
     .orderBy(desc(productsTable.createdAt)).limit(8);
-  const enriched = await Promise.all(products.map(enrichProduct));
-  res.json(enriched);
+  res.json(await batchEnrichProducts(products));
 });
 
 router.get("/products/new-arrivals", async (_req, res): Promise<void> => {
   const products = await db.select().from(productsTable)
     .where(eq(productsTable.active, true))
     .orderBy(desc(productsTable.createdAt)).limit(8);
-  const enriched = await Promise.all(products.map(enrichProduct));
-  res.json(enriched);
+  res.json(await batchEnrichProducts(products));
 });
 
 router.get("/products/best-sellers", async (_req, res): Promise<void> => {
   const products = await db.select().from(productsTable)
     .where(eq(productsTable.active, true))
     .orderBy(desc(productsTable.createdAt)).limit(8);
-  const enriched = await Promise.all(products.map(enrichProduct));
-  res.json(enriched);
+  res.json(await batchEnrichProducts(products));
 });
 
 router.get("/products/:id", optionalAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid product id" }); return; }
   const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
   if (!product) { res.status(404).json({ error: "Product not found" }); return; }
-  const enriched = await enrichProduct(product);
-  res.json(enriched);
+  res.json(await enrichProduct(product));
 });
 
 router.get("/products/:id/related", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) { res.json([]); return; }
   const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
   if (!product) { res.json([]); return; }
   const related = await db.select().from(productsTable)
     .where(and(eq(productsTable.categoryId, product.categoryId), eq(productsTable.active, true)))
-    .orderBy(desc(productsTable.createdAt)).limit(6);
-  const enriched = await Promise.all(related.filter(p => p.id !== id).map(enrichProduct));
-  res.json(enriched);
+    .orderBy(desc(productsTable.createdAt)).limit(7);
+  res.json(await batchEnrichProducts(related.filter(p => p.id !== id)));
 });
 
 router.post("/products", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {
@@ -121,8 +154,7 @@ router.post("/products", requireAuth, requireRole("admin", "vendor"), async (req
   if (variants?.length) {
     await db.insert(productVariantsTable).values(variants.map(v => ({ ...v, productId: product.id })));
   }
-  const enriched = await enrichProduct(product);
-  res.status(201).json(enriched);
+  res.status(201).json(await enrichProduct(product));
 });
 
 router.patch("/products/:id", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {
@@ -136,8 +168,7 @@ router.patch("/products/:id", requireAuth, requireRole("admin", "vendor"), async
   if (salePrice != null) updates.salePrice = String(salePrice);
   const [product] = await db.update(productsTable).set(updates).where(eq(productsTable.id, params.data.id)).returning();
   if (!product) { res.status(404).json({ error: "Product not found" }); return; }
-  const enriched = await enrichProduct(product);
-  res.json(enriched);
+  res.json(await enrichProduct(product));
 });
 
 router.delete("/products/:id", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {
