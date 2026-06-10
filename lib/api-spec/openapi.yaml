@@ -1377,14 +1377,15 @@ components:
 
     OrderItemInput:
       type: object
-      required: [productVariantId, quantity, price]
+      required: [productVariantId, quantity]
       properties:
         productVariantId:
           type: integer
+          minimum: 1
         quantity:
           type: integer
-        price:
-          type: number
+          minimum: 1
+          maximum: 100
 
     OrderStatusUpdate:
       type: object

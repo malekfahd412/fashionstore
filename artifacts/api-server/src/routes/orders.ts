@@ -102,12 +102,47 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { paymentMethod, couponCode, items } = parsed.data;
+  if (!items || items.length === 0) { res.status(400).json({ error: "Order must contain at least one item" }); return; }
+  if (items.length > 20) { res.status(400).json({ error: "Order cannot exceed 20 distinct items" }); return; }
 
   let order!: typeof ordersTable.$inferSelect;
 
   try {
     order = await db.transaction(async (tx) => {
-      // 1. Validate and lock coupon
+      // ── Step 1: Server-side price + stock lookup (prevents price tampering) ──
+      const lineItems: { productVariantId: number; quantity: number; unitPrice: number }[] = [];
+      for (const item of items) {
+        // Join variant → product to get authoritative price in one query
+        const [row] = await tx.select({
+          stockQuantity: productVariantsTable.stockQuantity,
+          price: productsTable.price,
+          salePrice: productsTable.salePrice,
+          active: productsTable.active,
+        })
+          .from(productVariantsTable)
+          .innerJoin(productsTable, eq(productsTable.id, productVariantsTable.productId))
+          .where(eq(productVariantsTable.id, item.productVariantId));
+
+        if (!row) throw Object.assign(new Error(`Product variant ${item.productVariantId} not found`), { status: 400 });
+        if (!row.active) throw Object.assign(new Error(`Product variant ${item.productVariantId} is not available`), { status: 400 });
+        if (row.stockQuantity < item.quantity) throw Object.assign(new Error(`Insufficient stock for variant ${item.productVariantId} (available: ${row.stockQuantity})`), { status: 409 });
+
+        // Use server-authoritative price (sale price if set, otherwise list price)
+        const unitPrice = Number(row.salePrice ?? row.price);
+        lineItems.push({ productVariantId: item.productVariantId, quantity: item.quantity, unitPrice });
+      }
+
+      // ── Step 2: Deduct stock ──────────────────────────────────────────────────
+      for (const li of lineItems) {
+        const [v] = await tx.select({ stockQuantity: productVariantsTable.stockQuantity })
+          .from(productVariantsTable).where(eq(productVariantsTable.id, li.productVariantId));
+        await tx.update(productVariantsTable)
+          .set({ stockQuantity: v!.stockQuantity - li.quantity })
+          .where(eq(productVariantsTable.id, li.productVariantId));
+      }
+
+      // ── Step 3: Validate and apply coupon ─────────────────────────────────────
+      const subtotal = lineItems.reduce((s, li) => s + li.unitPrice * li.quantity, 0);
       let discount = 0;
       if (couponCode) {
         const [coupon] = await tx.select().from(couponsTable).where(
@@ -117,27 +152,13 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
         if (coupon.endDate && coupon.endDate < new Date()) throw Object.assign(new Error("Coupon has expired"), { status: 400 });
         if (coupon.usageLimit != null && coupon.usageCount >= coupon.usageLimit) throw Object.assign(new Error("Coupon usage limit reached"), { status: 400 });
         discount = coupon.discountType === "percentage"
-          ? (items.reduce((s, i) => s + i.price * i.quantity, 0) * Number(coupon.discountValue)) / 100
-          : Number(coupon.discountValue);
-        // Increment usage atomically
+          ? Math.min((subtotal * Number(coupon.discountValue)) / 100, subtotal)
+          : Math.min(Number(coupon.discountValue), subtotal);
         await tx.update(couponsTable).set({ usageCount: coupon.usageCount + 1 }).where(eq(couponsTable.id, coupon.id));
       }
 
-      // 2. Check and deduct stock for each variant
-      for (const item of items) {
-        const [variant] = await tx.select().from(productVariantsTable).where(eq(productVariantsTable.id, item.productVariantId));
-        if (!variant) throw Object.assign(new Error(`Product variant ${item.productVariantId} not found`), { status: 400 });
-        if (variant.stockQuantity < item.quantity) throw Object.assign(new Error(`Insufficient stock for variant ${item.productVariantId}`), { status: 409 });
-        await tx.update(productVariantsTable)
-          .set({ stockQuantity: variant.stockQuantity - item.quantity })
-          .where(eq(productVariantsTable.id, item.productVariantId));
-      }
-
-      // 3. Calculate totals
-      const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+      // ── Step 4: Insert order + line items ────────────────────────────────────
       const totalPrice = Math.max(0, subtotal - discount);
-
-      // 4. Insert order + items
       const [newOrder] = await tx.insert(ordersTable).values({
         userId: req.user!.id,
         totalPrice: String(totalPrice),
@@ -147,14 +168,14 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
         status: "new",
       }).returning();
 
-      await tx.insert(orderItemsTable).values(items.map(i => ({
+      await tx.insert(orderItemsTable).values(lineItems.map(li => ({
         orderId: newOrder.id,
-        productVariantId: i.productVariantId,
-        quantity: i.quantity,
-        price: String(i.price),
+        productVariantId: li.productVariantId,
+        quantity: li.quantity,
+        price: String(li.unitPrice),          // server-authoritative price stored
       })));
 
-      // 5. Notification
+      // ── Step 5: Notification ──────────────────────────────────────────────────
       await tx.insert(notificationsTable).values({
         userId: req.user!.id,
         title: "Order Placed",

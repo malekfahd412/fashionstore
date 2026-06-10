@@ -546,13 +546,17 @@ export const ListOrdersResponse = zod.object({
 })
 
 
+
+export const createOrderBodyItemsItemQuantityMax = 100;
+
+
+
 export const CreateOrderBody = zod.object({
   "paymentMethod": zod.string(),
   "couponCode": zod.string().optional(),
   "items": zod.array(zod.object({
-  "productVariantId": zod.number(),
-  "quantity": zod.number(),
-  "price": zod.number()
+  "productVariantId": zod.number().min(1),
+  "quantity": zod.number().min(1).max(createOrderBodyItemsItemQuantityMax)
 }))
 })
 

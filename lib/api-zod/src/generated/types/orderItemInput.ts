@@ -7,7 +7,11 @@
  */
 
 export interface OrderItemInput {
+  /** @minimum 1 */
   productVariantId: number;
+  /**
+     * @minimum 1
+     * @maximum 100
+     */
   quantity: number;
-  price: number;
 }
