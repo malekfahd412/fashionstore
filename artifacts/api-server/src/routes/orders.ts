@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable } from "@workspace/db";
-import { eq, and, SQL, desc, inArray } from "drizzle-orm";
+import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable } from "@workspace/db";
+import { eq, and, SQL, desc, inArray, gt, isNull } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, ListOrdersQueryParams } from "@workspace/api-zod";
+import { auditLog } from "../lib/audit";
 
 const router: IRouter = Router();
 
@@ -40,8 +41,12 @@ async function batchEnrichOrders(orders: (typeof ordersTable.$inferSelect)[]) {
     itemsByOrder.get(item.orderId)!.push(item);
   }
 
-  return orders.map(order => {
-    const items = (itemsByOrder.get(order.id) ?? []).map(item => {
+  return orders.map(order => ({
+    ...order,
+    totalPrice: Number(order.totalPrice),
+    discount: order.discount ? Number(order.discount) : null,
+    userName: userMap.get(order.userId) ?? "",
+    items: (itemsByOrder.get(order.id) ?? []).map(item => {
       const variant = variantMap.get(item.productVariantId);
       const product = variant ? productMap.get(variant.productId) : null;
       return {
@@ -55,15 +60,8 @@ async function batchEnrichOrders(orders: (typeof ordersTable.$inferSelect)[]) {
         quantity: item.quantity,
         price: Number(item.price),
       };
-    });
-    return {
-      ...order,
-      totalPrice: Number(order.totalPrice),
-      discount: order.discount ? Number(order.discount) : null,
-      userName: userMap.get(order.userId) ?? "",
-      items,
-    };
-  });
+    }),
+  }));
 }
 
 async function enrichOrder(order: typeof ordersTable.$inferSelect) {
@@ -87,7 +85,6 @@ router.get("/orders", requireAuth, async (req, res): Promise<void> => {
       .offset((Number(page) - 1) * Math.min(Number(limit), 100)),
     db.$count(ordersTable, conditions.length > 0 ? and(...conditions) : undefined),
   ]);
-
   res.json({ orders: await batchEnrichOrders(orders), total, page: Number(page), limit: Number(limit) });
 });
 
@@ -96,52 +93,106 @@ router.get("/orders/:id", requireAuth, async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
-  if (req.user!.role === "customer" && order.userId !== req.user!.id) {
-    res.status(403).json({ error: "Forbidden" }); return;
-  }
+  if (req.user!.role === "customer" && order.userId !== req.user!.id) { res.status(403).json({ error: "Forbidden" }); return; }
   res.json(await enrichOrder(order));
 });
 
+// ── Create order with full ACID transaction ───────────────────────────────────
 router.post("/orders", requireAuth, async (req, res): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { paymentMethod, couponCode, items } = parsed.data;
-  const totalPrice = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const [order] = await db.insert(ordersTable).values({
-    userId: req.user!.id,
-    totalPrice: String(totalPrice),
-    paymentMethod,
-    couponCode: couponCode ?? null,
-    status: "new",
-  }).returning();
-  await Promise.all([
-    db.insert(orderItemsTable).values(items.map(i => ({
-      orderId: order.id,
-      productVariantId: i.productVariantId,
-      quantity: i.quantity,
-      price: String(i.price),
-    }))),
-    db.insert(notificationsTable).values({
-      userId: req.user!.id,
-      title: "Order Placed",
-      message: `Your order #${order.id} has been placed successfully.`,
-    }),
-  ]);
+
+  let order!: typeof ordersTable.$inferSelect;
+
+  try {
+    order = await db.transaction(async (tx) => {
+      // 1. Validate and lock coupon
+      let discount = 0;
+      if (couponCode) {
+        const [coupon] = await tx.select().from(couponsTable).where(
+          and(eq(couponsTable.code, couponCode), eq(couponsTable.active, true))
+        );
+        if (!coupon) throw Object.assign(new Error("Invalid coupon code"), { status: 400 });
+        if (coupon.endDate && coupon.endDate < new Date()) throw Object.assign(new Error("Coupon has expired"), { status: 400 });
+        if (coupon.usageLimit != null && coupon.usageCount >= coupon.usageLimit) throw Object.assign(new Error("Coupon usage limit reached"), { status: 400 });
+        discount = coupon.discountType === "percentage"
+          ? (items.reduce((s, i) => s + i.price * i.quantity, 0) * Number(coupon.discountValue)) / 100
+          : Number(coupon.discountValue);
+        // Increment usage atomically
+        await tx.update(couponsTable).set({ usageCount: coupon.usageCount + 1 }).where(eq(couponsTable.id, coupon.id));
+      }
+
+      // 2. Check and deduct stock for each variant
+      for (const item of items) {
+        const [variant] = await tx.select().from(productVariantsTable).where(eq(productVariantsTable.id, item.productVariantId));
+        if (!variant) throw Object.assign(new Error(`Product variant ${item.productVariantId} not found`), { status: 400 });
+        if (variant.stockQuantity < item.quantity) throw Object.assign(new Error(`Insufficient stock for variant ${item.productVariantId}`), { status: 409 });
+        await tx.update(productVariantsTable)
+          .set({ stockQuantity: variant.stockQuantity - item.quantity })
+          .where(eq(productVariantsTable.id, item.productVariantId));
+      }
+
+      // 3. Calculate totals
+      const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+      const totalPrice = Math.max(0, subtotal - discount);
+
+      // 4. Insert order + items
+      const [newOrder] = await tx.insert(ordersTable).values({
+        userId: req.user!.id,
+        totalPrice: String(totalPrice),
+        paymentMethod,
+        couponCode: couponCode ?? null,
+        discount: String(discount),
+        status: "new",
+      }).returning();
+
+      await tx.insert(orderItemsTable).values(items.map(i => ({
+        orderId: newOrder.id,
+        productVariantId: i.productVariantId,
+        quantity: i.quantity,
+        price: String(i.price),
+      })));
+
+      // 5. Notification
+      await tx.insert(notificationsTable).values({
+        userId: req.user!.id,
+        title: "Order Placed",
+        message: `Your order #${newOrder.id} has been placed successfully. Total: $${totalPrice.toFixed(2)}`,
+      });
+
+      return newOrder;
+    });
+  } catch (err: unknown) {
+    const status = (err as { status?: number }).status ?? 500;
+    const message = (err as Error).message ?? "Order creation failed";
+    res.status(status).json({ error: message }); return;
+  }
+
   res.status(201).json(await enrichOrder(order));
 });
 
+// ── Update order status ───────────────────────────────────────────────────────
 router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {
   const params = UpdateOrderStatusParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
   const parsed = UpdateOrderStatusBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [before] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
+  if (!before) { res.status(404).json({ error: "Order not found" }); return; }
+
   const [order] = await db.update(ordersTable).set({ status: parsed.data.status }).where(eq(ordersTable.id, params.data.id)).returning();
-  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
-  await db.insert(notificationsTable).values({
-    userId: order.userId,
-    title: "Order Status Updated",
-    message: `Your order #${order.id} status changed to: ${parsed.data.status}`,
-  });
+
+  await Promise.all([
+    db.insert(notificationsTable).values({
+      userId: order.userId,
+      title: "Order Status Updated",
+      message: `Your order #${order.id} status changed to: ${parsed.data.status}`,
+    }),
+    auditLog(req, "UPDATE", "order", order.id, { status: before.status }, { status: parsed.data.status }),
+  ]);
+
   res.json(await enrichOrder(order));
 });
 

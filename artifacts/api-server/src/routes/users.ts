@@ -3,6 +3,7 @@ import { db, usersTable } from "@workspace/db";
 import { eq, ilike, and, SQL } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { UpdateUserBody, GetUserParams, DeleteUserParams, UpdateUserParams, ListUsersQueryParams } from "@workspace/api-zod";
+import { auditLog } from "../lib/audit";
 
 const router: IRouter = Router();
 
@@ -54,7 +55,9 @@ router.patch("/users/:id", requireAuth, async (req, res): Promise<void> => {
 router.delete("/users/:id", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
   const params = DeleteUserParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+  const [before] = await db.select({ email: usersTable.email, role: usersTable.role }).from(usersTable).where(eq(usersTable.id, params.data.id));
   await db.delete(usersTable).where(eq(usersTable.id, params.data.id));
+  await auditLog(req, "DELETE", "user", params.data.id, before, null);
   res.json({ message: "User deleted" });
 });
 

@@ -1,0 +1,130 @@
+Act as a principal software architect, senior DevOps engineer, senior database engineer, and cybersecurity specialist.
+
+The platform currently scores 74/100 production readiness.
+
+Your goal is to push it above 90/100.
+
+Do not rebuild existing features.
+
+Implement only high-impact enterprise-grade improvements.
+
+Priority 1: Authentication & Security
+
+1. Refresh Token Architecture
+
+* refresh_tokens table
+* token rotation
+* revoke support
+* logout from all devices
+* suspicious login detection
+
+2. Password Recovery
+
+* forgot password flow
+* reset tokens
+* expiration handling
+* brute force protection
+
+3. Admin Audit Logs
+
+* create audit_logs table
+* log every admin action
+* include before/after values
+* searchable admin activity page
+
+4. Session Management
+
+* active sessions page
+* device tracking
+* revoke session support
+
+Priority 2: Reliability
+
+1. Background Jobs System
+
+* email queue
+* notification queue
+* scheduled tasks
+
+2. Retry Mechanisms
+
+* failed job retry
+* exponential backoff
+
+3. Database Transaction Safety
+
+* wrap critical operations in transactions
+* order creation
+* stock deduction
+* coupon redemption
+
+4. Error Recovery
+
+* graceful shutdown
+* crash recovery strategy
+
+Priority 3: Testing
+
+1. Unit Tests
+
+* authentication
+* orders
+* products
+* coupons
+
+2. Integration Tests
+
+* checkout flow
+* login flow
+* admin actions
+
+3. End-to-End Tests
+
+* customer purchase journey
+* vendor product management
+* admin dashboard operations
+
+Target:
+Minimum 80% coverage on critical business logic.
+
+Priority 4: Advanced Analytics
+
+1. Customer Lifetime Value
+2. Revenue per Customer
+3. Repeat Purchase Rate
+4. Customer Retention
+5. Top Performing Categories
+6. Inventory Turnover
+7. Vendor Performance Reports
+
+Priority 5: Infrastructure Readiness
+
+1. Redis Caching Layer
+2. Cache Invalidation Strategy
+3. Database Connection Pooling
+4. CDN Preparation
+5. Environment Validation
+6. Production Logging
+
+Priority 6: Business Intelligence
+
+Create an executive dashboard showing:
+
+* Daily Revenue
+* Weekly Revenue
+* Monthly Revenue
+* Conversion Rate
+* Average Order Value
+* Returning Customers
+* Top Products
+* Top Categories
+
+Finally provide:
+
+1. New production readiness score
+2. Security score
+3. Reliability score
+4. Scalability score
+5. Testing coverage
+6. Remaining weaknesses
+7. Launch readiness assessment
