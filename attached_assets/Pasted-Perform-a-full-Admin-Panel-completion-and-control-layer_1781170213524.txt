@@ -1,0 +1,192 @@
+Perform a full Admin Panel completion and control-layer implementation for the LUXE Fashion Store.
+
+The current system has Admin pages but incomplete functionality and missing control modules.
+
+## 🎯 Goal
+
+Transform the Admin Panel into a fully operational control center for the entire platform.
+
+---
+
+# 1. AUDIT FIRST (MANDATORY)
+
+Scan the entire codebase and list:
+
+* All existing admin pages
+* All missing admin functionalities
+* All backend endpoints that exist but are not connected to UI
+* All UI components that exist but have no backend connection
+
+Return a structured report BEFORE making changes.
+
+---
+
+# 2. COMPLETE ADMIN CONTROL MODULES
+
+Implement or fully connect the following missing/partial modules:
+
+## 🟢 PRODUCTS CONTROL (FULL CRUD + BUSINESS LOGIC)
+
+* Create product (fully working form)
+* Edit product (all fields including variants, images, stock)
+* Delete product (soft delete preferred)
+* Toggle:
+
+  * active / inactive
+  * featured / not featured
+* Bulk actions:
+
+  * delete multiple products
+  * change category
+* Stock management per variant (size/color)
+
+---
+
+## 🟢 ORDERS CONTROL CENTER
+
+* View all orders (global admin view)
+* Filter by:
+
+  * status (pending, paid, shipped, delivered, cancelled)
+  * vendor
+  * date range
+* Update order status with workflow validation:
+  pending → paid → shipped → delivered
+* Cancel order (with stock rollback)
+* View full order timeline per order
+
+---
+
+## 🟢 USERS MANAGEMENT
+
+* View all users
+* Filter by role (customer / vendor / admin)
+* Promote/demote roles (admin only)
+* Disable/enable accounts
+* View user activity summary (orders, last login)
+
+---
+
+## 🟢 VENDOR CONTROL PANEL (MISSING PARTS)
+
+Ensure vendors can:
+
+* See only their products
+* See only their orders
+* View revenue analytics (real DB queries)
+* Request product edits (optional workflow)
+
+Admin must be able to:
+
+* Override any vendor product/order
+* Reassign products between vendors
+
+---
+
+## 🟢 CATEGORIES MANAGEMENT
+
+* Full CRUD
+* Prevent deletion if category has products (or handle cascade safely)
+* Category ordering (drag or priority field)
+
+---
+
+## 🟢 COUPONS SYSTEM
+
+* Create / edit / delete coupons
+* Validation rules:
+
+  * expiry date
+  * usage limit
+  * min order value
+* Track usage per user
+* Show analytics per coupon
+
+---
+
+## 🟢 BANNERS / HOMEPAGE CMS
+
+* Upload banner images
+* Activate/deactivate banners
+* Set homepage order
+* Link banners to category/product
+
+---
+
+## 🟢 ANALYTICS DASHBOARD (REAL DATA ONLY)
+
+Replace any placeholder data with:
+
+* Revenue (daily / monthly)
+* Orders count
+* Conversion rate
+* Top products (by revenue + quantity)
+* Top categories
+* Vendor performance comparison
+* New vs returning customers
+
+Use only SQL-based aggregation.
+
+---
+
+## 🟢 SETTINGS MODULE (MISSING CONTROL AREAS)
+
+Ensure admin can control:
+
+* Store name
+* Currency settings (fix $ vs EGP issue)
+* Shipping settings:
+
+  * delivery time
+  * shipping cost
+* Email settings
+* Payment toggles (Paymob enable/disable)
+* SEO settings
+
+---
+
+# 3. FRONTEND FIXES
+
+* Every admin page must:
+
+  * load real data
+  * show loading skeletons
+  * show error states
+  * support empty states properly
+
+* Fix navigation:
+
+  * Admin sidebar must include ALL modules
+  * No hidden orphan pages
+
+---
+
+# 4. BACKEND VALIDATION
+
+* Ensure every admin action:
+
+  * is protected by requireRole("admin")
+  * is logged in audit_logs
+  * has input validation via Zod
+
+---
+
+# 5. CONSISTENCY RULES
+
+* No mock data allowed anywhere in admin panel
+* No placeholder charts
+* No static text pretending to be analytics
+* Everything must be DB-driven
+
+---
+
+# 6. FINAL OUTPUT
+
+After implementation, return:
+
+1. List of all admin modules implemented
+2. List of previously missing modules now fixed
+3. Any remaining gaps (if exist)
+4. Confirmation that Admin Panel is fully production-ready
+
+This is a production critical system. Do not skip any module.

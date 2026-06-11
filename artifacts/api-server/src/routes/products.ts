@@ -70,7 +70,9 @@ router.get("/products", optionalAuth, async (req, res): Promise<void> => {
   const params = query.success ? query.data : {};
   const { search, categoryId, vendorId, minPrice, maxPrice, featured, sortBy, page = 1, limit = 20 } = params;
 
-  const conditions: SQL[] = [eq(productsTable.active, true)];
+  const isAdminShowAll = req.user?.role === "admin" && req.query.showAll === "true";
+  const conditions: SQL[] = [];
+  if (!isAdminShowAll) conditions.push(eq(productsTable.active, true));
   if (search) conditions.push(ilike(productsTable.nameEn, `%${search}%`));
   if (categoryId) conditions.push(eq(productsTable.categoryId, Number(categoryId)));
   if (vendorId) conditions.push(eq(productsTable.vendorId, Number(vendorId)));

@@ -13,6 +13,11 @@ router.get("/banners", async (_req, res): Promise<void> => {
   res.json(banners);
 });
 
+router.get("/banners/all", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
+  const banners = await db.select().from(bannersTable).orderBy(asc(bannersTable.sortOrder));
+  res.json(banners);
+});
+
 router.post("/banners", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
   const parsed = CreateBannerBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }

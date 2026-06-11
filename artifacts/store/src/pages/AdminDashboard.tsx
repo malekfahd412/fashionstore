@@ -1,11 +1,20 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetAnalyticsSummary, useGetOrderStatusBreakdown, useGetSalesTimeline, useListOrders } from "@workspace/api-client-react";
+import {
+  useGetAnalyticsSummary, useGetOrderStatusBreakdown, useGetSalesTimeline, useListOrders,
+  getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey, getListOrdersQueryKey,
+} from "@workspace/api-client-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { format } from "date-fns";
 import SettingsPanel from "@/components/SettingsPanel";
 import SecurityPanel from "@/components/SecurityPanel";
+import AdminUsersTab from "@/components/admin/AdminUsersTab";
+import AdminOrdersTab from "@/components/admin/AdminOrdersTab";
+import AdminCategoriesTab from "@/components/admin/AdminCategoriesTab";
+import AdminCouponsTab from "@/components/admin/AdminCouponsTab";
+import AdminBannersTab from "@/components/admin/AdminBannersTab";
+import AdminProductsTab from "@/components/admin/AdminProductsTab";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -35,7 +44,20 @@ type AuditLogEntry = { id: number; userId: number; userEmail: string; action: st
 
 const COLORS = ['#065f46', '#d4af37', '#dc2626', '#2563eb', '#7c3aed', '#0891b2'];
 
-const TABS = ['overview', 'analytics', 'users', 'vendors', 'products', 'orders', 'banners', 'audit-logs', 'security', 'settings'];
+const TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'analytics', label: 'Analytics' },
+  { id: 'users', label: 'Users' },
+  { id: 'vendors', label: 'Vendors' },
+  { id: 'products', label: 'Products' },
+  { id: 'orders', label: 'Orders' },
+  { id: 'categories', label: 'Categories' },
+  { id: 'coupons', label: 'Coupons' },
+  { id: 'banners', label: 'Banners' },
+  { id: 'audit-logs', label: 'Audit Logs' },
+  { id: 'security', label: 'Security' },
+  { id: 'settings', label: 'Settings' },
+];
 
 function StatCard({ label, value, sub, subColor }: { label: string; value: string | number; sub?: string; subColor?: string }) {
   return (
@@ -54,10 +76,10 @@ export default function AdminDashboard() {
 
   const enabled = !!user && user.role === "admin";
 
-  const { data: summary } = useGetAnalyticsSummary({ query: { enabled } });
-  const { data: orderStatusBreakdown } = useGetOrderStatusBreakdown({ query: { enabled } });
-  const { data: salesTimeline } = useGetSalesTimeline({ period: 'month' }, { query: { enabled } });
-  const { data: recentOrders } = useListOrders({ limit: 10 }, { query: { enabled } });
+  const { data: summary } = useGetAnalyticsSummary({ query: { enabled, queryKey: getGetAnalyticsSummaryQueryKey() } });
+  const { data: orderStatusBreakdown } = useGetOrderStatusBreakdown({ query: { enabled, queryKey: getGetOrderStatusBreakdownQueryKey() } });
+  const { data: salesTimeline } = useGetSalesTimeline({ period: 'month' }, { query: { enabled, queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) } });
+  const { data: recentOrders } = useListOrders({ limit: 10 }, { query: { enabled, queryKey: getListOrdersQueryKey({ limit: 10 }) } });
 
   const { data: bi } = useQuery<BIData>({
     queryKey: ["bi"],
@@ -99,17 +121,17 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-[calc(100vh-16rem)]">
       {/* Sidebar */}
-      <div className="w-64 border-r border-border bg-muted/20 hidden md:block shrink-0">
-        <div className="p-6">
-          <h2 className="font-serif text-xl font-bold mb-6">Admin Panel</h2>
-          <nav className="space-y-1 flex flex-col">
+      <div className="w-56 border-r border-border bg-muted/20 hidden md:block shrink-0">
+        <div className="p-4">
+          <h2 className="font-serif text-lg font-bold mb-4">Admin Panel</h2>
+          <nav className="space-y-0.5 flex flex-col">
             {TABS.map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-3 text-left text-sm font-medium transition-colors capitalize ${activeTab === tab ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3 py-2.5 text-left text-sm font-medium transition-colors ${activeTab === tab.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
               >
-                {tab.replace('-', ' ')}
+                {tab.label}
               </button>
             ))}
           </nav>
@@ -192,6 +214,9 @@ export default function AdminDashboard() {
                         <td className="px-4 py-3"><span className="px-2 py-1 bg-muted text-xs uppercase tracking-wide">{o.status}</span></td>
                       </tr>
                     ))}
+                    {!recentOrders?.orders?.length && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-sm">No orders yet</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -204,7 +229,6 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             <h1 className="text-3xl font-bold font-serif">Business Intelligence</h1>
 
-            {/* Revenue by period */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard label="Today's Revenue" value={`$${bi?.dailyRevenue?.toFixed(2) ?? "0.00"}`} />
               <StatCard label="This Week" value={`$${bi?.weeklyRevenue?.toFixed(2) ?? "0.00"}`} />
@@ -212,14 +236,12 @@ export default function AdminDashboard() {
               <StatCard label="Avg Order Value" value={`$${bi?.averageOrderValue?.toFixed(2) ?? "0.00"}`} />
             </div>
 
-            {/* Customer metrics */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <StatCard label="Total Customers" value={bi?.totalCustomers ?? 0} />
               <StatCard label="Returning Customers" value={bi?.returningCustomers ?? 0} sub="Placed more than 1 order" />
               <StatCard label="Repeat Purchase Rate" value={`${bi?.repeatPurchaseRate ?? 0}%`} sub="Customers who reordered" subColor={(bi?.repeatPurchaseRate ?? 0) >= 20 ? 'text-green-600' : 'text-amber-500'} />
             </div>
 
-            {/* Top Products chart */}
             <div className="border border-border p-6 bg-card">
               <h3 className="font-serif text-xl font-bold mb-6">Top Products by Units Sold</h3>
               {topProducts && topProducts.length > 0 ? (
@@ -235,7 +257,6 @@ export default function AdminDashboard() {
               ) : <p className="text-muted-foreground text-sm">No sales data yet</p>}
             </div>
 
-            {/* Top Categories + Vendor Performance */}
             <div className="grid md:grid-cols-2 gap-8">
               <div className="border border-border p-6 bg-card">
                 <h3 className="font-serif text-lg font-bold mb-4">Top Categories</h3>
@@ -263,11 +284,10 @@ export default function AdminDashboard() {
                     <div key={v.vendorId} className="flex items-center justify-between text-sm">
                       <div>
                         <div className="font-medium">{v.name}</div>
-                        <div className="text-xs text-muted-foreground">{v.productCount} products</div>
+                        <div className="text-xs text-muted-foreground">{v.productCount} products · {v.totalSold} sold</div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold">${v.revenue.toFixed(0)}</div>
-                        <div className="text-xs text-muted-foreground">{v.totalSold} sold</div>
                       </div>
                     </div>
                   ))}
@@ -277,6 +297,35 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* ── USERS ────────────────────────────────────────────────── */}
+        {activeTab === 'users' && <AdminUsersTab />}
+
+        {/* ── VENDORS ──────────────────────────────────────────────── */}
+        {activeTab === 'vendors' && (
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold font-serif">Vendor Management</h1>
+            <p className="text-sm text-muted-foreground">
+              Vendors are users with the "vendor" role. Use the Users tab to promote/demote roles. Below are all current vendors.
+            </p>
+            <AdminUsersTab />
+          </div>
+        )}
+
+        {/* ── PRODUCTS ─────────────────────────────────────────────── */}
+        {activeTab === 'products' && <AdminProductsTab />}
+
+        {/* ── ORDERS ───────────────────────────────────────────────── */}
+        {activeTab === 'orders' && <AdminOrdersTab />}
+
+        {/* ── CATEGORIES ───────────────────────────────────────────── */}
+        {activeTab === 'categories' && <AdminCategoriesTab />}
+
+        {/* ── COUPONS ──────────────────────────────────────────────── */}
+        {activeTab === 'coupons' && <AdminCouponsTab />}
+
+        {/* ── BANNERS ──────────────────────────────────────────────── */}
+        {activeTab === 'banners' && <AdminBannersTab />}
 
         {/* ── AUDIT LOGS ───────────────────────────────────────────── */}
         {activeTab === 'audit-logs' && (
@@ -341,15 +390,6 @@ export default function AdminDashboard() {
         {/* ── SETTINGS ─────────────────────────────────────────────── */}
         {activeTab === 'settings' && <SettingsPanel />}
 
-        {/* ── OTHER TABS ───────────────────────────────────────────── */}
-        {!['overview', 'analytics', 'audit-logs', 'security', 'settings'].includes(activeTab) && (
-          <div className="flex items-center justify-center h-full min-h-80 border border-border bg-muted/10">
-            <div className="text-center">
-              <h2 className="text-2xl font-serif font-bold mb-2 capitalize">{activeTab} Management</h2>
-              <p className="text-muted-foreground text-sm">Full CRUD UI coming soon</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
