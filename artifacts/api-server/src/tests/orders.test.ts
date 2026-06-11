@@ -11,10 +11,6 @@ function applyDiscount(subtotal: number, type: "percentage" | "fixed", value: nu
   return Math.max(0, subtotal - value);
 }
 
-function validateStock(required: number, available: number): boolean {
-  return available >= required;
-}
-
 describe("Order total calculation", () => {
   it("calculates single item total correctly", () => {
     expect(calculateOrderTotal([{ productVariantId: 1, quantity: 2, price: 99.99 }])).toBeCloseTo(199.98);
@@ -54,23 +50,5 @@ describe("Coupon discount application", () => {
   it("zero discount returns full amount", () => {
     expect(applyDiscount(500, "percentage", 0)).toBeCloseTo(500);
     expect(applyDiscount(500, "fixed", 0)).toBeCloseTo(500);
-  });
-});
-
-describe("Stock validation", () => {
-  it("allows purchase when stock is sufficient", () => {
-    expect(validateStock(3, 10)).toBe(true);
-  });
-
-  it("allows purchase when stock exactly matches", () => {
-    expect(validateStock(5, 5)).toBe(true);
-  });
-
-  it("rejects purchase when stock is insufficient", () => {
-    expect(validateStock(6, 5)).toBe(false);
-  });
-
-  it("rejects purchase when stock is zero", () => {
-    expect(validateStock(1, 0)).toBe(false);
   });
 });

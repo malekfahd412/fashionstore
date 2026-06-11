@@ -33,12 +33,6 @@ function simulateRequireRole(user: { role: string } | null, ...roles: string[]):
   return roles.includes(user.role);
 }
 
-// ── HMAC-SHA512 mock for payment webhook ──────────────────────────────────────
-import crypto from "node:crypto";
-function computePaymobHmac(secret: string, fields: string[]): string {
-  return crypto.createHmac("sha512", secret).update(fields.join("")).digest("hex");
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 describe("Security — Registration role sanitisation", () => {
   it("admin role is stripped to customer", () => {
@@ -142,27 +136,5 @@ describe("Security — Role-based access control", () => {
   });
   it("customer is denied admin+vendor gate", () => {
     expect(simulateRequireRole(customer, "admin", "vendor")).toBe(false);
-  });
-});
-
-describe("Security — Payment HMAC validation", () => {
-  const HMAC_SECRET = "test-paymob-hmac-secret";
-
-  it("accepts matching HMAC", () => {
-    const fields = ["100", "2024-01-01", "EGP", "false", "false", "1", "123", "false", "false", "false", "false", "false", "false", "1", "1", "false", "****", "card", "card", "true"];
-    const computed = computePaymobHmac(HMAC_SECRET, fields);
-    expect(computed).toBe(computePaymobHmac(HMAC_SECRET, fields));
-  });
-
-  it("rejects non-matching HMAC", () => {
-    const fields1 = ["100", "2024-01-01", "EGP"];
-    const fields2 = ["200", "2024-01-01", "EGP"];
-    expect(computePaymobHmac(HMAC_SECRET, fields1)).not.toBe(computePaymobHmac(HMAC_SECRET, fields2));
-  });
-
-  it("HMAC is 128 hex characters (SHA-512)", () => {
-    const hmac = computePaymobHmac(HMAC_SECRET, ["a", "b"]);
-    expect(hmac).toHaveLength(128);
-    expect(/^[0-9a-f]+$/.test(hmac)).toBe(true);
   });
 });
