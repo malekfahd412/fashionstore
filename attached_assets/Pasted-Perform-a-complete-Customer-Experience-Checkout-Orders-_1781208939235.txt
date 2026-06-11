@@ -1,0 +1,231 @@
+Perform a complete Customer Experience, Checkout, Orders, Authentication, and Admin Audit.
+
+The store is functional but not yet at the quality level of major e-commerce platforms.
+
+I want a full production-grade experience similar to Amazon, Noon, Jumia, or Shopify stores.
+
+Requirements:
+
+AUTHENTICATION
+
+1. Audit all authentication flows:
+
+   * Login
+   * Register
+   * Logout
+   * Refresh token
+   * Forgot password
+   * Reset password
+   * Session management
+
+2. Detect and fix:
+
+   * Random login failures
+   * Session expiration bugs
+   * Refresh token issues
+   * Redirect loops
+   * State synchronization issues
+   * LocalStorage inconsistencies
+
+3. Add Google Sign-In:
+
+   * Google OAuth 2.0
+   * Sign in with Google button
+   * Account linking by email
+   * Existing users can connect Google account
+   * New users can register with Google
+   * Store Google profile image
+   * Secure backend verification
+
+4. Add account security features:
+
+   * Login history
+   * Active devices
+   * Device logout
+   * Login notification emails
+
+CUSTOMER EXPERIENCE
+
+5. Replace the basic dashboard with a modern Customer Account Center.
+
+Sections:
+
+* My Orders
+* Track Order
+* Wishlist
+* Addresses
+* Saved Payment Methods (future)
+* Notifications
+* Profile
+* Security
+* Support Tickets
+
+ORDER TRACKING
+
+6. Build a real order tracking experience.
+
+Each order should have:
+
+Ordered
+↓
+Confirmed
+↓
+Packed
+↓
+Shipped
+↓
+Out For Delivery
+↓
+Delivered
+
+Visual timeline required.
+
+Customer sees:
+
+* Current step
+* Completed steps
+* Estimated delivery date
+* Tracking notes
+* Order history
+
+7. Add order status notifications:
+
+   Email
+   In-app notifications
+
+For every status change.
+
+CHECKOUT
+
+8. Audit the entire checkout flow.
+
+Verify:
+
+* Cart totals
+* Discounts
+* Coupons
+* Shipping
+* Payment calculations
+* Order creation
+
+9. Detect and fix:
+
+   * Broken checkout buttons
+   * Missing validation
+   * Duplicate orders
+   * Failed payment states
+   * Refresh-page issues
+
+PAYMENTS
+
+10. Audit Paymob integration end-to-end.
+
+Verify:
+
+* Card payments
+* Meeza
+* Vodafone Cash
+* Webhook processing
+* Success page
+* Failure page
+* Pending payment handling
+
+11. Add payment status center.
+
+Customer can see:
+
+* Paid
+* Pending
+* Failed
+* Refunded
+
+SUPPORT
+
+12. Add support center.
+
+Customer can:
+
+* Open ticket
+* Reply to ticket
+* Attach screenshots
+* Track support status
+
+Admin can:
+
+* Reply
+* Close tickets
+* View ticket history
+
+EMAIL COMMUNICATION
+
+13. Improve customer communication.
+
+Implement:
+
+Order Confirmation Email
+Order Shipped Email
+Order Delivered Email
+Payment Success Email
+Payment Failed Email
+Password Reset Email
+
+All professionally designed.
+
+14. Add customer communication preferences.
+
+Customer chooses:
+
+* Order emails
+* Promotions
+* Security alerts
+
+MOBILE EXPERIENCE
+
+15. Audit entire mobile UX.
+
+Fix:
+
+* Broken layouts
+* Overflow issues
+* Hidden buttons
+* Checkout usability
+* Dashboard usability
+
+SEO & TRUST
+
+16. Add missing trust pages:
+
+Contact Us
+About Us
+FAQ
+Shipping Policy
+Return Policy
+Privacy Policy
+Terms & Conditions
+
+17. Add trust elements:
+
+Secure Payment badges
+Customer support section
+Return guarantee section
+Delivery information
+
+FINAL REPORT
+
+Provide:
+
+Issues found
+Issues fixed
+Files changed
+Remaining issues
+Customer Experience score
+Checkout score
+Authentication score
+Orders score
+Mobile score
+Overall production readiness score
+
+Verify everything end-to-end using the real database and APIs.
+
+Do not use mock data.
+Do not leave placeholder implementations.

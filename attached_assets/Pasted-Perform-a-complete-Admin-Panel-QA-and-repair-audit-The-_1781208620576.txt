@@ -1,0 +1,119 @@
+Perform a complete Admin Panel QA and repair audit.
+
+The Admin Panel appears partially broken.
+
+Problems observed:
+
+* Settings page is not functioning correctly.
+* Some buttons do nothing.
+* Some forms do not save.
+* Some actions appear successful but do not update data.
+* Some admin modules may be incomplete or disconnected from the backend.
+
+Requirements:
+
+1. Audit every Admin Panel section:
+
+   * Overview
+   * Analytics
+   * Users
+   * Vendors
+   * Products
+   * Orders
+   * Categories
+   * Coupons
+   * Banners
+   * Audit Logs
+   * Security
+   * Settings
+
+2. For every page:
+
+   * Verify all buttons work.
+   * Verify all forms submit successfully.
+   * Verify mutations actually update the database.
+   * Verify loading states.
+   * Verify error states.
+   * Verify success feedback.
+   * Verify React Query invalidation/refetch.
+   * Verify role protection.
+   * Verify API endpoints exist and match frontend calls.
+
+3. Settings Module:
+
+   * Verify every field loads current values from database.
+   * Verify every field saves correctly.
+   * Verify values persist after page refresh.
+   * Verify all tabs work:
+
+     * General
+     * Contact
+     * Social
+     * Email
+     * Payment
+     * Shipping
+     * SEO
+     * Homepage Sections
+   * Remove any placeholder or mock implementation.
+
+4. Products Module:
+
+   * Verify create/edit/delete.
+   * Verify variants.
+   * Verify images.
+   * Verify active/featured toggles.
+   * Verify search and filters.
+
+5. Orders Module:
+
+   * Verify status changes.
+   * Verify workflow transitions.
+   * Verify order detail modal.
+   * Verify database updates.
+
+6. Users Module:
+
+   * Verify role changes.
+   * Verify delete user.
+   * Verify pagination and search.
+
+7. Categories, Coupons, Banners:
+
+   * Verify full CRUD.
+   * Verify database persistence.
+   * Verify validation errors.
+
+8. Detect:
+
+   * Broken buttons
+   * Dead links
+   * Missing API routes
+   * Unhandled exceptions
+   * Console errors
+   * TypeScript errors
+   * React Query errors
+   * Network failures
+
+9. Run:
+
+   * pnpm run typecheck
+   * pnpm run build
+
+10. Produce a final report:
+
+For each issue provide:
+
+* File
+* Line
+* Root cause
+* Fix applied
+
+Then provide:
+
+* Total issues found
+* Total issues fixed
+* Remaining issues
+* Production readiness score for Admin Panel only
+
+Do not assume the Admin Panel is working.
+Verify every action end-to-end using the real database and APIs.
