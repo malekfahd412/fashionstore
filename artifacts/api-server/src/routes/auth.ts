@@ -51,13 +51,17 @@ async function createRefreshToken(userId: number, req: { headers: Record<string,
   return raw;
 }
 
-// ── Register ──────────────────────────────────────────────────────────────────
+// ── Register ───────────────────────────────────────────────────────────[...]
 router.post("/auth/register", async (req, res): Promise<void> => {
   const parsed = RegisterBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { name, email, password, role: requestedRole } = parsed.data;
   const role = requestedRole === "vendor" || requestedRole === "admin" ? "customer" : (requestedRole ?? "customer");
-  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email));
+  
+  // BUGFIX: Normalize email to lowercase before checking
+  const normalizedEmail = email.toLowerCase().trim();
+  
+  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, normalizedEmail));
   if (existing.length > 0) { res.status(409).json({ error: "Email already registered" }); return; }
   const hashed = await bcrypt.hash(password, 12);
 
@@ -66,7 +70,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   const [user] = await db.insert(usersTable).values({
-    name, email, password: hashed, role,
+    name, email: normalizedEmail, password: hashed, role,
     emailVerificationToken: verificationToken,
     emailVerificationExpires: verificationExpires,
   }).returning();
@@ -75,8 +79,8 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   const refreshToken = await createRefreshToken(user.id, req);
 
   // Send verification + welcome emails (non-blocking)
-  sendVerificationEmail(email, name, verificationToken).catch(() => {});
-  sendWelcomeEmail(email, name).catch(() => {});
+  sendVerificationEmail(normalizedEmail, name, verificationToken).catch(() => {});
+  sendWelcomeEmail(normalizedEmail, name).catch(() => {});
 
   res.status(201).json({
     token,
@@ -85,7 +89,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   });
 });
 
-// ── Verify email ──────────────────────────────────────────────────────────────
+// ── Verify email ───────────────────────────────────────────────────────────[...]
 router.get("/auth/verify-email", async (req, res): Promise<void> => {
   const { token } = req.query as { token?: string };
   if (!token) { res.status(400).json({ error: "Verification token is required" }); return; }
@@ -126,36 +130,39 @@ router.post("/auth/resend-verification", requireAuth, async (req, res): Promise<
   res.json({ message: "Verification email sent" });
 });
 
-// ── Login ─────────────────────────────────────────────────────────────────────
+// ── Login ─────────────────────────────────────────────────────────────[...]
 router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { email, password, rememberDevice = true } = parsed.data;
 
+  // BUGFIX: Normalize email to lowercase
+  const normalizedEmail = email.toLowerCase().trim();
+
   const ip = extractIp(req as Parameters<typeof extractIp>[0]);
   const ua = req.headers["user-agent"] as string | undefined;
 
   // Check lockout before touching the DB — blocks brute-force early
-  const lockout = await checkLockout(email, ip);
+  const lockout = await checkLockout(normalizedEmail, ip);
   if (lockout.locked) {
     res.setHeader("Retry-After", String(lockout.retryAfterSeconds));
     res.status(429).json({ error: "Too many failed login attempts. Please try again later." });
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail));
   if (!user || !user.password) {
     await bcrypt.hash("dummy", 12);
-    await recordAttempt({ email, ip, success: false, userAgent: ua }).catch(() => {});
+    await recordAttempt({ email: normalizedEmail, ip, success: false, userAgent: ua }).catch(() => {});
     res.status(401).json({ error: "Invalid credentials" }); return;
   }
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
-    await recordAttempt({ email, ip, success: false, userId: user.id, userAgent: ua }).catch(() => {});
+    await recordAttempt({ email: normalizedEmail, ip, success: false, userId: user.id, userAgent: ua }).catch(() => {});
     res.status(401).json({ error: "Invalid credentials" }); return;
   }
   // Success — record attempt (acts as counter-reset marker)
-  await recordAttempt({ email, ip, success: true, userId: user.id, userAgent: ua }).catch(() => {});
+  await recordAttempt({ email: normalizedEmail, ip, success: true, userId: user.id, userAgent: ua }).catch(() => {});
 
   // Device recognition + new-login notification (fully non-blocking)
   void (async () => {
@@ -255,7 +262,7 @@ router.post("/auth/logout-all", requireAuth, async (req, res): Promise<void> => 
   res.json({ message: "All sessions revoked" });
 });
 
-// ── Active sessions ───────────────────────────────────────────────────────────
+// ── Active sessions ────────────────────────────────────────────────────────–[...]
 router.get("/auth/sessions", requireAuth, async (req, res): Promise<void> => {
   const sessions = await db.select({
     id: refreshTokensTable.id,
@@ -280,12 +287,13 @@ router.delete("/auth/sessions/:id", requireAuth, async (req, res): Promise<void>
   res.json({ message: "Session revoked" });
 });
 
-// ── Forgot Password ───────────────────────────────────────────────────────────
+// ── Forgot Password ────────────────────────────────────────────────────────–[...]
 router.post("/auth/forgot-password", async (req, res): Promise<void> => {
   const { email } = req.body as { email?: string };
   // Always return 200 to prevent user enumeration
   if (!email || typeof email !== "string") { res.json({ message: "If that email exists, a reset link has been sent." }); return; }
-  const [user] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email.toLowerCase().trim()));
+  const normalizedEmail = email.toLowerCase().trim();
+  const [user] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, normalizedEmail));
   if (!user) { res.json({ message: "If that email exists, a reset link has been sent." }); return; }
 
   // Invalidate any existing reset tokens for this user
@@ -302,12 +310,12 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
 
   // Send password reset email (non-blocking)
   const [fullUser] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, user.id));
-  sendPasswordResetEmail(email.toLowerCase().trim(), fullUser?.name ?? "Customer", raw).catch(() => {});
+  sendPasswordResetEmail(normalizedEmail, fullUser?.name ?? "Customer", raw).catch(() => {});
 
   res.json({ message: "If that email exists, a reset link has been sent.", ...(process.env.NODE_ENV !== "production" ? { resetToken: raw } : {}) });
 });
 
-// ── Reset Password ────────────────────────────────────────────────────────────
+// ── Reset Password ────────────────────────────────────────────────────────––[...]
 router.post("/auth/reset-password", async (req, res): Promise<void> => {
   const { token, newPassword } = req.body as { token?: string; newPassword?: string };
   if (!token || !newPassword || typeof token !== "string" || typeof newPassword !== "string") {
@@ -333,7 +341,7 @@ router.post("/auth/reset-password", async (req, res): Promise<void> => {
   res.json({ message: "Password updated successfully. Please log in again." });
 });
 
-// ── Get current user ──────────────────────────────────────────────────────────
+// ── Get current user ────────────────────────────────────────────────────────[...]
 router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
   const [user] = await db.select({
     id: usersTable.id, name: usersTable.name, email: usersTable.email,
