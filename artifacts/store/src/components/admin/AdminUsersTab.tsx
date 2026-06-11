@@ -56,9 +56,9 @@ function ConfirmDialog({
   );
 }
 
-export default function AdminUsersTab() {
+export default function AdminUsersTab({ defaultRole = "all" }: { defaultRole?: string }) {
   const qc = useQueryClient();
-  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>(defaultRole);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);

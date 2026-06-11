@@ -188,7 +188,7 @@ router.get("/analytics/vendor-performance", requireAuth, requireRole("admin"), a
 
 // ── Order status breakdown ────────────────────────────────────────────────────
 router.get("/analytics/order-status-breakdown", requireAuth, requireRole("admin", "vendor"), async (_req, res): Promise<void> => {
-  const statuses = ["new", "under_review", "preparing", "shipped", "delivered", "cancelled"];
+  const statuses = ["new", "paid", "processing", "shipped", "delivered", "cancelled"];
   const result = await Promise.all(statuses.map(async (status) => {
     const [{ v }] = await db.select({ v: count() }).from(ordersTable).where(eq(ordersTable.status, status));
     return { status, count: Number(v) };

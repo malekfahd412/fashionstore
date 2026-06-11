@@ -26,12 +26,13 @@ type Order = {
 };
 type OrderListResponse = { orders: Order[]; total: number; page: number; limit: number };
 
-const ALL_STATUSES = ["all", "new", "paid", "shipped", "delivered", "cancelled"] as const;
+const ALL_STATUSES = ["all", "new", "paid", "processing", "shipped", "delivered", "cancelled"] as const;
 type StatusFilter = (typeof ALL_STATUSES)[number];
 
 const STATUS_COLORS: Record<string, string> = {
   new: "bg-yellow-100 text-yellow-700",
   paid: "bg-blue-100 text-blue-700",
+  processing: "bg-orange-100 text-orange-700",
   shipped: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-700",
@@ -39,7 +40,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 const NEXT_STATUSES: Record<string, string[]> = {
   new: ["paid", "cancelled"],
-  paid: ["shipped", "cancelled"],
+  paid: ["processing", "cancelled"],
+  processing: ["shipped", "cancelled"],
   shipped: ["delivered", "cancelled"],
   delivered: [],
   cancelled: [],

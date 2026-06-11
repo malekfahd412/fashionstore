@@ -128,7 +128,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-[calc(100vh-16rem)]">
-      {/* Sidebar */}
+      {/* Sidebar — desktop only */}
       <div className="w-56 border-r border-border bg-muted/20 hidden md:block shrink-0">
         <div className="p-4">
           <h2 className="font-serif text-lg font-bold mb-4">Admin Panel</h2>
@@ -146,7 +146,21 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="flex-1 p-8 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
+        {/* Mobile tab picker */}
+        <div className="md:hidden border-b border-border bg-muted/20 px-4 py-3">
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            className="w-full border border-border bg-background px-3 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            {TABS.map((tab) => (
+              <option key={tab.id} value={tab.id}>{tab.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="p-4 md:p-8">
 
         {/* ── OVERVIEW ─────────────────────────────────────────────── */}
         {activeTab === 'overview' && (
@@ -314,9 +328,9 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <h1 className="text-3xl font-bold font-serif">Vendor Management</h1>
             <p className="text-sm text-muted-foreground">
-              Vendors are users with the "vendor" role. Use the Users tab to promote/demote roles. Below are all current vendors.
+              Vendors are users with the "vendor" role. Use the role selector below to promote or demote users.
             </p>
-            <AdminUsersTab />
+            <AdminUsersTab defaultRole="vendor" />
           </div>
         )}
 
@@ -398,6 +412,7 @@ export default function AdminDashboard() {
         {/* ── SETTINGS ─────────────────────────────────────────────── */}
         {activeTab === 'settings' && <SettingsPanel />}
 
+        </div>
       </div>
     </div>
   );
