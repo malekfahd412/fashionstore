@@ -1228,6 +1228,9 @@ components:
           type: string
         password:
           type: string
+        rememberDevice:
+          type: boolean
+          description: When true, the device is saved as trusted so future logins from it skip new-device alerts.
 
     AuthResult:
       type: object

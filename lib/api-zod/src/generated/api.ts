@@ -32,7 +32,8 @@ export const RegisterBody = zod.object({
  */
 export const LoginBody = zod.object({
   "email": zod.string(),
-  "password": zod.string()
+  "password": zod.string(),
+  "rememberDevice": zod.boolean().optional()
 })
 
 export const LoginResponse = zod.object({

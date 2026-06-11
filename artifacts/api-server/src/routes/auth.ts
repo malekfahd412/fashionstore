@@ -130,7 +130,7 @@ router.post("/auth/resend-verification", requireAuth, async (req, res): Promise<
 router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const { email, password } = parsed.data;
+  const { email, password, rememberDevice = true } = parsed.data;
 
   const ip = extractIp(req as Parameters<typeof extractIp>[0]);
   const ua = req.headers["user-agent"] as string | undefined;
@@ -165,7 +165,9 @@ router.post("/auth/login", async (req, res): Promise<void> => {
       const { browser, os, deviceName } = parseUserAgent(userAgent);
       const known = await isKnownDevice(user.id, deviceHash);
       const hasDevices = known || await hasAnyTrustedDevice(user.id);
-      await trustDevice({ userId: user.id, deviceHash, deviceName, browser, os, ip: ip ?? null });
+      if (rememberDevice) {
+        await trustDevice({ userId: user.id, deviceHash, deviceName, browser, os, ip: ip ?? null });
+      }
       if (!known && hasDevices) {
         const prefs = await getSecurityPrefs(user.id);
         if (prefs.loginAlertsEnabled) {

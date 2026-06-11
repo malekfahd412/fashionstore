@@ -3,12 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link, useLocation } from "wouter";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,6 +26,7 @@ export default function Login() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberDevice, setRememberDevice] = useState(true);
 
   const redirectTo = new URLSearchParams(window.location.search).get("from") || "/";
 
@@ -36,7 +38,7 @@ export default function Login() {
   });
 
   const onSubmit = (data: LoginFormValues) => {
-    loginMutation.mutate({ data }, {
+    loginMutation.mutate({ data: { ...data, rememberDevice } }, {
       onSuccess: (result) => {
         setAuthData(result.user, result.token, result.refreshToken);
         toast({ title: "Welcome back!", description: `Signed in as ${result.user.name}` });
@@ -108,6 +110,28 @@ export default function Login() {
               </FormItem>
             )}
           />
+
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3">
+            <Checkbox
+              id="remember-device"
+              checked={rememberDevice}
+              onCheckedChange={(checked) => setRememberDevice(checked === true)}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5 leading-none">
+              <label
+                htmlFor="remember-device"
+                className="text-sm font-medium cursor-pointer flex items-center gap-1.5"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                Remember this device
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Skip new-device security alerts when signing in from this browser.
+                Uncheck on shared or public computers.
+              </p>
+            </div>
+          </div>
 
           <Button type="submit" className="w-full h-12 text-lg" disabled={loginMutation.isPending}>
             {loginMutation.isPending ? "Signing in..." : t("nav.login")}

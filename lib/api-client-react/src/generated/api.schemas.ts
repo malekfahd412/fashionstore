@@ -23,6 +23,7 @@ export interface RegisterInput {
 export interface LoginInput {
   email: string;
   password: string;
+  rememberDevice?: boolean;
 }
 
 export interface User {
