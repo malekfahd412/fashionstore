@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import {
+  setAuthTokenGetter,
+  setTokenRefresher,
+  setOnAuthFailure,
+} from "@workspace/api-client-react";
 
 export type UserRole = "admin" | "vendor" | "customer";
 
@@ -15,38 +19,112 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (user: User, token: string) => void;
+  login: (user: User, token: string, refreshToken: string) => void;
   logout: () => void;
 }
+
+const STORAGE_KEYS = {
+  user: "auth_user",
+  token: "auth_token",
+  refreshToken: "auth_refresh_token",
+} as const;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem("auth_user");
-    return storedUser ? JSON.parse(storedUser) : null;
+    try {
+      const storedUser = localStorage.getItem(STORAGE_KEYS.user);
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
   });
-  
+
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem("auth_token");
+    return localStorage.getItem(STORAGE_KEYS.token);
   });
 
   useEffect(() => {
-    setAuthTokenGetter(() => localStorage.getItem("auth_token"));
+    // Supply the access token for every outgoing API request.
+    setAuthTokenGetter(() => localStorage.getItem(STORAGE_KEYS.token));
+
+    // Attempt to silently refresh the access token when a 401 is received.
+    // The refresher is called at most once per concurrent burst (coalesced
+    // by custom-fetch). On success it persists new tokens and returns them;
+    // on failure it returns null, triggering onAuthFailure below.
+    setTokenRefresher(async () => {
+      const rt = localStorage.getItem(STORAGE_KEYS.refreshToken);
+      if (!rt) return null;
+
+      try {
+        const res = await fetch("/api/auth/refresh", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken: rt }),
+        });
+
+        if (!res.ok) return null;
+
+        const data = await res.json();
+        if (typeof data.token !== "string" || typeof data.refreshToken !== "string") {
+          return null;
+        }
+
+        localStorage.setItem(STORAGE_KEYS.token, data.token);
+        localStorage.setItem(STORAGE_KEYS.refreshToken, data.refreshToken);
+        return { token: data.token, refreshToken: data.refreshToken };
+      } catch {
+        return null;
+      }
+    });
+
+    // When refresh fails, wipe all auth state and redirect to login.
+    setOnAuthFailure(() => {
+      localStorage.removeItem(STORAGE_KEYS.user);
+      localStorage.removeItem(STORAGE_KEYS.token);
+      localStorage.removeItem(STORAGE_KEYS.refreshToken);
+      setUser(null);
+      setToken(null);
+      window.location.href = "/login";
+    });
+
+    return () => {
+      setTokenRefresher(null);
+      setOnAuthFailure(null);
+    };
   }, []);
 
-  const login = (newUser: User, newToken: string) => {
+  const login = (newUser: User, newToken: string, newRefreshToken: string) => {
     setUser(newUser);
     setToken(newToken);
-    localStorage.setItem("auth_user", JSON.stringify(newUser));
-    localStorage.setItem("auth_token", newToken);
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(newUser));
+    localStorage.setItem(STORAGE_KEYS.token, newToken);
+    localStorage.setItem(STORAGE_KEYS.refreshToken, newRefreshToken);
   };
 
   const logout = () => {
+    // Revoke the refresh token on the server (fire-and-forget — don't block UI).
+    const rt = localStorage.getItem(STORAGE_KEYS.refreshToken);
+    if (rt) {
+      const at = localStorage.getItem(STORAGE_KEYS.token);
+      fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(at ? { Authorization: `Bearer ${at}` } : {}),
+        },
+        body: JSON.stringify({ refreshToken: rt }),
+      }).catch(() => {
+        // Server-side revocation failure is non-fatal; tokens are cleared locally.
+      });
+    }
+
     setUser(null);
     setToken(null);
-    localStorage.removeItem("auth_user");
-    localStorage.removeItem("auth_token");
+    localStorage.removeItem(STORAGE_KEYS.user);
+    localStorage.removeItem(STORAGE_KEYS.token);
+    localStorage.removeItem(STORAGE_KEYS.refreshToken);
   };
 
   return (

@@ -37,6 +37,7 @@ export const LoginBody = zod.object({
 
 export const LoginResponse = zod.object({
   "token": zod.string(),
+  "refreshToken": zod.string(),
   "user": zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -58,6 +59,19 @@ export const GetMeResponse = zod.object({
   "role": zod.string(),
   "avatar": zod.string().nullish(),
   "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Refresh access token
+ */
+export const RefreshTokenBody = zod.object({
+  "refreshToken": zod.string()
+})
+
+export const RefreshTokenResponse = zod.object({
+  "token": zod.string(),
+  "refreshToken": zod.string()
 })
 
 

@@ -44,7 +44,7 @@ export default function Register() {
     const { confirmPassword: _, ...submitData } = data;
     registerMutation.mutate({ data: submitData }, {
       onSuccess: (result) => {
-        setAuthData(result.user, result.token);
+        setAuthData(result.user, result.token, result.refreshToken);
         toast({ title: "Welcome to LUXE!", description: "Your account has been created." });
         setLocation("/");
       },

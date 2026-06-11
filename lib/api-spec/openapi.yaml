@@ -86,6 +86,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshInput"
+      responses:
+        "200":
+          description: New token pair issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshResult"
+
   /auth/logout:
     post:
       operationId: logout
@@ -1212,12 +1231,30 @@ components:
 
     AuthResult:
       type: object
-      required: [token, user]
+      required: [token, refreshToken, user]
       properties:
         token:
           type: string
+        refreshToken:
+          type: string
         user:
           $ref: "#/components/schemas/User"
+
+    RefreshInput:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    RefreshResult:
+      type: object
+      required: [token, refreshToken]
+      properties:
+        token:
+          type: string
+        refreshToken:
+          type: string
 
     # ── User ───────────────────────────────────────────────────────────
     User:

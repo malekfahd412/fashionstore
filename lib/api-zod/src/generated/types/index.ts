@@ -46,6 +46,8 @@ export * from './productInput';
 export * from './productListResponse';
 export * from './productUpdate';
 export * from './productVariant';
+export * from './refreshInput';
+export * from './refreshResult';
 export * from './registerInput';
 export * from './review';
 export * from './reviewInput';

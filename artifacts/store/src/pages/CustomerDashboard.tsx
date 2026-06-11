@@ -39,7 +39,11 @@ export default function CustomerDashboard() {
       { id: user.id, data: { name } },
       {
         onSuccess: (updatedUser) => {
-          login(updatedUser, localStorage.getItem("auth_token") || "");
+          login(
+            updatedUser,
+            localStorage.getItem("auth_token") || "",
+            localStorage.getItem("auth_refresh_token") || "",
+          );
           toast({ title: "Profile updated successfully" });
         }
       }

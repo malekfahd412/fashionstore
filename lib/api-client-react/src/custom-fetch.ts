@@ -8,6 +8,10 @@ export type BodyType<T> = T;
 
 export type AuthTokenGetter = () => Promise<string | null> | string | null;
 
+export type TokenRefresher = () => Promise<{ token: string; refreshToken: string } | null>;
+
+export type AuthFailureHandler = () => void;
+
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
@@ -17,6 +21,11 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _tokenRefresher: TokenRefresher | null = null;
+let _onAuthFailure: AuthFailureHandler | null = null;
+
+// Coalesce concurrent refresh calls into a single in-flight promise.
+let _refreshPromise: Promise<{ token: string; refreshToken: string } | null> | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -42,6 +51,27 @@ export function setBaseUrl(url: string | null): void {
  */
 export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
   _authTokenGetter = getter;
+}
+
+/**
+ * Register an async function that attempts to refresh the access token.
+ * Called automatically when any API request returns a 401. On success,
+ * the original request is retried once with the new access token.
+ *
+ * The refresher is responsible for persisting the new token pair.
+ * Return `null` to signal that refresh failed (e.g. refresh token expired).
+ */
+export function setTokenRefresher(fn: TokenRefresher | null): void {
+  _tokenRefresher = fn;
+}
+
+/**
+ * Register a callback invoked when an API request returns 401 AND token
+ * refresh either failed or was not configured. Use this to clear auth state
+ * and redirect to the login page.
+ */
+export function setOnAuthFailure(fn: AuthFailureHandler | null): void {
+  _onAuthFailure = fn;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -322,6 +352,30 @@ async function parseSuccessBody(
   }
 }
 
+/**
+ * Returns true for the refresh endpoint itself — we must not attempt to
+ * refresh-and-retry when the refresh call itself returns 401, or we'd loop.
+ */
+function isRefreshEndpoint(url: string): boolean {
+  return url.includes("/auth/refresh");
+}
+
+/**
+ * Coalesces concurrent token-refresh attempts into a single in-flight call.
+ * All callers that arrive while a refresh is in progress receive the same
+ * promise, so only one HTTP request is made.
+ */
+async function coalesceRefresh(): Promise<{ token: string; refreshToken: string } | null> {
+  if (!_tokenRefresher) return null;
+  if (_refreshPromise) return _refreshPromise;
+
+  _refreshPromise = _tokenRefresher().finally(() => {
+    _refreshPromise = null;
+  });
+
+  return _refreshPromise;
+}
+
 export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
@@ -363,6 +417,47 @@ export async function customFetch<T = unknown>(
   const response = await fetch(input, { ...init, method, headers });
 
   if (!response.ok) {
+    // ── Auto-refresh on 401 ──────────────────────────────────────────
+    // When a refresher is registered and this is not the refresh endpoint
+    // itself, attempt token rotation and retry the original request once.
+    if (
+      response.status === 401 &&
+      _tokenRefresher &&
+      !isRefreshEndpoint(requestInfo.url)
+    ) {
+      const refreshed = await coalesceRefresh();
+
+      if (refreshed) {
+        // Rebuild headers with the new access token and retry.
+        const retryHeaders = mergeHeaders(
+          isRequest(input) ? input.headers : undefined,
+          headersInit,
+        );
+
+        if (
+          typeof init.body === "string" &&
+          !retryHeaders.has("content-type") &&
+          looksLikeJson(init.body)
+        ) {
+          retryHeaders.set("content-type", "application/json");
+        }
+
+        retryHeaders.set("authorization", `Bearer ${refreshed.token}`);
+
+        const retryResponse = await fetch(input, { ...init, method, headers: retryHeaders });
+
+        if (retryResponse.ok) {
+          return (await parseSuccessBody(retryResponse, responseType, requestInfo)) as T;
+        }
+
+        const retryErrorData = await parseErrorBody(retryResponse, method);
+        throw new ApiError(retryResponse, retryErrorData, requestInfo);
+      }
+
+      // Refresh failed — clear auth state and notify the app.
+      _onAuthFailure?.();
+    }
+
     const errorData = await parseErrorBody(response, method);
     throw new ApiError(response, errorData, requestInfo);
   }

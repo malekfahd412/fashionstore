@@ -37,7 +37,17 @@ export interface User {
 
 export interface AuthResult {
   token: string;
+  refreshToken: string;
   user: User;
+}
+
+export interface RefreshInput {
+  refreshToken: string;
+}
+
+export interface RefreshResult {
+  token: string;
+  refreshToken: string;
 }
 
 export interface UserUpdate {

@@ -38,7 +38,7 @@ export default function Login() {
   const onSubmit = (data: LoginFormValues) => {
     loginMutation.mutate({ data }, {
       onSuccess: (result) => {
-        setAuthData(result.user, result.token);
+        setAuthData(result.user, result.token, result.refreshToken);
         toast({ title: "Welcome back!", description: `Signed in as ${result.user.name}` });
         setLocation(redirectTo);
       },
