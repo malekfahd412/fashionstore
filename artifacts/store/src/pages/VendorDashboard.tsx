@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
+import AccessDenied from "@/components/AccessDenied";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useGetVendorSummary, useListProducts, useListOrders, useGetSalesTimeline, useGetTopProducts, useCreateProduct } from "@workspace/api-client-react";
+import {
+  useGetVendorSummary, useListProducts, useListOrders, useGetSalesTimeline, useGetTopProducts, useCreateProduct,
+  getGetVendorSummaryQueryKey, getListProductsQueryKey, getListOrdersQueryKey, getGetSalesTimelineQueryKey, getGetTopProductsQueryKey,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,21 +16,27 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function VendorDashboard() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const { language } = useLanguage();
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
 
-  const { data: summary } = useGetVendorSummary({ query: { enabled: !!user } });
-  const { data: productsData } = useListProducts({ vendorId: user?.id }, { query: { enabled: !!user } });
-  const { data: ordersData } = useListOrders({ userId: user?.id }, { query: { enabled: !!user } });
-  const { data: salesTimeline } = useGetSalesTimeline({ period: 'month' }, { query: { enabled: !!user } });
-  const { data: topProducts } = useGetTopProducts({ query: { enabled: !!user } });
+  const { data: summary } = useGetVendorSummary({ query: { enabled: !!user, queryKey: getGetVendorSummaryQueryKey() } });
+  const { data: productsData } = useListProducts({ vendorId: user?.id }, { query: { enabled: !!user, queryKey: getListProductsQueryKey({ vendorId: user?.id }) } });
+  const { data: ordersData } = useListOrders({ userId: user?.id }, { query: { enabled: !!user, queryKey: getListOrdersQueryKey({ userId: user?.id }) } });
+  const { data: salesTimeline } = useGetSalesTimeline({ period: 'month' }, { query: { enabled: !!user, queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) } });
+  const { data: topProducts } = useGetTopProducts({ query: { enabled: !!user, queryKey: getGetTopProductsQueryKey() } });
 
   const createProductMutation = useCreateProduct();
 
-  if (!user || user.role !== "vendor") return <div className="p-16 text-center">Unauthorized access</div>;
+  useEffect(() => {
+    if (!user) setLocation("/login?from=/dashboard/vendor");
+  }, [user, setLocation]);
+
+  if (!user) return null;
+  if (user.role !== "vendor") return <AccessDenied reason="vendor_required" redirectTo="/dashboard/vendor" />;
 
   const orders = Array.isArray(ordersData)
     ? ordersData

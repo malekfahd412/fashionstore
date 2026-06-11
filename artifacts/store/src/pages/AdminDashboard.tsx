@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
+import AccessDenied from "@/components/AccessDenied";
 import {
   useGetAnalyticsSummary, useGetOrderStatusBreakdown, useGetSalesTimeline, useListOrders,
   getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey, getListOrdersQueryKey,
@@ -71,6 +73,7 @@ function StatCard({ label, value, sub, subColor }: { label: string; value: strin
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [auditSearch, setAuditSearch] = useState("");
 
@@ -116,7 +119,12 @@ export default function AdminDashboard() {
     staleTime: 30_000,
   });
 
-  if (!user || user.role !== "admin") return <div className="p-16 text-center">Unauthorized access</div>;
+  useEffect(() => {
+    if (!user) setLocation("/login?from=/admin-panel");
+  }, [user, setLocation]);
+
+  if (!user) return null;
+  if (user.role !== "admin") return <AccessDenied reason="admin_required" redirectTo="/admin-panel" />;
 
   return (
     <div className="flex min-h-[calc(100vh-16rem)]">

@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useListOrders, useGetWishlist, useRemoveFromWishlist, useUpdateUser, useListNotifications, useMarkNotificationRead } from "@workspace/api-client-react";
+import {
+  useListOrders, useGetWishlist, useRemoveFromWishlist, useUpdateUser, useListNotifications, useMarkNotificationRead,
+  getListOrdersQueryKey, getGetWishlistQueryKey, getListNotificationsQueryKey,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +16,7 @@ import SecurityCenterTab from "@/components/SecurityCenterTab";
 
 export default function CustomerDashboard() {
   const { user, login } = useAuth();
+  const [, setLocation] = useLocation();
   const { language } = useLanguage();
   const { toast } = useToast();
 
@@ -23,15 +28,19 @@ export default function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState(tabParam ?? "orders");
   const [name, setName] = useState(user?.name || "");
   
-  const { data: ordersData } = useListOrders({ userId: user?.id }, { query: { enabled: !!user } });
-  const { data: wishlist, refetch: refetchWishlist } = useGetWishlist({ query: { enabled: !!user } });
-  const { data: notifications, refetch: refetchNotifications } = useListNotifications({ query: { enabled: !!user } });
+  const { data: ordersData } = useListOrders({ userId: user?.id }, { query: { enabled: !!user, queryKey: getListOrdersQueryKey({ userId: user?.id }) } });
+  const { data: wishlist, refetch: refetchWishlist } = useGetWishlist({ query: { enabled: !!user, queryKey: getGetWishlistQueryKey() } });
+  const { data: notifications, refetch: refetchNotifications } = useListNotifications({ query: { enabled: !!user, queryKey: getListNotificationsQueryKey() } });
   
   const updateUserMutation = useUpdateUser();
   const removeFromWishlistMutation = useRemoveFromWishlist();
   const markReadMutation = useMarkNotificationRead();
 
-  if (!user) return <div className="p-16 text-center">Please login</div>;
+  useEffect(() => {
+    if (!user) setLocation("/login?from=/dashboard/customer");
+  }, [user, setLocation]);
+
+  if (!user) return null;
 
   const handleUpdateProfile = () => {
     if (!user) return;
