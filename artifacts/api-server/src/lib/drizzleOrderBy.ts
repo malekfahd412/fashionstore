@@ -26,16 +26,20 @@ export type OrderDirection = "asc" | "desc";
 /**
  * Safe wrapper for Drizzle orderBy() that enforces strict column + direction signature.
  *
- * @param column - MUST be a Drizzle column reference (e.g., table.column)
+ * @param column - MUST be a Drizzle column reference (e.g., table.column) OR SQL/aggregate expression
  * @param direction - "asc" or "desc"
  * @returns SQL order clause safe for Drizzle queries
  *
- * @throws TypeError if column is not a valid Drizzle column
+ * @throws TypeError if column is not a valid Drizzle column or SQL expression
  * @throws TypeError if direction is not "asc" or "desc"
  *
  * @example
- * // ✅ CORRECT
+ * // ✅ CORRECT - Column
  * .orderBy(safeOrderBy(loginAttemptsTable.attemptedAt, "desc"))
+ *
+ * // ✅ CORRECT - Aggregate function
+ * .orderBy(safeOrderBy(count(), "desc"))
+ * .orderBy(safeOrderBy(countDistinct(email), "desc"))
  *
  * // ❌ WRONG - will throw immediately
  * .orderBy(safeOrderBy(loginAttemptsTable, "desc"))  // table object
@@ -43,7 +47,7 @@ export type OrderDirection = "asc" | "desc";
  * .orderBy(safeOrderBy(undefined, "desc"))           // undefined
  */
 export function safeOrderBy(
-  column: AnyColumn,
+  column: AnyColumn | SQL<unknown>,
   direction: OrderDirection = "asc",
 ): SQL<unknown> {
   // ────────────────────────────────────────────────────────────────────────────
@@ -58,14 +62,14 @@ export function safeOrderBy(
     );
   }
 
-  // Guard 2: column must be a Drizzle column (has SQL field)
-  if (
-    typeof column !== "object" ||
-    !("__isSelectable" in column) ||
-    !column.__isSelectable
-  ) {
+  // Guard 2: column must be a Drizzle column OR SQL expression
+  // SQL expressions have a different structure than columns
+  const isColumn = typeof column === "object" && "__isSelectable" in column && column.__isSelectable;
+  const isSQLExpression = typeof column === "object" && "__brand" in column; // SQL objects have __brand property
+  
+  if (!isColumn && !isSQLExpression) {
     throw new TypeError(
-      "[safeOrderBy] column must be a valid Drizzle column reference. " +
+      "[safeOrderBy] column must be a valid Drizzle column reference or SQL expression. " +
       `Received: ${typeof column} ${
         typeof column === "string" ? `("${column}")` : ""
       }. ` +
@@ -84,7 +88,7 @@ export function safeOrderBy(
   // CONSTRUCT & RETURN
   // ────────────────────────────────────────────────────────────────────────────
 
-  return direction === "asc" ? asc(column) : desc(column);
+  return direction === "asc" ? asc(column as AnyColumn) : desc(column as AnyColumn);
 }
 
 /**
