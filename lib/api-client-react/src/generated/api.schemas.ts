@@ -402,6 +402,51 @@ export interface VendorSummary {
   lowStockProducts?: number;
 }
 
+export interface SettingsMap {[key: string]: string}
+
+export interface UploadImageInput {
+  folder?: string;
+}
+
+export interface UploadResult {
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+}
+
+export type PaymobInitiateInputMethod = typeof PaymobInitiateInputMethod[keyof typeof PaymobInitiateInputMethod];
+
+
+export const PaymobInitiateInputMethod = {
+  card: 'card',
+  meeza: 'meeza',
+  vodafone: 'vodafone',
+} as const;
+
+export type PaymobInitiateInputBillingData = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+};
+
+export interface PaymobInitiateInput {
+  orderId: number;
+  method?: PaymobInitiateInputMethod;
+  billingData?: PaymobInitiateInputBillingData;
+}
+
+export interface PaymobInitiateResponse {
+  checkoutUrl: string;
+  paymentToken: string;
+  paymobOrderId: number;
+}
+
 export type ListUsersParams = {
 role?: string;
 search?: string;
@@ -432,5 +477,9 @@ limit?: number;
 
 export type GetSalesTimelineParams = {
 period?: string;
+};
+
+export type VerifyEmailParams = {
+token: string;
 };
 

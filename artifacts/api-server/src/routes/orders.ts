@@ -4,6 +4,7 @@ import { eq, and, SQL, desc, inArray, gt, isNull } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, ListOrdersQueryParams } from "@workspace/api-zod";
 import { auditLog } from "../lib/audit";
+import { sendOrderConfirmationEmail, sendOrderStatusEmail, sendVendorNewOrderEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -26,7 +27,7 @@ async function batchEnrichOrders(orders: (typeof ordersTable.$inferSelect)[]) {
   const productIds = [...new Set(variants.map(v => v.productId))];
   const [products, images] = productIds.length
     ? await Promise.all([
-        db.select({ id: productsTable.id, nameEn: productsTable.nameEn, nameAr: productsTable.nameAr }).from(productsTable).where(inArray(productsTable.id, productIds)),
+        db.select({ id: productsTable.id, nameEn: productsTable.nameEn, nameAr: productsTable.nameAr, vendorId: productsTable.vendorId }).from(productsTable).where(inArray(productsTable.id, productIds)),
         db.select().from(productImagesTable).where(and(inArray(productImagesTable.productId, productIds), eq(productImagesTable.isPrimary, true))),
       ])
     : [[], []];
@@ -54,6 +55,9 @@ async function batchEnrichOrders(orders: (typeof ordersTable.$inferSelect)[]) {
         productId: product?.id ?? 0,
         productNameEn: product?.nameEn ?? "",
         productNameAr: product?.nameAr ?? "",
+        nameEn: product?.nameEn ?? "",
+        nameAr: product?.nameAr ?? "",
+        vendorId: product?.vendorId ?? null,
         imageUrl: product ? (imageMap.get(product.id) ?? null) : null,
         color: variant?.color ?? null,
         size: variant?.size ?? null,
@@ -190,7 +194,30 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
     res.status(status).json({ error: message }); return;
   }
 
-  res.status(201).json(await enrichOrder(order));
+  const enriched = await enrichOrder(order);
+  res.status(201).json(enriched);
+
+  // Send order confirmation + vendor notifications (non-blocking, after response sent)
+  const [customer] = await db.select({ email: usersTable.email, name: usersTable.name })
+    .from(usersTable).where(eq(usersTable.id, order.userId));
+  if (customer) {
+    type EnrichedItem = { nameEn: string; vendorId: number | null; quantity: number; price: number };
+    const emailItems = (enriched.items as EnrichedItem[]).map(i => ({
+      nameEn: i.nameEn, quantity: i.quantity, price: i.price,
+    }));
+    sendOrderConfirmationEmail(customer.email, customer.name, order.id, Number(order.totalPrice), emailItems).catch(() => {});
+
+    // Notify each vendor whose products are in this order
+    const vendorIds = [...new Set((enriched.items as EnrichedItem[]).map(i => i.vendorId).filter((v): v is number => v !== null))];
+    for (const vid of vendorIds) {
+      const [vendor] = await db.select({ email: usersTable.email, name: usersTable.name })
+        .from(usersTable).where(eq(usersTable.id, vid));
+      if (vendor) {
+        const vendorItems = (enriched.items as EnrichedItem[]).filter(i => i.vendorId === vid);
+        sendVendorNewOrderEmail(vendor.email, vendor.name, order.id, vendorItems.length, Number(order.totalPrice)).catch(() => {});
+      }
+    }
+  }
 });
 
 // ── Update order status ───────────────────────────────────────────────────────
@@ -215,6 +242,13 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
   ]);
 
   res.json(await enrichOrder(order));
+
+  // Send status update email (non-blocking, after response sent)
+  const [customer] = await db.select({ email: usersTable.email, name: usersTable.name })
+    .from(usersTable).where(eq(usersTable.id, order.userId));
+  if (customer) {
+    sendOrderStatusEmail(customer.email, customer.name, order.id, parsed.data.status).catch(() => {});
+  }
 });
 
 export default router;

@@ -1,0 +1,43 @@
+import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+
+export const storeSettingsTable = pgTable("store_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export type StoreSetting = typeof storeSettingsTable.$inferSelect;
+
+export const DEFAULT_SETTINGS: Record<string, string> = {
+  store_name: "LUXE",
+  store_name_ar: "لوكس",
+  store_logo: "",
+  contact_email: "",
+  contact_phone: "",
+  contact_address: "",
+  contact_address_ar: "",
+  social_facebook: "",
+  social_instagram: "",
+  social_twitter: "",
+  social_tiktok: "",
+  social_youtube: "",
+  email_from_name: "LUXE Store",
+  email_from_address: "",
+  payment_cod_enabled: "true",
+  payment_paymob_enabled: "false",
+  paymob_iframe_id: "",
+  paymob_integration_id_card: "",
+  paymob_integration_id_meeza: "",
+  paymob_integration_id_vodafone: "",
+  shipping_free_threshold: "500",
+  shipping_fee: "50",
+  seo_title: "LUXE — Premium Fashion",
+  seo_description: "Discover the latest in luxury fashion. Shop premium clothing, accessories, and more.",
+  seo_keywords: "fashion, luxury, clothing, accessories",
+  homepage_show_banners: "true",
+  homepage_show_featured: "true",
+  homepage_show_new_arrivals: "true",
+  homepage_show_best_sellers: "true",
+  homepage_show_categories: "true",
+};

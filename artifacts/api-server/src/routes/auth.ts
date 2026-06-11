@@ -5,6 +5,7 @@ import { db, usersTable, refreshTokensTable, passwordResetTokensTable } from "@w
 import { eq, and, gt, isNull } from "drizzle-orm";
 import { requireAuth, signToken } from "../middlewares/auth";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
+import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -49,14 +50,70 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email));
   if (existing.length > 0) { res.status(409).json({ error: "Email already registered" }); return; }
   const hashed = await bcrypt.hash(password, 12);
-  const [user] = await db.insert(usersTable).values({ name, email, password: hashed, role }).returning();
+
+  // Generate email verification token
+  const verificationToken = generateToken();
+  const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  const [user] = await db.insert(usersTable).values({
+    name, email, password: hashed, role,
+    emailVerificationToken: verificationToken,
+    emailVerificationExpires: verificationExpires,
+  }).returning();
+
   const token = signToken({ id: user.id, email: user.email, role: user.role });
   const refreshToken = await createRefreshToken(user.id, req);
+
+  // Send verification + welcome emails (non-blocking)
+  sendVerificationEmail(email, name, verificationToken).catch(() => {});
+  sendWelcomeEmail(email, name).catch(() => {});
+
   res.status(201).json({
     token,
     refreshToken,
-    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, createdAt: user.createdAt },
+    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, emailVerified: user.emailVerified, createdAt: user.createdAt },
   });
+});
+
+// ── Verify email ──────────────────────────────────────────────────────────────
+router.get("/auth/verify-email", async (req, res): Promise<void> => {
+  const { token } = req.query as { token?: string };
+  if (!token) { res.status(400).json({ error: "Verification token is required" }); return; }
+
+  const [user] = await db.select().from(usersTable).where(
+    eq(usersTable.emailVerificationToken, token)
+  );
+  if (!user || !user.emailVerificationToken) {
+    res.status(400).json({ error: "Invalid or already-used verification token" }); return;
+  }
+  if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+    res.status(400).json({ error: "Verification token has expired. Please request a new one." }); return;
+  }
+
+  await db.update(usersTable).set({
+    emailVerified: true,
+    emailVerificationToken: null,
+    emailVerificationExpires: null,
+  }).where(eq(usersTable.id, user.id));
+
+  res.json({ message: "Email verified successfully. You can now sign in." });
+});
+
+// ── Resend verification email ─────────────────────────────────────────────────
+router.post("/auth/resend-verification", requireAuth, async (req, res): Promise<void> => {
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id));
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+  if (user.emailVerified) { res.json({ message: "Email is already verified" }); return; }
+
+  const verificationToken = generateToken();
+  const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await db.update(usersTable).set({
+    emailVerificationToken: verificationToken,
+    emailVerificationExpires: verificationExpires,
+  }).where(eq(usersTable.id, user.id));
+
+  sendVerificationEmail(user.email, user.name, verificationToken).catch(() => {});
+  res.json({ message: "Verification email sent" });
 });
 
 // ── Login ─────────────────────────────────────────────────────────────────────
@@ -179,9 +236,11 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
   const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_MINUTES * 60 * 1000);
   await db.insert(passwordResetTokensTable).values({ userId: user.id, tokenHash: hash, expiresAt });
 
-  // In production: send email with reset link containing `raw` token
-  // For now: log token to server logs only (never in response)
   req.log?.info({ userId: user.id }, "Password reset token generated");
+
+  // Send password reset email (non-blocking)
+  const [fullUser] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, user.id));
+  sendPasswordResetEmail(email.toLowerCase().trim(), fullUser?.name ?? "Customer", raw).catch(() => {});
 
   res.json({ message: "If that email exists, a reset link has been sent.", ...(process.env.NODE_ENV !== "production" ? { resetToken: raw } : {}) });
 });

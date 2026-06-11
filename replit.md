@@ -48,15 +48,15 @@ A bilingual (Arabic/English) e-commerce platform for fashion/clothing with three
 - **Vendor dashboard**: Product management, Order management, Analytics charts
 - **Admin dashboard**: Full platform management — users, products, categories, orders, coupons, banners, analytics
 
-## Demo credentials
+## Initial Admin Access
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@fashionstore.com | password (hashed: `$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi`) |
-| Vendor | vendor@fashionstore.com | same |
-| Customer | customer@fashionstore.com | same |
+For first-time setup, create an admin account by registering normally then updating your role directly in the database:
 
-> The seeded password hash corresponds to `password` (Laravel default test hash). Update via `/auth/register` or a direct DB update.
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'your@email.com';
+```
+
+> **Security note:** Never use predictable passwords in production. All default seeded accounts should be updated or deleted before going live.
 
 ## User preferences
 

@@ -14,6 +14,9 @@ import couponsRouter from "./coupons";
 import bannersRouter from "./banners";
 import notificationsRouter from "./notifications";
 import analyticsRouter from "./analytics";
+import uploadsRouter from "./uploads";
+import settingsRouter from "./settings";
+import paymentsRouter from "./payments";
 
 const router: IRouter = Router();
 
@@ -32,5 +35,8 @@ router.use(couponsRouter);
 router.use(bannersRouter);
 router.use(notificationsRouter);
 router.use(analyticsRouter);
+router.use(uploadsRouter);
+router.use(settingsRouter);
+router.use(paymentsRouter);
 
 export default router;

@@ -40,7 +40,9 @@ export const productImagesTable = pgTable("product_images", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").notNull(),
   imageUrl: text("image_url").notNull(),
+  cloudinaryPublicId: text("cloudinary_public_id"),
   isPrimary: boolean("is_primary").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index("product_images_product_id_idx").on(t.productId),

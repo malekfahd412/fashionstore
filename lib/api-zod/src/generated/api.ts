@@ -1038,3 +1038,89 @@ export const GetVendorSummaryResponse = zod.object({
 })
 
 
+/**
+ * @summary Upload a product image to Cloudinary
+ */
+export const UploadImageBody = zod.object({
+  "folder": zod.string().optional()
+})
+
+export const UploadImageResponse = zod.object({
+  "url": zod.string(),
+  "publicId": zod.string(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "format": zod.string(),
+  "bytes": zod.number()
+})
+
+
+/**
+ * @summary Delete a product image
+ */
+export const DeleteImageParams = zod.object({
+  "imageId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Set an image as primary
+ */
+export const SetImagePrimaryParams = zod.object({
+  "imageId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get public store settings
+ */
+export const GetPublicSettingsResponse = zod.record(zod.string(), zod.string())
+
+
+/**
+ * @summary Update store settings (admin only)
+ */
+export const UpdateSettingsBody = zod.record(zod.string(), zod.string())
+
+export const UpdateSettingsResponse = zod.record(zod.string(), zod.string())
+
+
+/**
+ * @summary Get all settings including sensitive ones (admin only)
+ */
+export const GetAdminSettingsResponse = zod.record(zod.string(), zod.string())
+
+
+/**
+ * @summary Initiate a Paymob payment for an order
+ */
+export const initiatePaymobPaymentBodyMethodDefault = `card`;
+
+export const InitiatePaymobPaymentBody = zod.object({
+  "orderId": zod.number(),
+  "method": zod.enum(['card', 'meeza', 'vodafone']).default(initiatePaymobPaymentBodyMethodDefault),
+  "billingData": zod.object({
+  "firstName": zod.string().optional(),
+  "lastName": zod.string().optional(),
+  "email": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "address": zod.string().optional(),
+  "city": zod.string().optional()
+}).optional()
+})
+
+export const InitiatePaymobPaymentResponse = zod.object({
+  "checkoutUrl": zod.string(),
+  "paymentToken": zod.string(),
+  "paymobOrderId": zod.number()
+})
+
+
+/**
+ * @summary Verify email address with token
+ */
+export const VerifyEmailQueryParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+
