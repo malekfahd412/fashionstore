@@ -17,6 +17,7 @@ import analyticsRouter from "./analytics";
 import uploadsRouter from "./uploads";
 import settingsRouter from "./settings";
 import paymentsRouter from "./payments";
+import adminSecurityRouter from "./admin-security";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(analyticsRouter);
 router.use(uploadsRouter);
 router.use(settingsRouter);
 router.use(paymentsRouter);
+router.use(adminSecurityRouter);
 
 export default router;

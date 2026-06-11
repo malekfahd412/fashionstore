@@ -13,3 +13,4 @@ export * from "./password-reset-tokens";
 export * from "./audit-logs";
 export * from "./store-settings";
 export * from "./payments";
+export * from "./login-attempts";

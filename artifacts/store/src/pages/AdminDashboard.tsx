@@ -5,6 +5,7 @@ import { useGetAnalyticsSummary, useGetOrderStatusBreakdown, useGetSalesTimeline
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { format } from "date-fns";
 import SettingsPanel from "@/components/SettingsPanel";
+import SecurityPanel from "@/components/SecurityPanel";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -34,7 +35,7 @@ type AuditLogEntry = { id: number; userId: number; userEmail: string; action: st
 
 const COLORS = ['#065f46', '#d4af37', '#dc2626', '#2563eb', '#7c3aed', '#0891b2'];
 
-const TABS = ['overview', 'analytics', 'users', 'vendors', 'products', 'orders', 'banners', 'audit-logs', 'settings'];
+const TABS = ['overview', 'analytics', 'users', 'vendors', 'products', 'orders', 'banners', 'audit-logs', 'security', 'settings'];
 
 function StatCard({ label, value, sub, subColor }: { label: string; value: string | number; sub?: string; subColor?: string }) {
   return (
@@ -334,11 +335,14 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* ── SECURITY ─────────────────────────────────────────────── */}
+        {activeTab === 'security' && <SecurityPanel />}
+
         {/* ── SETTINGS ─────────────────────────────────────────────── */}
         {activeTab === 'settings' && <SettingsPanel />}
 
         {/* ── OTHER TABS ───────────────────────────────────────────── */}
-        {!['overview', 'analytics', 'audit-logs', 'settings'].includes(activeTab) && (
+        {!['overview', 'analytics', 'audit-logs', 'security', 'settings'].includes(activeTab) && (
           <div className="flex items-center justify-center h-full min-h-80 border border-border bg-muted/10">
             <div className="text-center">
               <h2 className="text-2xl font-serif font-bold mb-2 capitalize">{activeTab} Management</h2>

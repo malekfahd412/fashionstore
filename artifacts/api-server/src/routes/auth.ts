@@ -6,6 +6,7 @@ import { eq, and, gt, isNull } from "drizzle-orm";
 import { requireAuth, signToken } from "../middlewares/auth";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../lib/email";
+import { checkLockout, recordAttempt, extractIp } from "../lib/loginProtection";
 
 const router: IRouter = Router();
 
@@ -121,13 +122,31 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { email, password } = parsed.data;
+
+  const ip = extractIp(req as Parameters<typeof extractIp>[0]);
+  const ua = req.headers["user-agent"] as string | undefined;
+
+  // Check lockout before touching the DB — blocks brute-force early
+  const lockout = await checkLockout(email, ip);
+  if (lockout.locked) {
+    res.setHeader("Retry-After", String(lockout.retryAfterSeconds));
+    res.status(429).json({ error: "Too many failed login attempts. Please try again later." });
+    return;
+  }
+
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (!user || !user.password) {
     await bcrypt.hash("dummy", 12);
+    await recordAttempt({ email, ip, success: false, userAgent: ua }).catch(() => {});
     res.status(401).json({ error: "Invalid credentials" }); return;
   }
   const valid = await bcrypt.compare(password, user.password);
-  if (!valid) { res.status(401).json({ error: "Invalid credentials" }); return; }
+  if (!valid) {
+    await recordAttempt({ email, ip, success: false, userId: user.id, userAgent: ua }).catch(() => {});
+    res.status(401).json({ error: "Invalid credentials" }); return;
+  }
+  // Success — record attempt (acts as counter-reset marker)
+  await recordAttempt({ email, ip, success: true, userId: user.id, userAgent: ua }).catch(() => {});
   const token = signToken({ id: user.id, email: user.email, role: user.role });
   const refreshToken = await createRefreshToken(user.id, req);
   res.json({
