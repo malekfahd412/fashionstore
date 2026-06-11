@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
+import { corsConfig } from "../app";
 
 const router: IRouter = Router();
 const startTime = Date.now();
@@ -27,6 +28,11 @@ router.get("/healthz", async (_req, res): Promise<void> => {
     memory: {
       heapUsedMb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
       heapTotalMb: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+    },
+    cors: {
+      corsEnabled: corsConfig.corsEnabled,
+      allowedOriginsCount: corsConfig.allowedOriginsCount,
+      currentEnvironment: corsConfig.currentEnvironment,
     },
     timestamp: new Date().toISOString(),
   });
