@@ -30,6 +30,10 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [processing, setProcessing] = useState(false);
   const [billingErrors, setBillingErrors] = useState<BillingErrors>({});
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [couponData, setCouponData] = useState<{ discountType: string; discountValue: number } | null>(null);
 
   const [billing, setBilling] = useState({
     firstName: "", lastName: "", address: "", city: "Cairo", phone: "",
@@ -53,8 +57,46 @@ export default function Checkout() {
     return errors;
   }
 
+  async function handleValidateCoupon() {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    setCouponError("");
+    try {
+      const res = await fetch(`${BASE}/api/coupons/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (!res.ok) {
+        const err = await res.json() as { error?: string };
+        setCouponError(err.error ?? "Invalid coupon");
+        setCouponApplied(false);
+        setCouponData(null);
+        return;
+      }
+      const data = await res.json() as { discountType: string; discountValue: number };
+      setCouponData(data);
+      setCouponApplied(true);
+      setCouponCode(code);
+      toast({ title: "Coupon applied!", description: `Discount: ${data.discountType === "percentage" ? `${data.discountValue}%` : `$${data.discountValue}`}` });
+    } catch {
+      setCouponError("Failed to validate coupon");
+    }
+  }
+
+  function calcDiscount(): number {
+    if (!couponApplied || !couponData) return 0;
+    if (couponData.discountType === "percentage") {
+      return Math.min((cart.subtotal * couponData.discountValue) / 100, cart.subtotal);
+    }
+    return Math.min(couponData.discountValue, cart.subtotal);
+  }
+
+  const discount = calcDiscount();
+  const total = Math.max(0, cart.subtotal - discount);
+
   async function initiatePaymob(orderId: number) {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth_token");
     const res = await fetch(`${BASE}/api/payments/paymob/initiate`, {
       method: "POST",
       headers: {
@@ -100,6 +142,7 @@ export default function Checkout() {
         createOrderMutation.mutate({
           data: {
             paymentMethod: isPaymob ? "paymob" : "cash_on_delivery",
+            couponCode: couponApplied && couponCode ? couponCode : undefined,
             items: orderItems,
           }
         }, {
@@ -113,7 +156,7 @@ export default function Checkout() {
         window.location.href = checkoutUrl;
       } else {
         toast({ title: "Order placed successfully!", description: "We'll notify you once it ships." });
-        setLocation("/dashboard/customer");
+        setLocation(`/order/${result.id}/tracking`);
       }
     } catch (err: unknown) {
       const msg = (err as Error)?.message ?? "Checkout failed";
@@ -172,6 +215,32 @@ export default function Checkout() {
           </section>
 
           <section>
+            <h2 className="text-xl font-bold mb-4 pb-2 border-b">Coupon Code</h2>
+            <div className="flex gap-2">
+              <Input
+                value={couponCode}
+                onChange={e => {
+                  setCouponCode(e.target.value.toUpperCase());
+                  if (couponApplied) { setCouponApplied(false); setCouponData(null); }
+                  setCouponError("");
+                }}
+                placeholder="Enter coupon code"
+                className={couponError ? "border-destructive" : couponApplied ? "border-green-500" : ""}
+                disabled={processing}
+              />
+              <Button type="button" variant="outline" onClick={handleValidateCoupon} disabled={!couponCode.trim() || processing}>
+                Apply
+              </Button>
+            </div>
+            {couponError && <p className="text-xs text-destructive mt-1">{couponError}</p>}
+            {couponApplied && couponData && (
+              <p className="text-xs text-green-600 mt-1 font-medium">
+                ✓ Coupon applied — {couponData.discountType === "percentage" ? `${couponData.discountValue}% off` : `$${couponData.discountValue} off`}
+              </p>
+            )}
+          </section>
+
+          <section>
             <h2 className="text-xl font-bold mb-4 pb-2 border-b">Payment Method</h2>
             <RadioGroup value={paymentMethod} onValueChange={v => setPaymentMethod(v as PaymentMethod)} className="space-y-3">
               {PAYMENT_OPTIONS.map(opt => (
@@ -223,13 +292,19 @@ export default function Checkout() {
                 <span>Subtotal</span>
                 <span>${cart.subtotal.toFixed(2)}</span>
               </div>
+              {couponApplied && discount > 0 && (
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span>Discount ({couponCode})</span>
+                  <span>−${discount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Shipping</span>
                 <span className="text-green-600 font-medium">Free</span>
               </div>
               <div className="flex justify-between font-bold text-lg border-t mt-2 pt-2">
                 <span>Total</span>
-                <span>${cart.total.toFixed(2)}</span>
+                <span>${total.toFixed(2)}</span>
               </div>
             </div>
 

@@ -234,7 +234,9 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
   const statusTimestamps: Partial<typeof ordersTable.$inferInsert> = {};
   if (newStatus === "paid") statusTimestamps.paidAt = new Date();
   else if (newStatus === "processing") statusTimestamps.processingAt = new Date();
+  else if (newStatus === "packed") statusTimestamps.packedAt = new Date();
   else if (newStatus === "shipped") statusTimestamps.shippedAt = new Date();
+  else if (newStatus === "out_for_delivery") statusTimestamps.outForDeliveryAt = new Date();
   else if (newStatus === "delivered") statusTimestamps.deliveredAt = new Date();
 
   const [order] = await db.update(ordersTable)

@@ -19,6 +19,7 @@ import settingsRouter from "./settings";
 import paymentsRouter from "./payments";
 import adminSecurityRouter from "./admin-security";
 import securityRouter from "./security";
+import addressesRouter from "./addresses";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use(settingsRouter);
 router.use(paymentsRouter);
 router.use(adminSecurityRouter);
 router.use(securityRouter);
+router.use(addressesRouter);
 
 export default router;

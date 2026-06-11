@@ -3,8 +3,8 @@ import { useLocation, Link } from "wouter";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
-import { CheckCircle2, Circle, Clock, Package, CreditCard, Settings, Truck, Home, ArrowLeft, ShoppingBag } from "lucide-react";
+import { format, addDays } from "date-fns";
+import { CheckCircle2, Circle, Clock, Package, CreditCard, BoxIcon, Truck, MapPin, Home, ArrowLeft, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -41,7 +41,9 @@ type Order = {
   updatedAt: string;
   paidAt: string | null;
   processingAt: string | null;
+  packedAt: string | null;
   shippedAt: string | null;
+  outForDeliveryAt: string | null;
   deliveredAt: string | null;
   items: OrderItem[];
 };
@@ -51,7 +53,7 @@ type Step = {
   label: string;
   description: string;
   icon: typeof Package;
-  timestampField: keyof Pick<Order, "createdAt" | "paidAt" | "processingAt" | "shippedAt" | "deliveredAt"> | null;
+  timestampField: keyof Pick<Order, "createdAt" | "paidAt" | "packedAt" | "shippedAt" | "outForDeliveryAt" | "deliveredAt"> | null;
 };
 
 const STEPS: Step[] = [
@@ -65,16 +67,16 @@ const STEPS: Step[] = [
   {
     key: "paid",
     label: "Payment Confirmed",
-    description: "Payment received. Your order is being prepared for processing.",
+    description: "Payment received. Your order is being prepared for packing.",
     icon: CreditCard,
     timestampField: "paidAt",
   },
   {
-    key: "processing",
-    label: "Processing",
-    description: "Your items are being picked, packed, and quality-checked.",
-    icon: Settings,
-    timestampField: "processingAt",
+    key: "packed",
+    label: "Packed",
+    description: "Your items have been picked, packed, and quality-checked.",
+    icon: BoxIcon,
+    timestampField: "packedAt",
   },
   {
     key: "shipped",
@@ -82,6 +84,13 @@ const STEPS: Step[] = [
     description: "Your order is on its way. Check your email for tracking details.",
     icon: Truck,
     timestampField: "shippedAt",
+  },
+  {
+    key: "out_for_delivery",
+    label: "Out for Delivery",
+    description: "Your order is with the courier and will arrive today.",
+    icon: MapPin,
+    timestampField: "outForDeliveryAt",
   },
   {
     key: "delivered",
@@ -92,7 +101,7 @@ const STEPS: Step[] = [
   },
 ];
 
-const STATUS_ORDER = ["new", "paid", "processing", "shipped", "delivered"];
+const STATUS_ORDER = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
 
 function stepState(stepKey: string, currentStatus: string): "done" | "active" | "pending" {
   if (currentStatus === "cancelled") return "pending";
@@ -109,15 +118,38 @@ function StatusBadge({ status }: { status: string }) {
     new: "bg-blue-50 text-blue-700 border-blue-200",
     paid: "bg-green-50 text-green-700 border-green-200",
     processing: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    packed: "bg-teal-50 text-teal-700 border-teal-200",
     shipped: "bg-purple-50 text-purple-700 border-purple-200",
+    out_for_delivery: "bg-orange-50 text-orange-700 border-orange-200",
     delivered: "bg-emerald-50 text-emerald-700 border-emerald-200",
     cancelled: "bg-red-50 text-red-700 border-red-200",
   };
+  const label = status.replace(/_/g, " ");
   return (
     <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold uppercase tracking-wide border rounded-full ${styles[status] ?? "bg-muted text-muted-foreground border-border"}`}>
-      {status}
+      {label}
     </span>
   );
+}
+
+function PaymentStatusBadge({ order }: { order: Order }) {
+  if (order.paymentMethod === "cash_on_delivery") {
+    if (order.status === "delivered") {
+      return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">COD Paid</span>;
+    }
+    return <span className="text-xs font-medium text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Pay on Delivery</span>;
+  }
+  if (order.paidAt) {
+    return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Paid</span>;
+  }
+  return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">Payment Pending</span>;
+}
+
+function estimatedDelivery(order: Order): string | null {
+  if (order.status === "delivered" || order.status === "cancelled") return null;
+  const base = order.shippedAt ? new Date(order.shippedAt) : new Date(order.createdAt);
+  const est = addDays(base, order.shippedAt ? 3 : 7);
+  return format(est, "EEEE, MMMM d");
 }
 
 export default function OrderTracking() {
@@ -164,16 +196,15 @@ export default function OrderTracking() {
   }
 
   const isCancelled = order.status === "cancelled";
+  const estDelivery = estimatedDelivery(order);
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-2xl">
-      {/* Back nav */}
       <Link href="/dashboard/customer" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to My Orders
       </Link>
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
         <div>
           <h1 className="text-2xl font-bold font-serif">Order #{order.id}</h1>
@@ -181,10 +212,19 @@ export default function OrderTracking() {
             Placed on {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}
           </p>
         </div>
-        <StatusBadge status={order.status} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <StatusBadge status={order.status} />
+          <PaymentStatusBadge order={order} />
+        </div>
       </div>
 
-      {/* Timeline */}
+      {estDelivery && (
+        <div className="border border-border bg-muted/30 px-5 py-3 mb-6 flex items-center gap-3">
+          <Clock className="w-4 h-4 text-primary shrink-0" />
+          <p className="text-sm"><span className="font-medium">Estimated delivery:</span> {estDelivery}</p>
+        </div>
+      )}
+
       {isCancelled ? (
         <div className="border border-destructive/30 bg-destructive/5 p-6 rounded text-center space-y-2 mb-8">
           <p className="font-semibold text-destructive">Order Cancelled</p>
@@ -192,7 +232,6 @@ export default function OrderTracking() {
         </div>
       ) : (
         <div className="relative mb-10">
-          {/* Vertical connector line */}
           <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-border" aria-hidden="true" />
 
           <ol className="space-y-0">
@@ -204,7 +243,6 @@ export default function OrderTracking() {
 
               return (
                 <li key={step.key} className={`relative flex gap-4 ${isLast ? "" : "pb-8"}`}>
-                  {/* Icon node */}
                   <div
                     className={`relative z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                       state === "done"
@@ -223,7 +261,6 @@ export default function OrderTracking() {
                     )}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0 pt-1.5">
                     <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5">
                       <p className={`font-semibold text-sm ${state === "pending" ? "text-muted-foreground" : "text-foreground"}`}>
@@ -250,13 +287,11 @@ export default function OrderTracking() {
         </div>
       )}
 
-      {/* Order summary */}
       <div className="border border-border">
         <div className="px-5 py-4 border-b border-border bg-muted/30">
           <h2 className="text-sm font-semibold uppercase tracking-wide">Order Summary</h2>
         </div>
 
-        {/* Items */}
         <div className="divide-y divide-border">
           {order.items.map((item) => (
             <div key={item.productVariantId} className="flex items-center gap-4 px-5 py-4">
@@ -281,7 +316,6 @@ export default function OrderTracking() {
           ))}
         </div>
 
-        {/* Totals */}
         <div className="px-5 py-4 border-t border-border bg-muted/20 space-y-2 text-sm">
           {order.discount > 0 && (
             <div className="flex justify-between text-muted-foreground">
@@ -293,9 +327,12 @@ export default function OrderTracking() {
             <span>Total</span>
             <span>${Number(order.totalPrice).toFixed(2)}</span>
           </div>
-          <p className="text-xs text-muted-foreground capitalize">
-            Paid via {order.paymentMethod.replace(/_/g, " ")}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground capitalize">
+              {order.paymentMethod.replace(/_/g, " ")}
+            </p>
+            <PaymentStatusBadge order={order} />
+          </div>
         </div>
       </div>
     </div>

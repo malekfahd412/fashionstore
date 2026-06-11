@@ -1165,6 +1165,109 @@ paths:
         "200":
           description: Acknowledged
 
+  # ── Addresses ─────────────────────────────────────────────────────────
+  /addresses:
+    get:
+      operationId: listAddresses
+      tags: [addresses]
+      summary: List saved addresses for the current user
+      responses:
+        "200":
+          description: List of addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserAddress"
+    post:
+      operationId: createAddress
+      tags: [addresses]
+      summary: Create a new saved address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressInput"
+      responses:
+        "201":
+          description: Created address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAddress"
+
+  /addresses/{id}:
+    patch:
+      operationId: updateAddress
+      tags: [addresses]
+      summary: Update a saved address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressInput"
+      responses:
+        "200":
+          description: Updated address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAddress"
+    delete:
+      operationId: deleteAddress
+      tags: [addresses]
+      summary: Delete a saved address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /users/{id}/email-preferences:
+    patch:
+      operationId: updateEmailPreferences
+      tags: [users]
+      summary: Update email notification preferences for a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailPreferences"
+      responses:
+        "200":
+          description: Updated preferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emailPreferences:
+                    $ref: "#/components/schemas/EmailPreferences"
+
   # ── Analytics (admin-only extras) ────────────────────────────────────
   /analytics/bi:
     get:
