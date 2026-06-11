@@ -1,4 +1,6 @@
 - [Orval inline-schema codegen conflict](orval-inline-schema-conflict.md) — inline `additionalProperties` / `format: binary` schemas generate types in both api.ts and types/; must use $ref to named components schemas to avoid TS2308 duplicate-export errors.
+- [Device recognition pattern](device-recognition.md) — SHA-256 of UA string (first 32 chars) as device hash; no external UA parser; alert only when new device AND existing devices exist AND alerts enabled; login route block is void IIFE so it never delays the response.
+- [Customer auth token key](customer-auth-token.md) — CustomerDashboard and SecurityCenterTab use localStorage key "auth_token"; admin SecurityPanel uses "token"; never mix them.
 - [Email graceful degradation](email-config.md) — email.ts skips sends (logs warning) when RESEND_API_KEY/RESEND_FROM_EMAIL not set; never crashes the request; env vars injected via Resend integration.
 - [Paymob 3-step flow](paymob-flow.md) — auth token → create order → payment key; integration IDs and iframe ID stored in store_settings table (not env vars); PAYMOB_API_KEY + PAYMOB_HMAC_SECRET are env vars.
 - [Store settings pattern](store-settings.md) — key-value table (store_settings); DEFAULT_SETTINGS exported from schema; public/admin split at route level; seeded via POST /settings/seed.

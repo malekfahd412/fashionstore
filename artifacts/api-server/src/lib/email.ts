@@ -188,6 +188,36 @@ export async function sendVendorNewOrderEmail(
   `));
 }
 
+export async function sendNewLoginEmail(opts: {
+  email: string;
+  name: string;
+  deviceName: string;
+  browser: string;
+  os: string;
+  ip: string;
+  time: Date;
+}): Promise<void> {
+  const timeStr = opts.time.toUTCString();
+  const securityUrl = `${APP_URL()}/dashboard/customer?tab=security&alert=1`;
+  await send(opts.email, "New sign-in to your LUXE account", wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">New Sign-In Detected</h2>
+    <p style="line-height:1.7;color:#444">Hi ${opts.name}, we noticed a new sign-in to your LUXE account from a device we haven't seen before.</p>
+    <div style="background:#f9f9f9;padding:20px;margin:20px 0;border-left:3px solid #d4af37">
+      <p style="margin:0 0 8px"><strong>Device:</strong> ${opts.deviceName}</p>
+      <p style="margin:0 0 8px"><strong>Browser:</strong> ${opts.browser}</p>
+      <p style="margin:0 0 8px"><strong>Operating System:</strong> ${opts.os}</p>
+      <p style="margin:0 0 8px"><strong>IP Address:</strong> ${opts.ip}</p>
+      <p style="margin:0"><strong>Time:</strong> ${timeStr}</p>
+    </div>
+    <p style="line-height:1.7;color:#444">If this was you, no action is needed — this device is now trusted.</p>
+    <p style="line-height:1.7;color:#444">If you don't recognise this sign-in, secure your account immediately:</p>
+    <div style="text-align:center">
+      <a href="${securityUrl}" style="${btnStyle}">THIS WASN'T ME — SECURE ACCOUNT</a>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:24px">If you're unable to access your account, please contact our support team. You can also turn off these alerts in your account Security settings.</p>
+  `));
+}
+
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
   await send(email, `Welcome to LUXE, ${name}`, wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to LUXE</h2>

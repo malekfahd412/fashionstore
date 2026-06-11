@@ -18,6 +18,7 @@ import uploadsRouter from "./uploads";
 import settingsRouter from "./settings";
 import paymentsRouter from "./payments";
 import adminSecurityRouter from "./admin-security";
+import securityRouter from "./security";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(uploadsRouter);
 router.use(settingsRouter);
 router.use(paymentsRouter);
 router.use(adminSecurityRouter);
+router.use(securityRouter);
 
 export default router;

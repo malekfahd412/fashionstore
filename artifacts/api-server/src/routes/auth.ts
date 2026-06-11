@@ -5,8 +5,16 @@ import { db, usersTable, refreshTokensTable, passwordResetTokensTable } from "@w
 import { eq, and, gt, isNull } from "drizzle-orm";
 import { requireAuth, signToken } from "../middlewares/auth";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
-import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../lib/email";
+import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail, sendNewLoginEmail } from "../lib/email";
 import { checkLockout, recordAttempt, extractIp } from "../lib/loginProtection";
+import {
+  computeDeviceHash,
+  parseUserAgent,
+  isKnownDevice,
+  hasAnyTrustedDevice,
+  trustDevice,
+  getSecurityPrefs,
+} from "../lib/deviceRecognition";
 
 const router: IRouter = Router();
 
@@ -147,6 +155,35 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
   // Success — record attempt (acts as counter-reset marker)
   await recordAttempt({ email, ip, success: true, userId: user.id, userAgent: ua }).catch(() => {});
+
+  // Device recognition + new-login notification (fully non-blocking)
+  void (async () => {
+    try {
+      const userAgent = ua ?? "";
+      const deviceHash = computeDeviceHash(userAgent);
+      const { browser, os, deviceName } = parseUserAgent(userAgent);
+      const known = await isKnownDevice(user.id, deviceHash);
+      const hasDevices = known || await hasAnyTrustedDevice(user.id);
+      await trustDevice({ userId: user.id, deviceHash, deviceName, browser, os, ip: ip ?? null });
+      if (!known && hasDevices) {
+        const prefs = await getSecurityPrefs(user.id);
+        if (prefs.loginAlertsEnabled) {
+          sendNewLoginEmail({
+            email: user.email,
+            name: user.name,
+            deviceName,
+            browser,
+            os,
+            ip: ip ?? "unknown",
+            time: new Date(),
+          }).catch(() => {});
+        }
+      }
+    } catch {
+      // Non-blocking — never fail the login
+    }
+  })();
+
   const token = signToken({ id: user.id, email: user.email, role: user.role });
   const refreshToken = await createRefreshToken(user.id, req);
   res.json({

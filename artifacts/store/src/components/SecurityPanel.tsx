@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Shield, AlertTriangle, History, Unlock } from "lucide-react";
+import { Shield, AlertTriangle, History, Unlock, BarChart3, TrendingDown } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -42,7 +42,15 @@ type SuspiciousActivity = {
   targetedEmails: string[];
 };
 
-type SecuritySubTab = "locked" | "history" | "suspicious";
+type SecurityOverview = {
+  failedLast24h: number;
+  successLast24h: number;
+  lockedCount: number;
+  suspiciousIpCount: number;
+  trend: { date: string; failures: number; successes: number }[];
+};
+
+type SecuritySubTab = "overview" | "locked" | "history" | "suspicious";
 
 function Badge({ success }: { success: boolean }) {
   return (
@@ -61,13 +69,37 @@ function TimeUntil({ date }: { date: string }) {
   return <span className="text-red-600 text-xs font-medium">{hrs}h remaining</span>;
 }
 
+function StatCard({ label, value, sub, accent }: { label: string; value: number | string; sub?: string; accent?: "red" | "orange" | "green" }) {
+  const colorMap = {
+    red: "text-red-600",
+    orange: "text-orange-500",
+    green: "text-green-600",
+  };
+  const textColor = accent ? colorMap[accent] : "text-foreground";
+  return (
+    <div className="border border-border bg-card p-5">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{label}</p>
+      <p className={`text-3xl font-bold font-serif ${textColor}`}>{value}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+    </div>
+  );
+}
+
 export default function SecurityPanel() {
-  const [subTab, setSubTab] = useState<SecuritySubTab>("locked");
+  const [subTab, setSubTab] = useState<SecuritySubTab>("overview");
   const [historyEmail, setHistoryEmail] = useState("");
   const [historyIp, setHistoryIp] = useState("");
   const [historySuccess, setHistorySuccess] = useState<"" | "true" | "false">("");
   const [historyPage, setHistoryPage] = useState(1);
   const qc = useQueryClient();
+
+  const { data: overview, refetch: refetchOverview } = useQuery<SecurityOverview>({
+    queryKey: ["security-overview"],
+    queryFn: () => apiFetch("/api/admin/security/overview"),
+    enabled: subTab === "overview",
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
 
   const { data: locked, refetch: refetchLocked } = useQuery<{ accounts: LockedAccount[] }>({
     queryKey: ["security-locked"],
@@ -103,15 +135,20 @@ export default function SecurityPanel() {
       apiFetch("/api/admin/security/unlock", { method: "POST", body: JSON.stringify({ email }) }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["security-locked"] });
+      qc.invalidateQueries({ queryKey: ["security-overview"] });
       refetchLocked();
     },
   });
 
   const SUB_TABS: { id: SecuritySubTab; label: string; icon: typeof Shield }[] = [
+    { id: "overview", label: "Overview", icon: BarChart3 },
     { id: "locked", label: "Locked Accounts", icon: Shield },
     { id: "history", label: "Login History", icon: History },
     { id: "suspicious", label: "Suspicious Activity", icon: AlertTriangle },
   ];
+
+  // Compute max bar height for trend chart
+  const trendMax = Math.max(1, ...(overview?.trend ?? []).flatMap((r) => [r.failures, r.successes]));
 
   return (
     <div className="space-y-6">
@@ -124,12 +161,12 @@ export default function SecurityPanel() {
       </div>
 
       {/* Sub-tab switcher */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
         {SUB_TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setSubTab(id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
               subTab === id
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -140,6 +177,148 @@ export default function SecurityPanel() {
           </button>
         ))}
       </div>
+
+      {/* ── OVERVIEW ─────────────────────────────────────────────────────── */}
+      {subTab === "overview" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Live security metrics for the last 24 hours.</p>
+            <button onClick={() => refetchOverview()} className="text-xs text-primary underline">Refresh</button>
+          </div>
+
+          {/* Stat cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              label="Failed Logins (24h)"
+              value={overview?.failedLast24h ?? "—"}
+              sub="login failures"
+              accent={overview && overview.failedLast24h > 50 ? "red" : overview && overview.failedLast24h > 10 ? "orange" : undefined}
+            />
+            <StatCard
+              label="Successful Logins (24h)"
+              value={overview?.successLast24h ?? "—"}
+              sub="successful sign-ins"
+              accent="green"
+            />
+            <StatCard
+              label="Locked Accounts"
+              value={overview?.lockedCount ?? "—"}
+              sub="currently locked"
+              accent={overview && overview.lockedCount > 0 ? "orange" : undefined}
+            />
+            <StatCard
+              label="Suspicious IPs"
+              value={overview?.suspiciousIpCount ?? "—"}
+              sub="flagged in last hour"
+              accent={overview && overview.suspiciousIpCount > 0 ? "red" : undefined}
+            />
+          </div>
+
+          {/* 7-day trend table */}
+          <div className="border border-border bg-card overflow-hidden">
+            <div className="px-5 py-4 border-b border-border flex items-center gap-2">
+              <TrendingDown className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-semibold">7-Day Login Trend</span>
+            </div>
+            {!overview?.trend.length ? (
+              <div className="p-8 text-center text-sm text-muted-foreground">No data yet</div>
+            ) : (
+              <>
+                {/* Mini bar chart */}
+                <div className="px-5 pt-4 pb-2 flex items-end gap-1 h-28">
+                  {overview.trend.map((row) => (
+                    <div key={row.date} className="flex-1 flex flex-col items-center gap-0.5">
+                      <div className="w-full flex gap-0.5 items-end" style={{ height: "72px" }}>
+                        <div
+                          className="flex-1 bg-red-400/80 rounded-sm"
+                          style={{ height: `${Math.round((row.failures / trendMax) * 72)}px`, minHeight: row.failures > 0 ? 2 : 0 }}
+                          title={`${row.failures} failures`}
+                        />
+                        <div
+                          className="flex-1 bg-green-400/80 rounded-sm"
+                          style={{ height: `${Math.round((row.successes / trendMax) * 72)}px`, minHeight: row.successes > 0 ? 2 : 0 }}
+                          title={`${row.successes} successes`}
+                        />
+                      </div>
+                      <span className="text-[9px] text-muted-foreground">
+                        {format(new Date(row.date + "T12:00:00Z"), "MMM d")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {/* Legend */}
+                <div className="px-5 pb-4 flex gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-red-400/80 rounded-sm inline-block" />Failures</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-400/80 rounded-sm inline-block" />Successes</span>
+                </div>
+                {/* Table */}
+                <table className="w-full text-sm border-t border-border">
+                  <thead className="bg-muted text-muted-foreground text-xs uppercase">
+                    <tr>
+                      {["Date", "Failures", "Successes", "Total", "Failure Rate"].map((h) => (
+                        <th key={h} className="px-4 py-2.5 text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {overview.trend.map((row) => {
+                      const total = row.failures + row.successes;
+                      const rate = total > 0 ? ((row.failures / total) * 100).toFixed(0) : "0";
+                      return (
+                        <tr key={row.date} className="hover:bg-muted/20">
+                          <td className="px-4 py-2.5 font-medium">
+                            {format(new Date(row.date + "T12:00:00Z"), "EEE, MMM d")}
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <span className={`font-medium ${row.failures > 0 ? "text-red-600" : "text-muted-foreground"}`}>
+                              {row.failures}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <span className="font-medium text-green-600">{row.successes}</span>
+                          </td>
+                          <td className="px-4 py-2.5 text-muted-foreground">{total}</td>
+                          <td className="px-4 py-2.5">
+                            <span className={`text-xs font-semibold ${Number(rate) > 50 ? "text-red-600" : Number(rate) > 20 ? "text-orange-500" : "text-muted-foreground"}`}>
+                              {rate}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </div>
+
+          {/* Quick action shortcuts */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { label: "View Locked Accounts", tab: "locked" as SecuritySubTab, badge: overview?.lockedCount },
+              { label: "Search Login History", tab: "history" as SecuritySubTab },
+              { label: "Suspicious Activity", tab: "suspicious" as SecuritySubTab, badge: overview?.suspiciousIpCount, accent: true },
+            ].map(({ label, tab, badge, accent }) => (
+              <button
+                key={tab}
+                onClick={() => setSubTab(tab)}
+                className={`flex items-center justify-between px-4 py-3 border text-sm font-medium transition-colors hover:bg-muted/50 ${
+                  accent && badge ? "border-red-300 text-red-700" : "border-border"
+                }`}
+              >
+                {label}
+                {badge ? (
+                  <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${accent ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"}`}>
+                    {badge}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">→</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── LOCKED ACCOUNTS ─────────────────────────────────────────────── */}
       {subTab === "locked" && (

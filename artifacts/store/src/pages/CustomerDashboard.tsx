@@ -8,13 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { format } from "date-fns";
+import SecurityCenterTab from "@/components/SecurityCenterTab";
 
 export default function CustomerDashboard() {
   const { user, login } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
-  
-  const [activeTab, setActiveTab] = useState("orders");
+
+  // Read ?tab and ?alert from URL so "This wasn't me" link lands on Security tab
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const tabParam = searchParams.get("tab");
+  const alertParam = searchParams.get("alert");
+
+  const [activeTab, setActiveTab] = useState(tabParam ?? "orders");
   const [name, setName] = useState(user?.name || "");
   
   const { data: ordersData } = useListOrders({ userId: user?.id }, { query: { enabled: !!user } });
@@ -55,6 +61,8 @@ export default function CustomerDashboard() {
     });
   };
 
+  const triggerStyle = "justify-start px-4 py-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-primary text-base";
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-10">
@@ -64,15 +72,16 @@ export default function CustomerDashboard() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col md:flex-row gap-8">
         <TabsList className="flex flex-col w-full md:w-64 h-auto bg-transparent items-stretch space-y-2 p-0">
-          <TabsTrigger value="orders" className="justify-start px-4 py-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-primary text-base">Orders</TabsTrigger>
-          <TabsTrigger value="wishlist" className="justify-start px-4 py-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-primary text-base">Wishlist</TabsTrigger>
-          <TabsTrigger value="notifications" className="justify-start px-4 py-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-primary text-base flex justify-between">
+          <TabsTrigger value="orders" className={triggerStyle}>Orders</TabsTrigger>
+          <TabsTrigger value="wishlist" className={triggerStyle}>Wishlist</TabsTrigger>
+          <TabsTrigger value="notifications" className={`${triggerStyle} flex justify-between`}>
             Notifications
             {notifications?.some(n => !n.isRead) && (
               <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">New</span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="profile" className="justify-start px-4 py-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-primary text-base">Profile Settings</TabsTrigger>
+          <TabsTrigger value="security" className={triggerStyle}>Security</TabsTrigger>
+          <TabsTrigger value="profile" className={triggerStyle}>Profile Settings</TabsTrigger>
         </TabsList>
 
         <div className="flex-1">
@@ -162,6 +171,10 @@ export default function CustomerDashboard() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="security" className="m-0">
+            <SecurityCenterTab showAlert={alertParam === "1"} />
           </TabsContent>
 
           <TabsContent value="profile" className="m-0 space-y-6 max-w-md">

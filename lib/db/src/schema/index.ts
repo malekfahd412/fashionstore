@@ -14,3 +14,5 @@ export * from "./audit-logs";
 export * from "./store-settings";
 export * from "./payments";
 export * from "./login-attempts";
+export * from "./trusted-devices";
+export * from "./user-security-prefs";
