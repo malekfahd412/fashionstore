@@ -9,4 +9,6 @@
 export interface LoginInput {
   email: string;
   password: string;
+  /** When true, the device is saved as trusted so future logins from it skip new-device alerts. */
+  rememberDevice?: boolean;
 }

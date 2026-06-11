@@ -21,7 +21,9 @@ import type {
 
 import type {
   AnalyticsSummary,
+  AuditLogList,
   AuthResult,
+  BIData,
   Banner,
   BannerInput,
   BannerUpdate,
@@ -35,11 +37,18 @@ import type {
   CouponInput,
   CouponUpdate,
   CouponValidateInput,
+  ForcePasswordResetInput,
+  ForcePasswordResetResult,
+  GetCompromisedAccounts200,
+  GetLockedAccounts200,
+  GetLoginHistoryParams,
   GetSalesTimelineParams,
   HealthStatus,
+  ListAuditLogsParams,
   ListOrdersParams,
   ListProductsParams,
   ListUsersParams,
+  LoginHistoryList,
   LoginInput,
   MessageResponse,
   Notification,
@@ -59,14 +68,19 @@ import type {
   Review,
   ReviewInput,
   SalesDataPoint,
+  SecurityOverview,
   SettingsMap,
   StatusCount,
+  SuspiciousActivity,
+  TopCategory,
   TopProduct,
+  UnlockInput,
   UploadImageInput,
   UploadResult,
   User,
   UserListResponse,
   UserUpdate,
+  VendorPerformanceRow,
   VendorSummary,
   VerifyEmailParams,
   WishlistItem
@@ -4571,6 +4585,932 @@ export const usePaymobWebhook = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getPaymobWebhookMutationOptions(options));
+    }
+
+export const getGetBusinessIntelligenceUrl = () => {
+
+
+
+
+  return `/api/analytics/bi`
+}
+
+/**
+ * @summary Business intelligence metrics (admin only)
+ */
+export const getBusinessIntelligence = async ( options?: RequestInit): Promise<BIData> => {
+
+  return customFetch<BIData>(getGetBusinessIntelligenceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBusinessIntelligenceQueryKey = () => {
+    return [
+    `/api/analytics/bi`
+    ] as const;
+    }
+
+
+export const getGetBusinessIntelligenceQueryOptions = <TData = Awaited<ReturnType<typeof getBusinessIntelligence>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusinessIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBusinessIntelligenceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBusinessIntelligence>>> = ({ signal }) => getBusinessIntelligence({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBusinessIntelligence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBusinessIntelligenceQueryResult = NonNullable<Awaited<ReturnType<typeof getBusinessIntelligence>>>
+export type GetBusinessIntelligenceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Business intelligence metrics (admin only)
+ */
+
+export function useGetBusinessIntelligence<TData = Awaited<ReturnType<typeof getBusinessIntelligence>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusinessIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBusinessIntelligenceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTopCategoriesUrl = () => {
+
+
+
+
+  return `/api/analytics/top-categories`
+}
+
+/**
+ * @summary Top categories by revenue (admin only)
+ */
+export const getTopCategories = async ( options?: RequestInit): Promise<TopCategory[]> => {
+
+  return customFetch<TopCategory[]>(getGetTopCategoriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTopCategoriesQueryKey = () => {
+    return [
+    `/api/analytics/top-categories`
+    ] as const;
+    }
+
+
+export const getGetTopCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof getTopCategories>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTopCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTopCategoriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTopCategories>>> = ({ signal }) => getTopCategories({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTopCategories>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTopCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof getTopCategories>>>
+export type GetTopCategoriesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Top categories by revenue (admin only)
+ */
+
+export function useGetTopCategories<TData = Awaited<ReturnType<typeof getTopCategories>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTopCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTopCategoriesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetVendorPerformanceUrl = () => {
+
+
+
+
+  return `/api/analytics/vendor-performance`
+}
+
+/**
+ * @summary Vendor performance breakdown (admin only)
+ */
+export const getVendorPerformance = async ( options?: RequestInit): Promise<VendorPerformanceRow[]> => {
+
+  return customFetch<VendorPerformanceRow[]>(getGetVendorPerformanceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVendorPerformanceQueryKey = () => {
+    return [
+    `/api/analytics/vendor-performance`
+    ] as const;
+    }
+
+
+export const getGetVendorPerformanceQueryOptions = <TData = Awaited<ReturnType<typeof getVendorPerformance>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVendorPerformance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVendorPerformanceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVendorPerformance>>> = ({ signal }) => getVendorPerformance({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVendorPerformance>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetVendorPerformanceQueryResult = NonNullable<Awaited<ReturnType<typeof getVendorPerformance>>>
+export type GetVendorPerformanceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Vendor performance breakdown (admin only)
+ */
+
+export function useGetVendorPerformance<TData = Awaited<ReturnType<typeof getVendorPerformance>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVendorPerformance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetVendorPerformanceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListAllBannersUrl = () => {
+
+
+
+
+  return `/api/banners/all`
+}
+
+/**
+ * @summary List all banners including inactive (admin only)
+ */
+export const listAllBanners = async ( options?: RequestInit): Promise<Banner[]> => {
+
+  return customFetch<Banner[]>(getListAllBannersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAllBannersQueryKey = () => {
+    return [
+    `/api/banners/all`
+    ] as const;
+    }
+
+
+export const getListAllBannersQueryOptions = <TData = Awaited<ReturnType<typeof listAllBanners>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAllBanners>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAllBannersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllBanners>>> = ({ signal }) => listAllBanners({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAllBanners>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAllBannersQueryResult = NonNullable<Awaited<ReturnType<typeof listAllBanners>>>
+export type ListAllBannersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all banners including inactive (admin only)
+ */
+
+export function useListAllBanners<TData = Awaited<ReturnType<typeof listAllBanners>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAllBanners>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAllBannersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListAuditLogsUrl = (params?: ListAuditLogsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/audit-logs?${stringifiedParams}` : `/api/admin/audit-logs`
+}
+
+/**
+ * @summary List admin audit log entries (admin only)
+ */
+export const listAuditLogs = async (params?: ListAuditLogsParams, options?: RequestInit): Promise<AuditLogList> => {
+
+  return customFetch<AuditLogList>(getListAuditLogsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAuditLogsQueryKey = (params?: ListAuditLogsParams,) => {
+    return [
+    `/api/admin/audit-logs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAuditLogsQueryOptions = <TData = Awaited<ReturnType<typeof listAuditLogs>>, TError = ErrorType<unknown>>(params?: ListAuditLogsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAuditLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAuditLogsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAuditLogs>>> = ({ signal }) => listAuditLogs(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAuditLogs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAuditLogsQueryResult = NonNullable<Awaited<ReturnType<typeof listAuditLogs>>>
+export type ListAuditLogsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List admin audit log entries (admin only)
+ */
+
+export function useListAuditLogs<TData = Awaited<ReturnType<typeof listAuditLogs>>, TError = ErrorType<unknown>>(
+ params?: ListAuditLogsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAuditLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAuditLogsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSecurityOverviewUrl = () => {
+
+
+
+
+  return `/api/admin/security/overview`
+}
+
+/**
+ * @summary Security overview metrics (admin only)
+ */
+export const getSecurityOverview = async ( options?: RequestInit): Promise<SecurityOverview> => {
+
+  return customFetch<SecurityOverview>(getGetSecurityOverviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSecurityOverviewQueryKey = () => {
+    return [
+    `/api/admin/security/overview`
+    ] as const;
+    }
+
+
+export const getGetSecurityOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getSecurityOverview>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSecurityOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSecurityOverviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSecurityOverview>>> = ({ signal }) => getSecurityOverview({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSecurityOverview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSecurityOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getSecurityOverview>>>
+export type GetSecurityOverviewQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Security overview metrics (admin only)
+ */
+
+export function useGetSecurityOverview<TData = Awaited<ReturnType<typeof getSecurityOverview>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSecurityOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSecurityOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLockedAccountsUrl = () => {
+
+
+
+
+  return `/api/admin/security/locked-accounts`
+}
+
+/**
+ * @summary List locked accounts (admin only)
+ */
+export const getLockedAccounts = async ( options?: RequestInit): Promise<GetLockedAccounts200> => {
+
+  return customFetch<GetLockedAccounts200>(getGetLockedAccountsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLockedAccountsQueryKey = () => {
+    return [
+    `/api/admin/security/locked-accounts`
+    ] as const;
+    }
+
+
+export const getGetLockedAccountsQueryOptions = <TData = Awaited<ReturnType<typeof getLockedAccounts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLockedAccounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLockedAccountsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLockedAccounts>>> = ({ signal }) => getLockedAccounts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLockedAccounts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLockedAccountsQueryResult = NonNullable<Awaited<ReturnType<typeof getLockedAccounts>>>
+export type GetLockedAccountsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List locked accounts (admin only)
+ */
+
+export function useGetLockedAccounts<TData = Awaited<ReturnType<typeof getLockedAccounts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLockedAccounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLockedAccountsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLoginHistoryUrl = (params?: GetLoginHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/security/login-history?${stringifiedParams}` : `/api/admin/security/login-history`
+}
+
+/**
+ * @summary Login attempt history (admin only)
+ */
+export const getLoginHistory = async (params?: GetLoginHistoryParams, options?: RequestInit): Promise<LoginHistoryList> => {
+
+  return customFetch<LoginHistoryList>(getGetLoginHistoryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLoginHistoryQueryKey = (params?: GetLoginHistoryParams,) => {
+    return [
+    `/api/admin/security/login-history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoginHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getLoginHistory>>, TError = ErrorType<unknown>>(params?: GetLoginHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLoginHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoginHistoryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoginHistory>>> = ({ signal }) => getLoginHistory(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoginHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLoginHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getLoginHistory>>>
+export type GetLoginHistoryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Login attempt history (admin only)
+ */
+
+export function useGetLoginHistory<TData = Awaited<ReturnType<typeof getLoginHistory>>, TError = ErrorType<unknown>>(
+ params?: GetLoginHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLoginHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLoginHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSuspiciousActivityUrl = () => {
+
+
+
+
+  return `/api/admin/security/suspicious-activity`
+}
+
+/**
+ * @summary Suspicious IP and email activity (admin only)
+ */
+export const getSuspiciousActivity = async ( options?: RequestInit): Promise<SuspiciousActivity> => {
+
+  return customFetch<SuspiciousActivity>(getGetSuspiciousActivityUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSuspiciousActivityQueryKey = () => {
+    return [
+    `/api/admin/security/suspicious-activity`
+    ] as const;
+    }
+
+
+export const getGetSuspiciousActivityQueryOptions = <TData = Awaited<ReturnType<typeof getSuspiciousActivity>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSuspiciousActivity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSuspiciousActivityQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSuspiciousActivity>>> = ({ signal }) => getSuspiciousActivity({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSuspiciousActivity>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSuspiciousActivityQueryResult = NonNullable<Awaited<ReturnType<typeof getSuspiciousActivity>>>
+export type GetSuspiciousActivityQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Suspicious IP and email activity (admin only)
+ */
+
+export function useGetSuspiciousActivity<TData = Awaited<ReturnType<typeof getSuspiciousActivity>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSuspiciousActivity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSuspiciousActivityQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUnlockAccountUrl = () => {
+
+
+
+
+  return `/api/admin/security/unlock`
+}
+
+/**
+ * @summary Unlock a locked account or IP (admin only)
+ */
+export const unlockAccount = async (unlockInput: UnlockInput, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getUnlockAccountUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      unlockInput,)
+  }
+);}
+
+
+
+
+export const getUnlockAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlockAccount>>, TError,{data: BodyType<UnlockInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unlockAccount>>, TError,{data: BodyType<UnlockInput>}, TContext> => {
+
+const mutationKey = ['unlockAccount'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlockAccount>>, {data: BodyType<UnlockInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  unlockAccount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlockAccountMutationResult = NonNullable<Awaited<ReturnType<typeof unlockAccount>>>
+    export type UnlockAccountMutationBody = BodyType<UnlockInput>
+    export type UnlockAccountMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Unlock a locked account or IP (admin only)
+ */
+export const useUnlockAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlockAccount>>, TError,{data: BodyType<UnlockInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof unlockAccount>>,
+        TError,
+        {data: BodyType<UnlockInput>},
+        TContext
+      > => {
+      return useMutation(getUnlockAccountMutationOptions(options));
+    }
+
+export const getGetCompromisedAccountsUrl = () => {
+
+
+
+
+  return `/api/admin/security/compromised-accounts`
+}
+
+/**
+ * @summary Accounts with suspicious login patterns (admin only)
+ */
+export const getCompromisedAccounts = async ( options?: RequestInit): Promise<GetCompromisedAccounts200> => {
+
+  return customFetch<GetCompromisedAccounts200>(getGetCompromisedAccountsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompromisedAccountsQueryKey = () => {
+    return [
+    `/api/admin/security/compromised-accounts`
+    ] as const;
+    }
+
+
+export const getGetCompromisedAccountsQueryOptions = <TData = Awaited<ReturnType<typeof getCompromisedAccounts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompromisedAccounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompromisedAccountsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompromisedAccounts>>> = ({ signal }) => getCompromisedAccounts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompromisedAccounts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompromisedAccountsQueryResult = NonNullable<Awaited<ReturnType<typeof getCompromisedAccounts>>>
+export type GetCompromisedAccountsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Accounts with suspicious login patterns (admin only)
+ */
+
+export function useGetCompromisedAccounts<TData = Awaited<ReturnType<typeof getCompromisedAccounts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompromisedAccounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompromisedAccountsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getForcePasswordResetUrl = () => {
+
+
+
+
+  return `/api/admin/security/force-password-reset`
+}
+
+/**
+ * @summary Force a password reset for a compromised account (admin only)
+ */
+export const forcePasswordReset = async (forcePasswordResetInput: ForcePasswordResetInput, options?: RequestInit): Promise<ForcePasswordResetResult> => {
+
+  return customFetch<ForcePasswordResetResult>(getForcePasswordResetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      forcePasswordResetInput,)
+  }
+);}
+
+
+
+
+export const getForcePasswordResetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof forcePasswordReset>>, TError,{data: BodyType<ForcePasswordResetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof forcePasswordReset>>, TError,{data: BodyType<ForcePasswordResetInput>}, TContext> => {
+
+const mutationKey = ['forcePasswordReset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof forcePasswordReset>>, {data: BodyType<ForcePasswordResetInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  forcePasswordReset(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ForcePasswordResetMutationResult = NonNullable<Awaited<ReturnType<typeof forcePasswordReset>>>
+    export type ForcePasswordResetMutationBody = BodyType<ForcePasswordResetInput>
+    export type ForcePasswordResetMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Force a password reset for a compromised account (admin only)
+ */
+export const useForcePasswordReset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof forcePasswordReset>>, TError,{data: BodyType<ForcePasswordResetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof forcePasswordReset>>,
+        TError,
+        {data: BodyType<ForcePasswordResetInput>},
+        TContext
+      > => {
+      return useMutation(getForcePasswordResetMutationOptions(options));
     }
 
 export const getVerifyEmailUrl = (params: VerifyEmailParams,) => {

@@ -33,7 +33,7 @@ export const RegisterBody = zod.object({
 export const LoginBody = zod.object({
   "email": zod.string(),
   "password": zod.string(),
-  "rememberDevice": zod.boolean().optional()
+  "rememberDevice": zod.boolean().optional().describe('When true, the device is saved as trusted so future logins from it skip new-device alerts.')
 })
 
 export const LoginResponse = zod.object({
@@ -1128,6 +1128,216 @@ export const InitiatePaymobPaymentResponse = zod.object({
   "checkoutUrl": zod.string(),
   "paymentToken": zod.string(),
   "paymobOrderId": zod.number()
+})
+
+
+/**
+ * @summary Business intelligence metrics (admin only)
+ */
+export const GetBusinessIntelligenceResponse = zod.object({
+  "dailyRevenue": zod.number(),
+  "weeklyRevenue": zod.number(),
+  "monthlyRevenue": zod.number(),
+  "averageOrderValue": zod.number(),
+  "returningCustomers": zod.number(),
+  "totalCustomers": zod.number(),
+  "repeatPurchaseRate": zod.number()
+})
+
+
+/**
+ * @summary Top categories by revenue (admin only)
+ */
+export const GetTopCategoriesResponseItem = zod.object({
+  "categoryId": zod.number(),
+  "nameEn": zod.string(),
+  "nameAr": zod.string(),
+  "totalSold": zod.number(),
+  "revenue": zod.number()
+})
+export const GetTopCategoriesResponse = zod.array(GetTopCategoriesResponseItem)
+
+
+/**
+ * @summary Vendor performance breakdown (admin only)
+ */
+export const GetVendorPerformanceResponseItem = zod.object({
+  "vendorId": zod.number(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "productCount": zod.number(),
+  "totalSold": zod.number(),
+  "revenue": zod.number()
+})
+export const GetVendorPerformanceResponse = zod.array(GetVendorPerformanceResponseItem)
+
+
+/**
+ * @summary List all banners including inactive (admin only)
+ */
+export const ListAllBannersResponseItem = zod.object({
+  "id": zod.number(),
+  "titleEn": zod.string(),
+  "titleAr": zod.string(),
+  "subtitleEn": zod.string().nullish(),
+  "subtitleAr": zod.string().nullish(),
+  "imageUrl": zod.string(),
+  "linkUrl": zod.string().nullish(),
+  "active": zod.boolean(),
+  "sortOrder": zod.number()
+})
+export const ListAllBannersResponse = zod.array(ListAllBannersResponseItem)
+
+
+/**
+ * @summary List admin audit log entries (admin only)
+ */
+export const listAuditLogsQueryPageDefault = 1;
+export const listAuditLogsQueryLimitDefault = 50;
+
+export const ListAuditLogsQueryParams = zod.object({
+  "search": zod.coerce.string().optional(),
+  "resource": zod.coerce.string().optional(),
+  "action": zod.coerce.string().optional(),
+  "userId": zod.coerce.number().optional(),
+  "from": zod.coerce.string().optional(),
+  "to": zod.coerce.string().optional(),
+  "page": zod.coerce.number().default(listAuditLogsQueryPageDefault),
+  "limit": zod.coerce.number().default(listAuditLogsQueryLimitDefault)
+})
+
+export const ListAuditLogsResponse = zod.object({
+  "logs": zod.array(zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userEmail": zod.string(),
+  "action": zod.string(),
+  "resource": zod.string(),
+  "resourceId": zod.string().nullish(),
+  "ip": zod.string().nullish(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Security overview metrics (admin only)
+ */
+export const GetSecurityOverviewResponse = zod.object({
+  "failedLast24h": zod.number(),
+  "successLast24h": zod.number(),
+  "lockedCount": zod.number(),
+  "suspiciousIpCount": zod.number(),
+  "trend": zod.array(zod.object({
+  "date": zod.string().optional(),
+  "failures": zod.number().optional(),
+  "successes": zod.number().optional()
+}))
+})
+
+
+/**
+ * @summary List locked accounts (admin only)
+ */
+export const GetLockedAccountsResponse = zod.object({
+  "accounts": zod.array(zod.object({
+  "email": zod.string(),
+  "failureCount": zod.number(),
+  "unlocksAt": zod.string(),
+  "latestIp": zod.string(),
+  "reason": zod.string()
+})).optional()
+})
+
+
+/**
+ * @summary Login attempt history (admin only)
+ */
+export const GetLoginHistoryQueryParams = zod.object({
+  "email": zod.coerce.string().optional(),
+  "ip": zod.coerce.string().optional(),
+  "success": zod.coerce.string().optional(),
+  "page": zod.coerce.number().optional(),
+  "limit": zod.coerce.number().optional()
+})
+
+export const GetLoginHistoryResponse = zod.object({
+  "entries": zod.array(zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "ip": zod.string(),
+  "success": zod.boolean(),
+  "userId": zod.number().nullish(),
+  "userAgent": zod.string().nullish(),
+  "attemptedAt": zod.string()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Suspicious IP and email activity (admin only)
+ */
+export const GetSuspiciousActivityResponse = zod.object({
+  "suspiciousIps": zod.array(zod.object({
+  "ip": zod.string().optional(),
+  "failureCount": zod.number().optional(),
+  "distinctEmails": zod.number().optional(),
+  "latestAttempt": zod.string().optional()
+})).optional(),
+  "targetedEmails": zod.array(zod.string()).optional()
+})
+
+
+/**
+ * @summary Unlock a locked account or IP (admin only)
+ */
+export const UnlockAccountBody = zod.object({
+  "email": zod.string().optional(),
+  "ip": zod.string().optional()
+})
+
+export const UnlockAccountResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Accounts with suspicious login patterns (admin only)
+ */
+export const GetCompromisedAccountsResponse = zod.object({
+  "accounts": zod.array(zod.object({
+  "email": zod.string(),
+  "userId": zod.number(),
+  "ip": zod.string(),
+  "loginAt": zod.string(),
+  "ipFailuresOnOthers": zod.number(),
+  "distinctEmailsFromIp": zod.number(),
+  "riskLevel": zod.enum(['high', 'medium'])
+})).optional()
+})
+
+
+/**
+ * @summary Force a password reset for a compromised account (admin only)
+ */
+export const ForcePasswordResetBody = zod.object({
+  "email": zod.string(),
+  "blockLogin": zod.boolean().optional(),
+  "suspiciousIp": zod.string().optional(),
+  "loginTime": zod.string().optional()
+})
+
+export const ForcePasswordResetResponse = zod.object({
+  "message": zod.string(),
+  "affectedUser": zod.object({
+  "id": zod.number().optional(),
+  "email": zod.string().optional(),
+  "name": zod.string().optional()
+}),
+  "sessionCount": zod.number(),
+  "blockApplied": zod.boolean()
 })
 
 

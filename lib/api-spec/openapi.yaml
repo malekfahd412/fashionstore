@@ -1165,6 +1165,250 @@ paths:
         "200":
           description: Acknowledged
 
+  # ── Analytics (admin-only extras) ────────────────────────────────────
+  /analytics/bi:
+    get:
+      operationId: getBusinessIntelligence
+      tags: [analytics]
+      summary: Business intelligence metrics (admin only)
+      responses:
+        "200":
+          description: BI data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BIData"
+
+  /analytics/top-categories:
+    get:
+      operationId: getTopCategories
+      tags: [analytics]
+      summary: Top categories by revenue (admin only)
+      responses:
+        "200":
+          description: Top categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopCategory"
+
+  /analytics/vendor-performance:
+    get:
+      operationId: getVendorPerformance
+      tags: [analytics]
+      summary: Vendor performance breakdown (admin only)
+      responses:
+        "200":
+          description: Vendor performance rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorPerformanceRow"
+
+  # ── Banners (admin: list all including inactive) ───────────────────────
+  /banners/all:
+    get:
+      operationId: listAllBanners
+      tags: [banners]
+      summary: List all banners including inactive (admin only)
+      responses:
+        "200":
+          description: All banners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Banner"
+
+  # ── Audit logs ─────────────────────────────────────────────────────────
+  /admin/audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [admin]
+      summary: List admin audit log entries (admin only)
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: resource
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogList"
+
+  # ── Admin security ─────────────────────────────────────────────────────
+  /admin/security/overview:
+    get:
+      operationId: getSecurityOverview
+      tags: [admin]
+      summary: Security overview metrics (admin only)
+      responses:
+        "200":
+          description: Security overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecurityOverview"
+
+  /admin/security/locked-accounts:
+    get:
+      operationId: getLockedAccounts
+      tags: [admin]
+      summary: List locked accounts (admin only)
+      responses:
+        "200":
+          description: Locked accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LockedAccount"
+
+  /admin/security/login-history:
+    get:
+      operationId: getLoginHistory
+      tags: [admin]
+      summary: Login attempt history (admin only)
+      parameters:
+        - name: email
+          in: query
+          schema:
+            type: string
+        - name: ip
+          in: query
+          schema:
+            type: string
+        - name: success
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Login history entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginHistoryList"
+
+  /admin/security/suspicious-activity:
+    get:
+      operationId: getSuspiciousActivity
+      tags: [admin]
+      summary: Suspicious IP and email activity (admin only)
+      responses:
+        "200":
+          description: Suspicious activity report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuspiciousActivity"
+
+  /admin/security/unlock:
+    post:
+      operationId: unlockAccount
+      tags: [admin]
+      summary: Unlock a locked account or IP (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnlockInput"
+      responses:
+        "200":
+          description: Account unlocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/security/compromised-accounts:
+    get:
+      operationId: getCompromisedAccounts
+      tags: [admin]
+      summary: Accounts with suspicious login patterns (admin only)
+      responses:
+        "200":
+          description: Compromised accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CompromisedAccount"
+
+  /admin/security/force-password-reset:
+    post:
+      operationId: forcePasswordReset
+      tags: [admin]
+      summary: Force a password reset for a compromised account (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForcePasswordResetInput"
+      responses:
+        "200":
+          description: Password reset forced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForcePasswordResetResult"
+
   # ── Auth extras ────────────────────────────────────────────────────────
   /auth/verify-email:
     get:
@@ -1993,3 +2237,240 @@ components:
           type: string
         paymobOrderId:
           type: integer
+
+    # ── Admin analytics extras ─────────────────────────────────────────
+    BIData:
+      type: object
+      required: [dailyRevenue, weeklyRevenue, monthlyRevenue, averageOrderValue, returningCustomers, totalCustomers, repeatPurchaseRate]
+      properties:
+        dailyRevenue:
+          type: number
+        weeklyRevenue:
+          type: number
+        monthlyRevenue:
+          type: number
+        averageOrderValue:
+          type: number
+        returningCustomers:
+          type: integer
+        totalCustomers:
+          type: integer
+        repeatPurchaseRate:
+          type: number
+
+    TopCategory:
+      type: object
+      required: [categoryId, nameEn, nameAr, totalSold, revenue]
+      properties:
+        categoryId:
+          type: integer
+        nameEn:
+          type: string
+        nameAr:
+          type: string
+        totalSold:
+          type: integer
+        revenue:
+          type: number
+
+    VendorPerformanceRow:
+      type: object
+      required: [vendorId, name, email, productCount, totalSold, revenue]
+      properties:
+        vendorId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        productCount:
+          type: integer
+        totalSold:
+          type: integer
+        revenue:
+          type: number
+
+    # ── Audit logs ─────────────────────────────────────────────────────
+    AuditLogEntry:
+      type: object
+      required: [id, userId, userEmail, action, resource, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userEmail:
+          type: string
+        action:
+          type: string
+        resource:
+          type: string
+        resourceId:
+          type: ["string", "null"]
+        ip:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    AuditLogList:
+      type: object
+      required: [logs, total]
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLogEntry"
+        total:
+          type: integer
+
+    # ── Admin security ─────────────────────────────────────────────────
+    SecurityOverview:
+      type: object
+      required: [failedLast24h, successLast24h, lockedCount, suspiciousIpCount, trend]
+      properties:
+        failedLast24h:
+          type: integer
+        successLast24h:
+          type: integer
+        lockedCount:
+          type: integer
+        suspiciousIpCount:
+          type: integer
+        trend:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              failures:
+                type: integer
+              successes:
+                type: integer
+
+    LockedAccount:
+      type: object
+      required: [email, failureCount, unlocksAt, latestIp, reason]
+      properties:
+        email:
+          type: string
+        failureCount:
+          type: integer
+        unlocksAt:
+          type: string
+        latestIp:
+          type: string
+        reason:
+          type: string
+
+    LoginHistoryEntry:
+      type: object
+      required: [id, email, ip, success, attemptedAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        ip:
+          type: string
+        success:
+          type: boolean
+        userId:
+          type: ["integer", "null"]
+        userAgent:
+          type: ["string", "null"]
+        attemptedAt:
+          type: string
+
+    LoginHistoryList:
+      type: object
+      required: [entries, total]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LoginHistoryEntry"
+        total:
+          type: integer
+
+    SuspiciousActivity:
+      type: object
+      properties:
+        suspiciousIps:
+          type: array
+          items:
+            type: object
+            properties:
+              ip:
+                type: string
+              failureCount:
+                type: integer
+              distinctEmails:
+                type: integer
+              latestAttempt:
+                type: string
+        targetedEmails:
+          type: array
+          items:
+            type: string
+
+    CompromisedAccount:
+      type: object
+      required: [email, userId, ip, loginAt, ipFailuresOnOthers, distinctEmailsFromIp, riskLevel]
+      properties:
+        email:
+          type: string
+        userId:
+          type: integer
+        ip:
+          type: string
+        loginAt:
+          type: string
+        ipFailuresOnOthers:
+          type: integer
+        distinctEmailsFromIp:
+          type: integer
+        riskLevel:
+          type: string
+          enum: [high, medium]
+
+    UnlockInput:
+      type: object
+      properties:
+        email:
+          type: string
+        ip:
+          type: string
+
+    ForcePasswordResetInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+        blockLogin:
+          type: boolean
+        suspiciousIp:
+          type: string
+        loginTime:
+          type: string
+
+    ForcePasswordResetResult:
+      type: object
+      required: [message, affectedUser, sessionCount, blockApplied]
+      properties:
+        message:
+          type: string
+        affectedUser:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+            name:
+              type: string
+        sessionCount:
+          type: integer
+        blockApplied:
+          type: boolean

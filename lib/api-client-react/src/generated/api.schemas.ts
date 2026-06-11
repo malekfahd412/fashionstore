@@ -23,6 +23,7 @@ export interface RegisterInput {
 export interface LoginInput {
   email: string;
   password: string;
+  /** When true, the device is saved as trusted so future logins from it skip new-device alerts. */
   rememberDevice?: boolean;
 }
 
@@ -458,6 +459,145 @@ export interface PaymobInitiateResponse {
   paymobOrderId: number;
 }
 
+export interface BIData {
+  dailyRevenue: number;
+  weeklyRevenue: number;
+  monthlyRevenue: number;
+  averageOrderValue: number;
+  returningCustomers: number;
+  totalCustomers: number;
+  repeatPurchaseRate: number;
+}
+
+export interface TopCategory {
+  categoryId: number;
+  nameEn: string;
+  nameAr: string;
+  totalSold: number;
+  revenue: number;
+}
+
+export interface VendorPerformanceRow {
+  vendorId: number;
+  name: string;
+  email: string;
+  productCount: number;
+  totalSold: number;
+  revenue: number;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  userId: number;
+  userEmail: string;
+  action: string;
+  resource: string;
+  /** @nullable */
+  resourceId?: string | null;
+  /** @nullable */
+  ip?: string | null;
+  createdAt: string;
+}
+
+export interface AuditLogList {
+  logs: AuditLogEntry[];
+  total: number;
+}
+
+export type SecurityOverviewTrendItem = {
+  date?: string;
+  failures?: number;
+  successes?: number;
+};
+
+export interface SecurityOverview {
+  failedLast24h: number;
+  successLast24h: number;
+  lockedCount: number;
+  suspiciousIpCount: number;
+  trend: SecurityOverviewTrendItem[];
+}
+
+export interface LockedAccount {
+  email: string;
+  failureCount: number;
+  unlocksAt: string;
+  latestIp: string;
+  reason: string;
+}
+
+export interface LoginHistoryEntry {
+  id: number;
+  email: string;
+  ip: string;
+  success: boolean;
+  /** @nullable */
+  userId?: number | null;
+  /** @nullable */
+  userAgent?: string | null;
+  attemptedAt: string;
+}
+
+export interface LoginHistoryList {
+  entries: LoginHistoryEntry[];
+  total: number;
+}
+
+export type SuspiciousActivitySuspiciousIpsItem = {
+  ip?: string;
+  failureCount?: number;
+  distinctEmails?: number;
+  latestAttempt?: string;
+};
+
+export interface SuspiciousActivity {
+  suspiciousIps?: SuspiciousActivitySuspiciousIpsItem[];
+  targetedEmails?: string[];
+}
+
+export type CompromisedAccountRiskLevel = typeof CompromisedAccountRiskLevel[keyof typeof CompromisedAccountRiskLevel];
+
+
+export const CompromisedAccountRiskLevel = {
+  high: 'high',
+  medium: 'medium',
+} as const;
+
+export interface CompromisedAccount {
+  email: string;
+  userId: number;
+  ip: string;
+  loginAt: string;
+  ipFailuresOnOthers: number;
+  distinctEmailsFromIp: number;
+  riskLevel: CompromisedAccountRiskLevel;
+}
+
+export interface UnlockInput {
+  email?: string;
+  ip?: string;
+}
+
+export interface ForcePasswordResetInput {
+  email: string;
+  blockLogin?: boolean;
+  suspiciousIp?: string;
+  loginTime?: string;
+}
+
+export type ForcePasswordResetResultAffectedUser = {
+  id?: number;
+  email?: string;
+  name?: string;
+};
+
+export interface ForcePasswordResetResult {
+  message: string;
+  affectedUser: ForcePasswordResetResultAffectedUser;
+  sessionCount: number;
+  blockApplied: boolean;
+}
+
 export type ListUsersParams = {
 role?: string;
 search?: string;
@@ -488,6 +628,33 @@ limit?: number;
 
 export type GetSalesTimelineParams = {
 period?: string;
+};
+
+export type ListAuditLogsParams = {
+search?: string;
+resource?: string;
+action?: string;
+userId?: number;
+from?: string;
+to?: string;
+page?: number;
+limit?: number;
+};
+
+export type GetLockedAccounts200 = {
+  accounts?: LockedAccount[];
+};
+
+export type GetLoginHistoryParams = {
+email?: string;
+ip?: string;
+success?: string;
+page?: number;
+limit?: number;
+};
+
+export type GetCompromisedAccounts200 = {
+  accounts?: CompromisedAccount[];
 };
 
 export type VerifyEmailParams = {
