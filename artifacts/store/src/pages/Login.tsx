@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link, useLocation } from "wouter";
+import { Eye, EyeOff } from "lucide-react";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,11 +22,14 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, setLocation] = useLocation();
   const { login: setAuthData } = useAuth();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { toast } = useToast();
-  
+  const [showPassword, setShowPassword] = useState(false);
+
+  const redirectTo = new URLSearchParams(window.location.search).get("from") || "/";
+
   const loginMutation = useLogin();
-  
+
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -35,11 +39,11 @@ export default function Login() {
     loginMutation.mutate({ data }, {
       onSuccess: (result) => {
         setAuthData(result.user, result.token);
-        toast({ title: t("nav.login") + " Successful", description: "Welcome back!" });
-        setLocation("/");
+        toast({ title: "Welcome back!", description: `Signed in as ${result.user.name}` });
+        setLocation(redirectTo);
       },
       onError: (error: any) => {
-        toast({ title: "Login Failed", description: error.message || "An error occurred", variant: "destructive" });
+        toast({ title: "Login failed", description: error.message || "Invalid email or password", variant: "destructive" });
       }
     });
   };
@@ -60,7 +64,7 @@ export default function Login() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your email" {...field} />
+                  <Input type="email" placeholder="Enter your email" autoComplete="email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -71,17 +75,42 @@ export default function Login() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <div className="flex items-center justify-between mb-1">
+                  <FormLabel className="mb-0">Password</FormLabel>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <FormControl>
-                  <Input type="password" placeholder="Enter your password" {...field} />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      className="pr-10"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setShowPassword(v => !v)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <Button type="submit" className="w-full h-12 text-lg" disabled={loginMutation.isPending}>
-            {loginMutation.isPending ? "Logging in..." : t("nav.login")}
+            {loginMutation.isPending ? "Signing in..." : t("nav.login")}
           </Button>
         </form>
       </Form>
