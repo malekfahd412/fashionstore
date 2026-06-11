@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, loginAttemptsTable, refreshTokensTable } from "@workspace/db";
+import bcrypt from "bcryptjs";
+import { db, usersTable, loginAttemptsTable, refreshTokensTable } from "@workspace/db";
 import { eq, and, or, desc, gt, isNull, count } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import {
@@ -117,6 +118,39 @@ router.delete("/account/security/sessions/:id", requireAuth, async (req, res): P
     .set({ revokedAt: new Date() })
     .where(eq(refreshTokensTable.id, sessionId));
   res.json({ message: "Session revoked" });
+});
+
+// ── POST /account/security/change-password ────────────────────────────────────
+router.post("/account/security/change-password", requireAuth, async (req, res): Promise<void> => {
+  const { currentPassword, newPassword } = req.body as { currentPassword?: unknown; newPassword?: unknown };
+
+  if (typeof currentPassword !== "string" || !currentPassword) {
+    res.status(400).json({ error: "currentPassword is required" }); return;
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 8) {
+    res.status(400).json({ error: "newPassword must be at least 8 characters" }); return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id));
+  if (!user || !user.password) {
+    res.status(404).json({ error: "User not found" }); return;
+  }
+
+  const valid = await bcrypt.compare(currentPassword, user.password);
+  if (!valid) {
+    res.status(401).json({ error: "Current password is incorrect" }); return;
+  }
+
+  const hashed = await bcrypt.hash(newPassword, 12);
+  await db.update(usersTable).set({ password: hashed }).where(eq(usersTable.id, user.id));
+
+  // Revoke all existing refresh tokens so other sessions must re-authenticate
+  await db
+    .update(refreshTokensTable)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(refreshTokensTable.userId, user.id), isNull(refreshTokensTable.revokedAt)));
+
+  res.json({ message: "Password changed successfully" });
 });
 
 // ── DELETE /account/security/sessions (revoke all) ────────────────────────────

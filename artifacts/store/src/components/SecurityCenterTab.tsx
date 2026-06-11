@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Shield, AlertTriangle, Monitor, Clock, Trash2, LogOut, X } from "lucide-react";
+import { Shield, AlertTriangle, Monitor, Clock, Trash2, LogOut, X, Eye, EyeOff, KeyRound, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -68,6 +69,12 @@ export default function SecurityCenterTab({ showAlert }: { showAlert?: boolean }
   const [histPage, setHistPage] = useState(1);
   const qc = useQueryClient();
 
+  // Password change form state
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [pwShow, setPwShow] = useState({ current: false, next: false, confirm: false });
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwError, setPwError] = useState("");
+
   const { data: sessions, refetch: refetchSessions, isLoading: loadingSessions } = useQuery<Session[]>({
     queryKey: ["security-sessions"],
     queryFn: () => apiFetch("/api/account/security/sessions"),
@@ -130,6 +137,31 @@ export default function SecurityCenterTab({ showAlert }: { showAlert?: boolean }
       qc.invalidateQueries({ queryKey: ["security-prefs"] });
     },
   });
+
+  const changePassword = useMutation({
+    mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
+      apiFetch("/api/account/security/change-password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }),
+    onSuccess: () => {
+      setPwForm({ current: "", next: "", confirm: "" });
+      setPwError("");
+      setPwSuccess(true);
+      setTimeout(() => setPwSuccess(false), 5000);
+    },
+    onError: (err: Error) => {
+      setPwError(err.message || "Failed to change password");
+    },
+  });
+
+  const handleChangePassword = () => {
+    setPwError("");
+    if (!pwForm.current) { setPwError("Please enter your current password"); return; }
+    if (pwForm.next.length < 8) { setPwError("New password must be at least 8 characters"); return; }
+    if (pwForm.next !== pwForm.confirm) { setPwError("New passwords do not match"); return; }
+    changePassword.mutate({ currentPassword: pwForm.current, newPassword: pwForm.next });
+  };
 
   const SUB_TABS: { id: SecuritySubTab; label: string; icon: typeof Shield }[] = [
     { id: "sessions", label: "Active Sessions", icon: LogOut },
@@ -372,7 +404,9 @@ export default function SecurityCenterTab({ showAlert }: { showAlert?: boolean }
 
       {/* ── Preferences ─────────────────────────────────────────────────── */}
       {subTab === "preferences" && (
-        <div className="space-y-6 max-w-lg">
+        <div className="space-y-8 max-w-lg">
+
+          {/* Login Alerts */}
           <div>
             <h3 className="text-base font-semibold mb-1">Login Alerts</h3>
             <p className="text-sm text-muted-foreground mb-4">
@@ -405,6 +439,91 @@ export default function SecurityCenterTab({ showAlert }: { showAlert?: boolean }
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Change Password */}
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <KeyRound className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-base font-semibold">Change Password</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Choose a strong password you don't use anywhere else. All other sessions will be signed out.
+            </p>
+
+            <div className="border border-border p-4 space-y-4">
+              {/* Current password */}
+              {(["current", "next", "confirm"] as const).map((field) => {
+                const labels = { current: "Current password", next: "New password", confirm: "Confirm new password" };
+                return (
+                  <div key={field} className="space-y-1.5">
+                    <label className="text-sm font-medium">{labels[field]}</label>
+                    <div className="relative">
+                      <Input
+                        type={pwShow[field] ? "text" : "password"}
+                        value={pwForm[field]}
+                        onChange={(e) => setPwForm((f) => ({ ...f, [field]: e.target.value }))}
+                        placeholder={field === "current" ? "Enter current password" : field === "next" ? "Min 8 characters" : "Re-enter new password"}
+                        className="pr-10"
+                        autoComplete={field === "current" ? "current-password" : "new-password"}
+                        onKeyDown={(e) => e.key === "Enter" && handleChangePassword()}
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setPwShow((s) => ({ ...s, [field]: !s[field] }))}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={pwShow[field] ? "Hide" : "Show"}
+                      >
+                        {pwShow[field] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Strength hint */}
+              {pwForm.next.length > 0 && (
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((level) => {
+                    const strength =
+                      [pwForm.next.length >= 8, /[A-Z]/.test(pwForm.next), /[0-9]/.test(pwForm.next), /[^A-Za-z0-9]/.test(pwForm.next)]
+                        .filter(Boolean).length;
+                    return (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded-full transition-colors ${
+                          level <= strength
+                            ? strength <= 1 ? "bg-red-400" : strength === 2 ? "bg-yellow-400" : strength === 3 ? "bg-blue-400" : "bg-green-500"
+                            : "bg-muted"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Error */}
+              {pwError && (
+                <p className="text-sm text-destructive">{pwError}</p>
+              )}
+
+              {/* Success */}
+              {pwSuccess && (
+                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                  Password changed successfully. Other sessions have been signed out.
+                </div>
+              )}
+
+              <Button
+                onClick={handleChangePassword}
+                disabled={changePassword.isPending}
+                className="w-full"
+              >
+                {changePassword.isPending ? "Updating..." : "Update Password"}
+              </Button>
+            </div>
           </div>
 
           <div className="border border-border bg-muted/20 p-4">
