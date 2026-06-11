@@ -15,6 +15,7 @@ import {
   trustDevice,
   getSecurityPrefs,
 } from "../lib/deviceRecognition";
+import { getIpLocation } from "../lib/ipGeo";
 
 const router: IRouter = Router();
 
@@ -168,13 +169,16 @@ router.post("/auth/login", async (req, res): Promise<void> => {
       if (!known && hasDevices) {
         const prefs = await getSecurityPrefs(user.id);
         if (prefs.loginAlertsEnabled) {
+          const resolvedIp = ip ?? "unknown";
+          const location = await getIpLocation(resolvedIp).catch(() => "");
           sendNewLoginEmail({
             email: user.email,
             name: user.name,
             deviceName,
             browser,
             os,
-            ip: ip ?? "unknown",
+            ip: resolvedIp,
+            location: location || undefined,
             time: new Date(),
           }).catch(() => {});
         }

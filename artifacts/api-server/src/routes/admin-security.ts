@@ -7,6 +7,7 @@ import {
   getLoginHistory,
   getSuspiciousActivity,
   unlockAccount,
+  getCompromisedAccounts,
 } from "../lib/loginProtection";
 
 const router: IRouter = Router();
@@ -116,6 +117,12 @@ router.post("/admin/security/unlock", requireAuth, requireRole("admin"), async (
   }
   await unlockAccount(email, ip);
   res.json({ message: "Account unlocked", email, ip });
+});
+
+// ── GET /admin/security/compromised-accounts ──────────────────────────────────
+router.get("/admin/security/compromised-accounts", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
+  const accounts = await getCompromisedAccounts();
+  res.json({ accounts });
 });
 
 export default router;

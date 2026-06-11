@@ -1,5 +1,5 @@
 import { db, loginAttemptsTable } from "@workspace/db";
-import { eq, and, gte, desc, count, ne, countDistinct } from "drizzle-orm";
+import { eq, and, gte, desc, count, ne, countDistinct, sql } from "drizzle-orm";
 
 // ── Lockout thresholds (most severe first) ────────────────────────────────────
 const THRESHOLDS = [
@@ -283,4 +283,78 @@ export async function getSuspiciousActivity(): Promise<{ suspiciousIps: Suspicio
     suspiciousIps,
     targetedEmails: emailRows.map((r) => r.email),
   };
+}
+
+// ── Compromised account indicators ────────────────────────────────────────────
+// Accounts where a successful login came from an IP that also had failures on
+// 2+ OTHER email addresses in the last 24h — a strong credential-stuffing signal.
+
+export type CompromisedAccountIndicator = {
+  email: string;
+  userId: number;
+  ip: string;
+  loginAt: Date;
+  ipFailuresOnOthers: number;
+  distinctEmailsFromIp: number;
+  riskLevel: "high" | "medium";
+};
+
+export async function getCompromisedAccounts(): Promise<CompromisedAccountIndicator[]> {
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  // Raw SQL: join successful logins with failure counts from same IP on other accounts
+  const rows = await db.execute<{
+    email: string;
+    user_id: number;
+    ip: string;
+    login_at: Date;
+    ip_failures: string;
+    distinct_emails: string;
+  }>(sql`
+    SELECT
+      ls.email,
+      ls.user_id,
+      ls.ip,
+      ls.attempted_at AS login_at,
+      COUNT(lf.id)                      AS ip_failures,
+      COUNT(DISTINCT lf.email)           AS distinct_emails
+    FROM login_attempts ls
+    JOIN login_attempts lf
+      ON  lf.ip        = ls.ip
+      AND lf.success   = false
+      AND lf.email    != ls.email
+      AND lf.attempted_at >= ${since24h}
+    WHERE ls.success      = true
+      AND ls.attempted_at >= ${since24h}
+      AND ls.user_id IS NOT NULL
+      AND ls.email   != 'admin-unlock'
+    GROUP BY ls.id, ls.email, ls.user_id, ls.ip, ls.attempted_at
+    HAVING COUNT(DISTINCT lf.email) >= 2
+    ORDER BY ls.attempted_at DESC
+    LIMIT 100
+  `);
+
+  const data = (rows.rows ?? rows) as {
+    email: string;
+    user_id: number;
+    ip: string;
+    login_at: Date | string;
+    ip_failures: string;
+    distinct_emails: string;
+  }[];
+
+  return data.map((r) => {
+    const ipFailures = Number(r.ip_failures);
+    const distinctEmails = Number(r.distinct_emails);
+    const riskLevel: "high" | "medium" = ipFailures >= 10 || distinctEmails >= 5 ? "high" : "medium";
+    return {
+      email: r.email,
+      userId: Number(r.user_id),
+      ip: r.ip,
+      loginAt: r.login_at instanceof Date ? r.login_at : new Date(r.login_at),
+      ipFailuresOnOthers: ipFailures,
+      distinctEmailsFromIp: distinctEmails,
+      riskLevel,
+    };
+  });
 }

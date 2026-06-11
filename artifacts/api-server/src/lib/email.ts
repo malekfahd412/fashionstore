@@ -195,19 +195,24 @@ export async function sendNewLoginEmail(opts: {
   browser: string;
   os: string;
   ip: string;
+  location?: string;
   time: Date;
 }): Promise<void> {
   const timeStr = opts.time.toUTCString();
   const securityUrl = `${APP_URL()}/dashboard/customer?tab=security&alert=1`;
+  const locationRow = opts.location
+    ? `<p style="margin:0 0 8px"><strong>Approximate Location:</strong> ${opts.location}</p>`
+    : "";
   await send(opts.email, "New sign-in to your LUXE account", wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">New Sign-In Detected</h2>
     <p style="line-height:1.7;color:#444">Hi ${opts.name}, we noticed a new sign-in to your LUXE account from a device we haven't seen before.</p>
     <div style="background:#f9f9f9;padding:20px;margin:20px 0;border-left:3px solid #d4af37">
+      <p style="margin:0 0 8px"><strong>Time:</strong> ${timeStr}</p>
+      ${locationRow}
       <p style="margin:0 0 8px"><strong>Device:</strong> ${opts.deviceName}</p>
       <p style="margin:0 0 8px"><strong>Browser:</strong> ${opts.browser}</p>
       <p style="margin:0 0 8px"><strong>Operating System:</strong> ${opts.os}</p>
-      <p style="margin:0 0 8px"><strong>IP Address:</strong> ${opts.ip}</p>
-      <p style="margin:0"><strong>Time:</strong> ${timeStr}</p>
+      <p style="margin:0"><strong>IP Address:</strong> ${opts.ip}</p>
     </div>
     <p style="line-height:1.7;color:#444">If this was you, no action is needed — this device is now trusted.</p>
     <p style="line-height:1.7;color:#444">If you don't recognise this sign-in, secure your account immediately:</p>

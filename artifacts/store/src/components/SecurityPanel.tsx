@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Shield, AlertTriangle, History, Unlock, BarChart3, TrendingDown } from "lucide-react";
+import { Shield, AlertTriangle, History, Unlock, BarChart3, TrendingDown, ShieldAlert } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -50,7 +50,17 @@ type SecurityOverview = {
   trend: { date: string; failures: number; successes: number }[];
 };
 
-type SecuritySubTab = "overview" | "locked" | "history" | "suspicious";
+type CompromisedAccount = {
+  email: string;
+  userId: number;
+  ip: string;
+  loginAt: string;
+  ipFailuresOnOthers: number;
+  distinctEmailsFromIp: number;
+  riskLevel: "high" | "medium";
+};
+
+type SecuritySubTab = "overview" | "locked" | "history" | "suspicious" | "compromised";
 
 function Badge({ success }: { success: boolean }) {
   return (
@@ -130,6 +140,14 @@ export default function SecurityPanel() {
     refetchInterval: 60_000,
   });
 
+  const { data: compromised, refetch: refetchCompromised } = useQuery<{ accounts: CompromisedAccount[] }>({
+    queryKey: ["security-compromised"],
+    queryFn: () => apiFetch("/api/admin/security/compromised-accounts"),
+    enabled: subTab === "compromised",
+    staleTime: 30_000,
+    refetchInterval: 120_000,
+  });
+
   const unlock = useMutation({
     mutationFn: (email: string) =>
       apiFetch("/api/admin/security/unlock", { method: "POST", body: JSON.stringify({ email }) }),
@@ -140,11 +158,12 @@ export default function SecurityPanel() {
     },
   });
 
-  const SUB_TABS: { id: SecuritySubTab; label: string; icon: typeof Shield }[] = [
+  const SUB_TABS: { id: SecuritySubTab; label: string; icon: typeof Shield; badge?: number; badgeAccent?: boolean }[] = [
     { id: "overview", label: "Overview", icon: BarChart3 },
-    { id: "locked", label: "Locked Accounts", icon: Shield },
+    { id: "locked", label: "Locked Accounts", icon: Shield, badge: overview?.lockedCount, badgeAccent: false },
     { id: "history", label: "Login History", icon: History },
-    { id: "suspicious", label: "Suspicious Activity", icon: AlertTriangle },
+    { id: "suspicious", label: "Suspicious Activity", icon: AlertTriangle, badge: overview?.suspiciousIpCount, badgeAccent: true },
+    { id: "compromised", label: "Compromised Accounts", icon: ShieldAlert, badge: compromised?.accounts.length, badgeAccent: true },
   ];
 
   // Compute max bar height for trend chart
@@ -162,7 +181,7 @@ export default function SecurityPanel() {
 
       {/* Sub-tab switcher */}
       <div className="flex gap-1 border-b border-border overflow-x-auto">
-        {SUB_TABS.map(({ id, label, icon: Icon }) => (
+        {SUB_TABS.map(({ id, label, icon: Icon, badge, badgeAccent }) => (
           <button
             key={id}
             onClick={() => setSubTab(id)}
@@ -174,6 +193,13 @@ export default function SecurityPanel() {
           >
             <Icon className="w-4 h-4" />
             {label}
+            {badge != null && badge > 0 && (
+              <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full leading-none ${
+                badgeAccent ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+              }`}>
+                {badge}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -576,6 +602,97 @@ export default function SecurityPanel() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ── COMPROMISED ACCOUNTS ─────────────────────────────────────────── */}
+      {subTab === "compromised" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Accounts with successful logins from IPs that also attacked 2+ other accounts in the last 24 hours.
+              This pattern indicates credential-stuffing — the attacker likely obtained this password from a data breach.
+            </p>
+            <button onClick={() => refetchCompromised()} className="text-xs text-primary underline shrink-0 ml-4">
+              Refresh
+            </button>
+          </div>
+
+          {/* Risk legend */}
+          <div className="flex gap-4 text-xs">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
+              <strong>High risk:</strong> 10+ failures or 5+ targeted emails from same IP
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block" />
+              <strong>Medium risk:</strong> 2–4 targeted emails from same IP
+            </span>
+          </div>
+
+          <div className="border border-border bg-card overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
+              <thead className="bg-muted text-muted-foreground text-xs uppercase">
+                <tr>
+                  {["Risk", "Account Email", "Login IP", "Failures on Others", "Distinct Targets", "Login Time"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {compromised?.accounts.map((acc, i) => (
+                  <tr key={`${acc.email}-${i}`} className={`hover:bg-muted/20 ${acc.riskLevel === "high" ? "bg-red-50/40" : "bg-orange-50/20"}`}>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
+                        acc.riskLevel === "high"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-orange-100 text-orange-700"
+                      }`}>
+                        <ShieldAlert className="w-3 h-3" />
+                        {acc.riskLevel}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium">{acc.email}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{acc.ip}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700">
+                        {acc.ipFailuresOnOthers}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium">{acc.distinctEmailsFromIp}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
+                      {format(new Date(acc.loginAt), "MMM d, HH:mm:ss")}
+                    </td>
+                  </tr>
+                ))}
+                {!compromised?.accounts.length && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <ShieldAlert className="w-8 h-8 opacity-30" />
+                        <p className="text-sm">No compromised account indicators in the last 24 hours</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {compromised?.accounts.length ? (
+            <div className="border border-red-200 bg-red-50 p-4">
+              <p className="text-xs font-semibold text-red-800 uppercase tracking-wide mb-2 flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Recommended Actions
+              </p>
+              <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
+                <li>Force-password-reset affected accounts via user management</li>
+                <li>Block the source IPs in your firewall or WAF</li>
+                <li>Notify affected users of potential credential exposure</li>
+                <li>Check if accounts made any suspicious orders or profile changes</li>
+              </ul>
+            </div>
+          ) : null}
         </div>
       )}
     </div>
