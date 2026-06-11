@@ -223,6 +223,43 @@ export async function sendNewLoginEmail(opts: {
   `));
 }
 
+export async function sendForcePasswordResetEmail(opts: {
+  email: string;
+  name: string;
+  resetUrl: string;
+  suspiciousIp: string;
+  loginTime: Date;
+  location?: string;
+}): Promise<void> {
+  const timeStr = opts.loginTime.toUTCString();
+  const locationRow = opts.location
+    ? `<p style="margin:0 0 8px"><strong>Approximate Location:</strong> ${opts.location}</p>`
+    : "";
+  await send(opts.email, "⚠️ Your LUXE account password must be reset", wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px;color:#b91c1c">Security Alert: Forced Password Reset</h2>
+    <p style="line-height:1.7;color:#444">Hi ${opts.name},</p>
+    <p style="line-height:1.7;color:#444">Our security team detected a sign-in to your account that matches a known credential-stuffing attack. As a precaution, your password has been reset and all active sessions have been terminated.</p>
+    <div style="background:#fff5f5;padding:20px;margin:20px 0;border-left:3px solid #b91c1c">
+      <p style="margin:0 0 4px;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#b91c1c">Suspicious Login Details</p>
+      <p style="margin:8px 0 8px"><strong>Time:</strong> ${timeStr}</p>
+      ${locationRow}
+      <p style="margin:0 0 8px"><strong>IP Address:</strong> ${opts.suspiciousIp}</p>
+      <p style="margin:0;font-size:12px;color:#666">This IP was also used to attack other accounts, suggesting your password was obtained in a data breach.</p>
+    </div>
+    <p style="line-height:1.7;color:#444">To regain access to your account, click the button below to set a new password. This link expires in <strong>60 minutes</strong>.</p>
+    <div style="text-align:center">
+      <a href="${opts.resetUrl}" style="${btnStyle}">RESET MY PASSWORD</a>
+    </div>
+    <p style="line-height:1.7;color:#444;margin-top:24px">Once you have reset your password, we recommend:</p>
+    <ul style="color:#444;line-height:2;padding-left:20px">
+      <li>Use a unique password not used on any other site</li>
+      <li>Enable two-factor authentication if available</li>
+      <li>Check for any unauthorised orders or profile changes</li>
+    </ul>
+    <p style="font-size:12px;color:#999;margin-top:24px">If you need help, contact our support team immediately. Do not share this link with anyone.</p>
+  `));
+}
+
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
   await send(email, `Welcome to LUXE, ${name}`, wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to LUXE</h2>

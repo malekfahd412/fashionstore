@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Shield, AlertTriangle, History, Unlock, BarChart3, TrendingDown, ShieldAlert } from "lucide-react";
+import { Shield, AlertTriangle, History, Unlock, BarChart3, TrendingDown, ShieldAlert, KeyRound, X, CheckCircle2 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -60,7 +60,16 @@ type CompromisedAccount = {
   riskLevel: "high" | "medium";
 };
 
+type ForceResetResult = {
+  message: string;
+  affectedUser: { id: number; email: string; name: string };
+  sessionCount: number;
+  blockApplied: boolean;
+};
+
 type SecuritySubTab = "overview" | "locked" | "history" | "suspicious" | "compromised";
+
+const CONFIRM_PHRASE = "CONFIRM RESET";
 
 function Badge({ success }: { success: boolean }) {
   return (
@@ -80,11 +89,7 @@ function TimeUntil({ date }: { date: string }) {
 }
 
 function StatCard({ label, value, sub, accent }: { label: string; value: number | string; sub?: string; accent?: "red" | "orange" | "green" }) {
-  const colorMap = {
-    red: "text-red-600",
-    orange: "text-orange-500",
-    green: "text-green-600",
-  };
+  const colorMap = { red: "text-red-600", orange: "text-orange-500", green: "text-green-600" };
   const textColor = accent ? colorMap[accent] : "text-foreground";
   return (
     <div className="border border-border bg-card p-5">
@@ -95,12 +100,137 @@ function StatCard({ label, value, sub, accent }: { label: string; value: number 
   );
 }
 
+function ForceResetModal({
+  account,
+  onClose,
+  onConfirm,
+  isPending,
+}: {
+  account: CompromisedAccount;
+  onClose: () => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  const [confirmText, setConfirmText] = useState("");
+  const isReady = confirmText === CONFIRM_PHRASE;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-background border border-red-300 shadow-2xl max-w-lg w-full">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-red-200 bg-red-50">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-5 h-5 text-red-700" />
+            <span className="text-sm font-bold text-red-800 uppercase tracking-wide">Force Password Reset</span>
+          </div>
+          <button onClick={onClose} disabled={isPending} className="text-red-400 hover:text-red-700 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="px-6 py-5 space-y-4">
+          {/* Risk badge + email */}
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold uppercase tracking-widest ${
+              account.riskLevel === "high" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+            }`}>
+              <ShieldAlert className="w-3 h-3" />
+              {account.riskLevel} risk
+            </span>
+            <span className="text-sm font-semibold">{account.email}</span>
+          </div>
+
+          {/* Suspicious login details */}
+          <div className="bg-muted/50 border border-border p-4 space-y-1.5 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Suspicious Login Details</p>
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 shrink-0">Suspicious IP</span>
+              <span className="font-mono font-medium">{account.ip}</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 shrink-0">Login Time</span>
+              <span>{format(new Date(account.loginAt), "MMM d yyyy, HH:mm:ss")}</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 shrink-0">Failures on Others</span>
+              <span className="font-semibold text-red-600">{account.ipFailuresOnOthers}</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 shrink-0">Distinct Targets</span>
+              <span className="font-semibold">{account.distinctEmailsFromIp}</span>
+            </div>
+          </div>
+
+          {/* What this action does */}
+          <div className="text-sm space-y-1.5">
+            <p className="font-semibold text-sm">This action will immediately:</p>
+            <ul className="text-muted-foreground space-y-1 text-sm list-none">
+              <li className="flex items-start gap-2"><span className="text-red-500 mt-0.5">•</span> Revoke all active sessions and refresh tokens</li>
+              <li className="flex items-start gap-2"><span className="text-red-500 mt-0.5">•</span> Issue a new 60-minute password reset link</li>
+              <li className="flex items-start gap-2"><span className="text-red-500 mt-0.5">•</span> Apply a ~5-minute login block during transition</li>
+              <li className="flex items-start gap-2"><span className="text-red-500 mt-0.5">•</span> Send an alert email to <strong>{account.email}</strong></li>
+              <li className="flex items-start gap-2"><span className="text-red-500 mt-0.5">•</span> Write an audit log entry with your admin ID</li>
+            </ul>
+          </div>
+
+          {/* Confirmation input */}
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Type <span className="text-red-600 font-mono">{CONFIRM_PHRASE}</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+              placeholder={CONFIRM_PHRASE}
+              disabled={isPending}
+              className="w-full border border-border px-3 py-2 text-sm font-mono bg-background focus:outline-none focus:border-red-400 disabled:opacity-50"
+              autoFocus
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 px-6 py-4 border-t border-border bg-muted/30">
+          <button
+            onClick={onClose}
+            disabled={isPending}
+            className="flex-1 px-4 py-2.5 text-sm font-medium border border-border hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={!isReady || isPending}
+            className="flex-1 px-4 py-2.5 text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isPending ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                Processing…
+              </>
+            ) : (
+              <>
+                <KeyRound className="w-3.5 h-3.5" />
+                Force Reset
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SecurityPanel() {
   const [subTab, setSubTab] = useState<SecuritySubTab>("overview");
   const [historyEmail, setHistoryEmail] = useState("");
   const [historyIp, setHistoryIp] = useState("");
   const [historySuccess, setHistorySuccess] = useState<"" | "true" | "false">("");
   const [historyPage, setHistoryPage] = useState(1);
+  const [resetTarget, setResetTarget] = useState<CompromisedAccount | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<ForceResetResult | null>(null);
   const qc = useQueryClient();
 
   const { data: overview, refetch: refetchOverview } = useQuery<SecurityOverview>({
@@ -158,6 +288,26 @@ export default function SecurityPanel() {
     },
   });
 
+  const forceReset = useMutation<ForceResetResult, Error, CompromisedAccount>({
+    mutationFn: (acc) =>
+      apiFetch("/api/admin/security/force-password-reset", {
+        method: "POST",
+        body: JSON.stringify({
+          email: acc.email,
+          blockLogin: true,
+          suspiciousIp: acc.ip,
+          loginTime: acc.loginAt,
+        }),
+      }),
+    onSuccess: (data) => {
+      setResetTarget(null);
+      setResetSuccess(data);
+      qc.invalidateQueries({ queryKey: ["security-compromised"] });
+      refetchCompromised();
+      setTimeout(() => setResetSuccess(null), 8000);
+    },
+  });
+
   const SUB_TABS: { id: SecuritySubTab; label: string; icon: typeof Shield; badge?: number; badgeAccent?: boolean }[] = [
     { id: "overview", label: "Overview", icon: BarChart3 },
     { id: "locked", label: "Locked Accounts", icon: Shield, badge: overview?.lockedCount, badgeAccent: false },
@@ -166,11 +316,39 @@ export default function SecurityPanel() {
     { id: "compromised", label: "Compromised Accounts", icon: ShieldAlert, badge: compromised?.accounts.length, badgeAccent: true },
   ];
 
-  // Compute max bar height for trend chart
   const trendMax = Math.max(1, ...(overview?.trend ?? []).flatMap((r) => [r.failures, r.successes]));
 
   return (
     <div className="space-y-6">
+      {/* Force-reset success banner */}
+      {resetSuccess && (
+        <div className="border border-green-300 bg-green-50 px-5 py-3 flex items-start gap-3">
+          <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <span className="font-semibold text-green-800">Password reset forced for {resetSuccess.affectedUser.email}.</span>
+            {" "}
+            <span className="text-green-700">
+              {resetSuccess.sessionCount} session{resetSuccess.sessionCount !== 1 ? "s" : ""} revoked.
+              Reset email sent.{resetSuccess.blockApplied ? " Temporary login block applied." : ""}
+            </span>
+          </div>
+          <button onClick={() => setResetSuccess(null)} className="ml-auto text-green-400 hover:text-green-700">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Error banner for force reset */}
+      {forceReset.isError && (
+        <div className="border border-red-300 bg-red-50 px-5 py-3 flex items-start gap-3">
+          <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+          <span className="text-sm text-red-700">{forceReset.error.message}</span>
+          <button onClick={() => forceReset.reset()} className="ml-auto text-red-400 hover:text-red-700">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold font-serif">Security</h1>
         <span className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -212,35 +390,16 @@ export default function SecurityPanel() {
             <button onClick={() => refetchOverview()} className="text-xs text-primary underline">Refresh</button>
           </div>
 
-          {/* Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              label="Failed Logins (24h)"
-              value={overview?.failedLast24h ?? "—"}
-              sub="login failures"
-              accent={overview && overview.failedLast24h > 50 ? "red" : overview && overview.failedLast24h > 10 ? "orange" : undefined}
-            />
-            <StatCard
-              label="Successful Logins (24h)"
-              value={overview?.successLast24h ?? "—"}
-              sub="successful sign-ins"
-              accent="green"
-            />
-            <StatCard
-              label="Locked Accounts"
-              value={overview?.lockedCount ?? "—"}
-              sub="currently locked"
-              accent={overview && overview.lockedCount > 0 ? "orange" : undefined}
-            />
-            <StatCard
-              label="Suspicious IPs"
-              value={overview?.suspiciousIpCount ?? "—"}
-              sub="flagged in last hour"
-              accent={overview && overview.suspiciousIpCount > 0 ? "red" : undefined}
-            />
+            <StatCard label="Failed Logins (24h)" value={overview?.failedLast24h ?? "—"} sub="login failures"
+              accent={overview && overview.failedLast24h > 50 ? "red" : overview && overview.failedLast24h > 10 ? "orange" : undefined} />
+            <StatCard label="Successful Logins (24h)" value={overview?.successLast24h ?? "—"} sub="successful sign-ins" accent="green" />
+            <StatCard label="Locked Accounts" value={overview?.lockedCount ?? "—"} sub="currently locked"
+              accent={overview && overview.lockedCount > 0 ? "orange" : undefined} />
+            <StatCard label="Suspicious IPs" value={overview?.suspiciousIpCount ?? "—"} sub="flagged in last hour"
+              accent={overview && overview.suspiciousIpCount > 0 ? "red" : undefined} />
           </div>
 
-          {/* 7-day trend table */}
           <div className="border border-border bg-card overflow-hidden">
             <div className="px-5 py-4 border-b border-border flex items-center gap-2">
               <TrendingDown className="w-4 h-4 text-muted-foreground" />
@@ -250,21 +409,16 @@ export default function SecurityPanel() {
               <div className="p-8 text-center text-sm text-muted-foreground">No data yet</div>
             ) : (
               <>
-                {/* Mini bar chart */}
                 <div className="px-5 pt-4 pb-2 flex items-end gap-1 h-28">
                   {overview.trend.map((row) => (
                     <div key={row.date} className="flex-1 flex flex-col items-center gap-0.5">
                       <div className="w-full flex gap-0.5 items-end" style={{ height: "72px" }}>
-                        <div
-                          className="flex-1 bg-red-400/80 rounded-sm"
+                        <div className="flex-1 bg-red-400/80 rounded-sm"
                           style={{ height: `${Math.round((row.failures / trendMax) * 72)}px`, minHeight: row.failures > 0 ? 2 : 0 }}
-                          title={`${row.failures} failures`}
-                        />
-                        <div
-                          className="flex-1 bg-green-400/80 rounded-sm"
+                          title={`${row.failures} failures`} />
+                        <div className="flex-1 bg-green-400/80 rounded-sm"
                           style={{ height: `${Math.round((row.successes / trendMax) * 72)}px`, minHeight: row.successes > 0 ? 2 : 0 }}
-                          title={`${row.successes} successes`}
-                        />
+                          title={`${row.successes} successes`} />
                       </div>
                       <span className="text-[9px] text-muted-foreground">
                         {format(new Date(row.date + "T12:00:00Z"), "MMM d")}
@@ -272,12 +426,10 @@ export default function SecurityPanel() {
                     </div>
                   ))}
                 </div>
-                {/* Legend */}
                 <div className="px-5 pb-4 flex gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-red-400/80 rounded-sm inline-block" />Failures</span>
                   <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-400/80 rounded-sm inline-block" />Successes</span>
                 </div>
-                {/* Table */}
                 <table className="w-full text-sm border-t border-border">
                   <thead className="bg-muted text-muted-foreground text-xs uppercase">
                     <tr>
@@ -292,17 +444,11 @@ export default function SecurityPanel() {
                       const rate = total > 0 ? ((row.failures / total) * 100).toFixed(0) : "0";
                       return (
                         <tr key={row.date} className="hover:bg-muted/20">
-                          <td className="px-4 py-2.5 font-medium">
-                            {format(new Date(row.date + "T12:00:00Z"), "EEE, MMM d")}
-                          </td>
+                          <td className="px-4 py-2.5 font-medium">{format(new Date(row.date + "T12:00:00Z"), "EEE, MMM d")}</td>
                           <td className="px-4 py-2.5">
-                            <span className={`font-medium ${row.failures > 0 ? "text-red-600" : "text-muted-foreground"}`}>
-                              {row.failures}
-                            </span>
+                            <span className={`font-medium ${row.failures > 0 ? "text-red-600" : "text-muted-foreground"}`}>{row.failures}</span>
                           </td>
-                          <td className="px-4 py-2.5">
-                            <span className="font-medium text-green-600">{row.successes}</span>
-                          </td>
+                          <td className="px-4 py-2.5"><span className="font-medium text-green-600">{row.successes}</span></td>
                           <td className="px-4 py-2.5 text-muted-foreground">{total}</td>
                           <td className="px-4 py-2.5">
                             <span className={`text-xs font-semibold ${Number(rate) > 50 ? "text-red-600" : Number(rate) > 20 ? "text-orange-500" : "text-muted-foreground"}`}>
@@ -318,20 +464,16 @@ export default function SecurityPanel() {
             )}
           </div>
 
-          {/* Quick action shortcuts */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { label: "View Locked Accounts", tab: "locked" as SecuritySubTab, badge: overview?.lockedCount },
               { label: "Search Login History", tab: "history" as SecuritySubTab },
               { label: "Suspicious Activity", tab: "suspicious" as SecuritySubTab, badge: overview?.suspiciousIpCount, accent: true },
             ].map(({ label, tab, badge, accent }) => (
-              <button
-                key={tab}
-                onClick={() => setSubTab(tab)}
+              <button key={tab} onClick={() => setSubTab(tab)}
                 className={`flex items-center justify-between px-4 py-3 border text-sm font-medium transition-colors hover:bg-muted/50 ${
                   accent && badge ? "border-red-300 text-red-700" : "border-border"
-                }`}
-              >
+                }`}>
                 {label}
                 {badge ? (
                   <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${accent ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"}`}>
@@ -350,12 +492,8 @@ export default function SecurityPanel() {
       {subTab === "locked" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Accounts currently locked due to repeated failed login attempts.
-            </p>
-            <button onClick={() => refetchLocked()} className="text-xs text-primary underline">
-              Refresh
-            </button>
+            <p className="text-sm text-muted-foreground">Accounts currently locked due to repeated failed login attempts.</p>
+            <button onClick={() => refetchLocked()} className="text-xs text-primary underline">Refresh</button>
           </div>
           <div className="border border-border bg-card overflow-hidden">
             <table className="w-full text-sm">
@@ -371,50 +509,25 @@ export default function SecurityPanel() {
                   <tr key={acc.email} className="hover:bg-muted/20">
                     <td className="px-4 py-3 font-medium">{acc.email}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700">
-                        {acc.failureCount} failures
-                      </span>
+                      <span className="inline-flex px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700">{acc.failureCount}</span>
                     </td>
                     <td className="px-4 py-3"><TimeUntil date={acc.unlocksAt} /></td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{acc.latestIp}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{acc.latestIp}</td>
                     <td className="px-4 py-3">
-                      <button
-                        onClick={() => unlock.mutate(acc.email)}
-                        disabled={unlock.isPending}
-                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-                      >
-                        <Unlock className="w-3 h-3" />
-                        Unlock
+                      <button onClick={() => unlock.mutate(acc.email)} disabled={unlock.isPending}
+                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium border border-border hover:bg-muted transition-colors disabled:opacity-50">
+                        <Unlock className="w-3 h-3" /> Unlock
                       </button>
                     </td>
                   </tr>
                 ))}
                 {!locked?.accounts.length && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
-                      No accounts are currently locked
-                    </td>
+                    <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No locked accounts</td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
-
-          {/* Lockout reference */}
-          <div className="border border-border bg-muted/20 p-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Lockout Thresholds</p>
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              {[
-                { label: "5 – 9 failures", duration: "5 min lockout" },
-                { label: "10 – 19 failures", duration: "30 min lockout" },
-                { label: "20+ failures", duration: "24 hr lockout" },
-              ].map(({ label, duration }) => (
-                <div key={label} className="flex flex-col gap-0.5">
-                  <span className="font-medium">{label}</span>
-                  <span className="text-muted-foreground text-xs">{duration}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )}
@@ -422,66 +535,50 @@ export default function SecurityPanel() {
       {/* ── LOGIN HISTORY ────────────────────────────────────────────────── */}
       {subTab === "history" && (
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-3">
-            <input
-              type="text"
-              placeholder="Filter by email..."
-              value={historyEmail}
-              onChange={(e) => { setHistoryEmail(e.target.value); setHistoryPage(1); }}
-              className="flex-1 min-w-40 border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <input
-              type="text"
-              placeholder="Filter by IP..."
-              value={historyIp}
-              onChange={(e) => { setHistoryIp(e.target.value); setHistoryPage(1); }}
-              className="w-40 border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <select
-              value={historySuccess}
-              onChange={(e) => { setHistorySuccess(e.target.value as "" | "true" | "false"); setHistoryPage(1); }}
-              className="border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-            >
-              <option value="">All outcomes</option>
-              <option value="true">Successes only</option>
-              <option value="false">Failures only</option>
-            </select>
-            <button
-              onClick={() => refetchHistory()}
-              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
+          <div className="flex flex-wrap gap-2 items-end">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-muted-foreground">Email</label>
+              <input value={historyEmail} onChange={(e) => { setHistoryEmail(e.target.value); setHistoryPage(1); }}
+                placeholder="user@example.com"
+                className="border border-border px-3 py-1.5 text-sm bg-background focus:outline-none focus:border-primary w-48" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-muted-foreground">IP Address</label>
+              <input value={historyIp} onChange={(e) => { setHistoryIp(e.target.value); setHistoryPage(1); }}
+                placeholder="192.168.1.1"
+                className="border border-border px-3 py-1.5 text-sm bg-background focus:outline-none focus:border-primary w-36" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-muted-foreground">Status</label>
+              <select value={historySuccess} onChange={(e) => { setHistorySuccess(e.target.value as "" | "true" | "false"); setHistoryPage(1); }}
+                className="border border-border px-3 py-1.5 text-sm bg-background focus:outline-none focus:border-primary">
+                <option value="">All</option>
+                <option value="true">Success</option>
+                <option value="false">Failed</option>
+              </select>
+            </div>
+            <button onClick={() => refetchHistory()}
+              className="px-4 py-1.5 text-sm font-medium border border-border hover:bg-muted transition-colors">
               Search
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{history?.total ?? 0} records</span>
-            {history && history.total > 50 && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
-                  disabled={historyPage === 1}
-                  className="px-3 py-1 border border-border disabled:opacity-40 hover:bg-muted transition-colors"
-                >
-                  ← Prev
-                </button>
-                <span>Page {historyPage}</span>
-                <button
-                  onClick={() => setHistoryPage((p) => p + 1)}
-                  disabled={(history?.entries.length ?? 0) < 50}
-                  className="px-3 py-1 border border-border disabled:opacity-40 hover:bg-muted transition-colors"
-                >
-                  Next →
-                </button>
-              </div>
-            )}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{history?.total ?? 0} results</span>
+            <div className="flex gap-2">
+              <button onClick={() => setHistoryPage((p) => Math.max(1, p - 1))} disabled={historyPage === 1}
+                className="px-3 py-1 border border-border hover:bg-muted disabled:opacity-40">← Prev</button>
+              <span className="px-3 py-1 border border-border bg-muted">Page {historyPage}</span>
+              <button onClick={() => setHistoryPage((p) => p + 1)} disabled={(history?.entries.length ?? 0) < 50}
+                className="px-3 py-1 border border-border hover:bg-muted disabled:opacity-40">Next →</button>
+            </div>
           </div>
 
           <div className="border border-border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[600px]">
               <thead className="bg-muted text-muted-foreground text-xs uppercase">
                 <tr>
-                  {["#", "Email", "IP", "Result", "User Agent", "Time"].map((h) => (
+                  {["Status", "Email", "IP Address", "User Agent", "Time"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left">{h}</th>
                   ))}
                 </tr>
@@ -489,21 +586,18 @@ export default function SecurityPanel() {
               <tbody className="divide-y divide-border">
                 {history?.entries.map((entry) => (
                   <tr key={entry.id} className={`hover:bg-muted/20 ${!entry.success ? "bg-red-50/30" : ""}`}>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{entry.id}</td>
-                    <td className="px-4 py-3">{entry.email}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{entry.ip}</td>
-                    <td className="px-4 py-3"><Badge success={entry.success} /></td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs max-w-xs truncate">{entry.userAgent ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
+                    <td className="px-4 py-2.5"><Badge success={entry.success} /></td>
+                    <td className="px-4 py-2.5 font-medium">{entry.email}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{entry.ip}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground text-xs max-w-[200px] truncate">{entry.userAgent ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground text-xs whitespace-nowrap">
                       {format(new Date(entry.attemptedAt), "MMM d, HH:mm:ss")}
                     </td>
                   </tr>
                 ))}
                 {!history?.entries.length && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
-                      No login history found
-                    </td>
+                    <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No login history found</td>
                   </tr>
                 )}
               </tbody>
@@ -516,12 +610,8 @@ export default function SecurityPanel() {
       {subTab === "suspicious" && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              IPs with 10+ failures or targeting 3+ accounts in the last hour.
-            </p>
-            <button onClick={() => refetchSuspicious()} className="text-xs text-primary underline">
-              Refresh
-            </button>
+            <p className="text-sm text-muted-foreground">IPs with 10+ failures or targeting 3+ accounts in the last hour.</p>
+            <button onClick={() => refetchSuspicious()} className="text-xs text-primary underline">Refresh</button>
           </div>
 
           <div>
@@ -548,21 +638,15 @@ export default function SecurityPanel() {
                     <tr key={ip.ip} className="hover:bg-muted/20 bg-orange-50/30">
                       <td className="px-4 py-3 font-mono font-medium">{ip.ip}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700">
-                          {ip.failureCount}
-                        </span>
+                        <span className="inline-flex px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700">{ip.failureCount}</span>
                       </td>
                       <td className="px-4 py-3">{ip.distinctEmails}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {format(new Date(ip.latestAttempt), "MMM d, HH:mm:ss")}
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{format(new Date(ip.latestAttempt), "MMM d, HH:mm:ss")}</td>
                     </tr>
                   ))}
                   {!suspicious?.suspiciousIps.length && (
                     <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                        No suspicious IPs in the last hour
-                      </td>
+                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No suspicious IPs in the last hour</td>
                     </tr>
                   )}
                 </tbody>
@@ -585,13 +669,9 @@ export default function SecurityPanel() {
                 {suspicious.targetedEmails.map((email) => (
                   <div key={email} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
                     <span className="text-sm font-medium">{email}</span>
-                    <button
-                      onClick={() => unlock.mutate(email)}
-                      disabled={unlock.isPending}
-                      className="flex items-center gap-1 px-3 py-1 text-xs font-medium border border-border hover:bg-muted transition-colors disabled:opacity-50"
-                    >
-                      <Unlock className="w-3 h-3" />
-                      Force Unlock
+                    <button onClick={() => unlock.mutate(email)} disabled={unlock.isPending}
+                      className="flex items-center gap-1 px-3 py-1 text-xs font-medium border border-border hover:bg-muted transition-colors disabled:opacity-50">
+                      <Unlock className="w-3 h-3" /> Force Unlock
                     </button>
                   </div>
                 ))}
@@ -618,7 +698,6 @@ export default function SecurityPanel() {
             </button>
           </div>
 
-          {/* Risk legend */}
           <div className="flex gap-4 text-xs">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
@@ -631,10 +710,10 @@ export default function SecurityPanel() {
           </div>
 
           <div className="border border-border bg-card overflow-hidden overflow-x-auto">
-            <table className="w-full text-sm min-w-[640px]">
+            <table className="w-full text-sm min-w-[820px]">
               <thead className="bg-muted text-muted-foreground text-xs uppercase">
                 <tr>
-                  {["Risk", "Account Email", "Login IP", "Failures on Others", "Distinct Targets", "Login Time"].map((h) => (
+                  {["Risk", "Account Email", "Login IP", "Failures on Others", "Distinct Targets", "Login Time", "Action"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left">{h}</th>
                   ))}
                 </tr>
@@ -644,9 +723,7 @@ export default function SecurityPanel() {
                   <tr key={`${acc.email}-${i}`} className={`hover:bg-muted/20 ${acc.riskLevel === "high" ? "bg-red-50/40" : "bg-orange-50/20"}`}>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
-                        acc.riskLevel === "high"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-orange-100 text-orange-700"
+                        acc.riskLevel === "high" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
                       }`}>
                         <ShieldAlert className="w-3 h-3" />
                         {acc.riskLevel}
@@ -663,11 +740,20 @@ export default function SecurityPanel() {
                     <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                       {format(new Date(acc.loginAt), "MMM d, HH:mm:ss")}
                     </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => setResetTarget(acc)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors whitespace-nowrap"
+                      >
+                        <KeyRound className="w-3 h-3" />
+                        Force Reset
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {!compromised?.accounts.length && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center">
+                    <td colSpan={7} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <ShieldAlert className="w-8 h-8 opacity-30" />
                         <p className="text-sm">No compromised account indicators in the last 24 hours</p>
@@ -686,7 +772,7 @@ export default function SecurityPanel() {
                 Recommended Actions
               </p>
               <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
-                <li>Force-password-reset affected accounts via user management</li>
+                <li>Use <strong>Force Reset</strong> to immediately revoke sessions and issue a password reset link</li>
                 <li>Block the source IPs in your firewall or WAF</li>
                 <li>Notify affected users of potential credential exposure</li>
                 <li>Check if accounts made any suspicious orders or profile changes</li>
@@ -694,6 +780,16 @@ export default function SecurityPanel() {
             </div>
           ) : null}
         </div>
+      )}
+
+      {/* ── FORCE RESET CONFIRMATION MODAL ──────────────────────────────── */}
+      {resetTarget && (
+        <ForceResetModal
+          account={resetTarget}
+          onClose={() => { setResetTarget(null); forceReset.reset(); }}
+          onConfirm={() => forceReset.mutate(resetTarget)}
+          isPending={forceReset.isPending}
+        />
       )}
     </div>
   );
