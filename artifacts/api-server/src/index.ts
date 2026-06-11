@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { bootstrapFirstAdmin } from "./bootstrap/firstAdmin";
 
 const rawPort = process.env["PORT"];
 
@@ -11,6 +12,11 @@ const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
+
+// Run first-admin bootstrap before accepting traffic
+bootstrapFirstAdmin().catch((err) => {
+  logger.error({ err }, "First-admin bootstrap failed — continuing without admin");
+});
 
 const server = app.listen(port, (err) => {
   if (err) {

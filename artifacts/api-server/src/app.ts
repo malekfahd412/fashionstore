@@ -112,8 +112,10 @@ const checkoutLimiter = rateLimit({
   keyGenerator: (req) => {
     const auth = req.headers.authorization;
     if (auth?.startsWith("Bearer ")) return `checkout:${auth.slice(7, 30)}`;
-    return req.ip ?? "unknown";
+    const ip = (req.ip ?? "unknown").replace(/^::ffff:/, "");
+    return ip;
   },
+  validate: { keyGeneratorIpFallback: false },
   message: { error: "Too many orders placed. Please wait before trying again." },
 });
 

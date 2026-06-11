@@ -1,10 +1,11 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Layout } from "@/components/layout/Layout";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 
 import Home from "@/pages/Home";
 import Products from "@/pages/Products";
@@ -38,6 +39,20 @@ const queryClient = new QueryClient({
 });
 
 function Router() {
+  const [location] = useLocation();
+  const isAdminRoute = location === "/admin-panel" || location.startsWith("/admin-panel/");
+
+  if (isAdminRoute) {
+    return (
+      <AdminLayout>
+        <Switch>
+          <Route path="/admin-panel" component={AdminDashboard} />
+          <Route component={NotFound} />
+        </Switch>
+      </AdminLayout>
+    );
+  }
+
   return (
     <Layout>
       <Switch>
@@ -51,7 +66,6 @@ function Router() {
         <Route path="/register" component={Register} />
         <Route path="/dashboard/customer" component={CustomerDashboard} />
         <Route path="/dashboard/vendor" component={VendorDashboard} />
-        <Route path="/dashboard/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

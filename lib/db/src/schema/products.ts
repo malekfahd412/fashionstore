@@ -23,6 +23,14 @@ export const productsTable = pgTable("products", {
   index("products_active_idx").on(t.active),
   index("products_featured_idx").on(t.featured),
   index("products_created_at_idx").on(t.createdAt),
+  // Composite: active catalog by category (primary browse query)
+  index("products_active_category_id_idx").on(t.active, t.categoryId),
+  // Composite: active + featured (homepage featured listing)
+  index("products_active_featured_idx").on(t.active, t.featured),
+  // Composite: active + vendor (vendor product management)
+  index("products_active_vendor_id_idx").on(t.active, t.vendorId),
+  // Composite: active + date (new-arrivals and sorting by date)
+  index("products_active_created_at_idx").on(t.active, t.createdAt),
 ]);
 
 export const productVariantsTable = pgTable("product_variants", {
@@ -34,6 +42,8 @@ export const productVariantsTable = pgTable("product_variants", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index("product_variants_product_id_idx").on(t.productId),
+  // Stock monitoring: variants with low stock (admin dashboard)
+  index("product_variants_stock_quantity_idx").on(t.stockQuantity),
 ]);
 
 export const productImagesTable = pgTable("product_images", {
@@ -46,6 +56,8 @@ export const productImagesTable = pgTable("product_images", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index("product_images_product_id_idx").on(t.productId),
+  // Composite: primary image lookup per product (heavily used in enrichment)
+  index("product_images_product_id_is_primary_idx").on(t.productId, t.isPrimary),
 ]);
 
 export const insertProductSchema = createInsertSchema(productsTable).omit({ id: true, createdAt: true, updatedAt: true });

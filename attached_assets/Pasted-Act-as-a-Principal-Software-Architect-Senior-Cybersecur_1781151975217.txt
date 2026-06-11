@@ -1,0 +1,230 @@
+Act as a Principal Software Architect, Senior Cybersecurity Engineer, Senior DevOps Engineer, Senior Database Engineer, Senior QA Engineer, and Senior Product Engineer.
+
+The platform is already feature-complete and production-ready.
+
+Do NOT rebuild existing functionality.
+
+Perform a final enterprise-grade hardening, optimization, and launch preparation pass.
+
+=================================================
+SECTION 1 — SECURITY HARDENING
+==============================
+
+1. Remove all dead-code security fallbacks.
+
+Replace:
+
+const JWT_SECRET = process.env.SESSION_SECRET || "fallback-secret";
+
+with a mandatory environment variable implementation.
+
+2. Verify there are no:
+
+* hardcoded secrets
+* hardcoded API keys
+* hardcoded passwords
+* hidden debug routes
+* hidden admin bypasses
+
+3. Add security headers validation tests.
+
+4. Verify all protected routes enforce:
+
+* authentication
+* authorization
+* ownership checks
+
+5. Generate a full security audit report.
+
+=================================================
+SECTION 2 — FIRST ADMIN BOOTSTRAP
+=================================
+
+Create a secure first-admin creation mechanism.
+
+Requirements:
+
+Option A:
+CLI command
+
+pnpm create-admin [admin@example.com](mailto:admin@example.com)
+
+Option B:
+Environment variables
+
+ADMIN_EMAIL
+ADMIN_PASSWORD
+
+The bootstrap must:
+
+* run once only
+* refuse creating multiple super admins automatically
+* never expose admin creation through public APIs
+
+Generate documentation for the process.
+
+=================================================
+SECTION 3 — ADMIN ISOLATION
+===========================
+
+Completely isolate administration features.
+
+Requirements:
+
+Public Marketplace:
+
+* products
+* categories
+* cart
+* checkout
+* customer dashboard
+* vendor dashboard
+
+Admin System:
+
+* users
+* categories
+* orders
+* coupons
+* banners
+* settings
+* analytics
+* audit logs
+
+Move all admin pages under:
+
+/admin-panel
+
+Prepare architecture for future:
+
+admin.domain.com
+
+Requirements:
+
+* separate layout
+* separate navigation
+* separate route tree
+* no admin links visible publicly
+* admin pages excluded from sitemap
+* admin pages excluded from robots indexing
+
+Generate a route map.
+
+=================================================
+SECTION 4 — DATABASE HARDENING
+==============================
+
+Review all tables.
+
+Verify:
+
+* indexes
+* constraints
+* foreign keys
+* unique keys
+
+Add:
+
+audit_logs retention strategy
+
+soft-delete support where appropriate
+
+database maintenance documentation
+
+Generate schema review report.
+
+=================================================
+SECTION 5 — PERFORMANCE & SCALE
+===============================
+
+Simulate growth to:
+
+* 10,000 users
+* 50,000 users
+* 100,000 users
+
+Identify:
+
+* bottlenecks
+* expensive queries
+* scaling risks
+
+Implement improvements where possible.
+
+Generate:
+
+Scaling Roadmap:
+
+* 1k users
+* 10k users
+* 100k users
+* 1M users
+
+=================================================
+SECTION 6 — PRODUCTION OPERATIONS
+=================================
+
+Create:
+
+1. Health Monitoring Guide
+2. Incident Recovery Guide
+3. Backup & Restore Guide
+4. Production Checklist
+5. Maintenance Checklist
+
+Include:
+
+* database backup strategy
+* restore procedure
+* log retention
+* monitoring recommendations
+
+=================================================
+SECTION 7 — TESTING
+===================
+
+Add:
+
+* security tests
+* role permission tests
+* ownership tests
+* payment tests
+* image upload tests
+* admin settings tests
+
+Target:
+
+80%+ coverage for critical business logic.
+
+Generate testing report.
+
+=================================================
+SECTION 8 — FINAL LAUNCH REPORT
+===============================
+
+Provide:
+
+1. Security Score /100
+2. Performance Score /100
+3. Scalability Score /100
+4. Reliability Score /100
+5. Maintainability Score /100
+6. Overall Production Score /100
+
+List:
+
+* launch blockers
+* high priority issues
+* medium priority issues
+* low priority issues
+
+Finally answer:
+
+"Would you personally launch this platform for paying customers today?"
+
+Answer only:
+YES
+or
+NO
+
+Then explain why.

@@ -16,6 +16,10 @@ export const ordersTable = pgTable("orders", {
   index("orders_user_id_idx").on(t.userId),
   index("orders_status_idx").on(t.status),
   index("orders_created_at_idx").on(t.createdAt),
+  // Composite: customer order list filtered by status (most common query pattern)
+  index("orders_user_id_status_idx").on(t.userId, t.status),
+  // Composite: admin/vendor order list sorted by date with status filter
+  index("orders_status_created_at_idx").on(t.status, t.createdAt),
 ]);
 
 export const orderItemsTable = pgTable("order_items", {
@@ -27,6 +31,8 @@ export const orderItemsTable = pgTable("order_items", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index("order_items_order_id_idx").on(t.orderId),
+  // Required for JOIN: order_items → product_variants → products (analytics, order enrichment)
+  index("order_items_product_variant_id_idx").on(t.productVariantId),
 ]);
 
 export const insertOrderSchema = createInsertSchema(ordersTable).omit({ id: true, createdAt: true, updatedAt: true });
