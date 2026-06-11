@@ -1,5 +1,6 @@
 import { db, loginAttemptsTable } from "@workspace/db";
 import { eq, and, gte, desc, count, ne, countDistinct, sql } from "drizzle-orm";
+import { safeOrderBy } from "./drizzleOrderBy";
 
 // ── Lockout thresholds (most severe first) ────────────────────────────────────
 const THRESHOLDS = [
@@ -41,7 +42,7 @@ async function checkDimension(
     .select({ attemptedAt: loginAttemptsTable.attemptedAt })
     .from(loginAttemptsTable)
     .where(and(eq(col, value), eq(loginAttemptsTable.success, true), gte(loginAttemptsTable.attemptedAt, windowStart)))
-    .orderBy(desc(loginAttemptsTable.attemptedAt))
+    .orderBy(safeOrderBy(loginAttemptsTable.attemptedAt, "desc"))
     .limit(1);
 
   const countFrom = lastSuccess ? lastSuccess.attemptedAt : windowStart;
@@ -66,7 +67,7 @@ async function checkDimension(
     .select({ attemptedAt: loginAttemptsTable.attemptedAt })
     .from(loginAttemptsTable)
     .where(failureWhere)
-    .orderBy(desc(loginAttemptsTable.attemptedAt))
+    .orderBy(safeOrderBy(loginAttemptsTable.attemptedAt, "desc"))
     .limit(1);
 
   if (!lastFailure) return { locked: false, unlocksAt: null, failureCount: fc };
@@ -143,7 +144,7 @@ export async function unlockAccount(email?: string, ip?: string): Promise<void> 
   }
 }
 
-// ── Admin queries ─────────────────────────────────────────────────────────────
+// ── Admin queries ─────────────────────────────────────────────────────────[...]
 
 export type LockedAccount = {
   email: string;
@@ -172,7 +173,7 @@ export async function getLockedAccounts(): Promise<LockedAccount[]> {
         .select({ ip: loginAttemptsTable.ip })
         .from(loginAttemptsTable)
         .where(and(eq(loginAttemptsTable.email, row.email), eq(loginAttemptsTable.success, false)))
-        .orderBy(desc(loginAttemptsTable.attemptedAt))
+        .orderBy(safeOrderBy(loginAttemptsTable.attemptedAt, "desc"))
         .limit(1);
 
       locked.push({
@@ -220,7 +221,7 @@ export async function getLoginHistory(opts: {
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const [entries, [{ total }]] = await Promise.all([
-    db.select().from(loginAttemptsTable).where(where).orderBy(desc(loginAttemptsTable.attemptedAt)).limit(limitNum).offset(offset),
+    db.select().from(loginAttemptsTable).where(where).orderBy(safeOrderBy(loginAttemptsTable.attemptedAt, "desc")).limit(limitNum).offset(offset),
     db.select({ total: count() }).from(loginAttemptsTable).where(where),
   ]);
 
@@ -246,7 +247,7 @@ export async function getSuspiciousActivity(): Promise<{ suspiciousIps: Suspicio
     .from(loginAttemptsTable)
     .where(and(eq(loginAttemptsTable.success, false), gte(loginAttemptsTable.attemptedAt, oneHourAgo), ne(loginAttemptsTable.ip, "admin-unlock")))
     .groupBy(loginAttemptsTable.ip)
-    .orderBy(desc(count()));
+    .orderBy(safeOrderBy(count(), "desc"));
 
   const suspiciousIps: SuspiciousIp[] = [];
   for (const row of ipRows) {
@@ -255,7 +256,7 @@ export async function getSuspiciousActivity(): Promise<{ suspiciousIps: Suspicio
         .select({ attemptedAt: loginAttemptsTable.attemptedAt })
         .from(loginAttemptsTable)
         .where(and(eq(loginAttemptsTable.ip, row.ip), eq(loginAttemptsTable.success, false)))
-        .orderBy(desc(loginAttemptsTable.attemptedAt))
+        .orderBy(safeOrderBy(loginAttemptsTable.attemptedAt, "desc"))
         .limit(1);
 
       suspiciousIps.push({
@@ -277,7 +278,7 @@ export async function getSuspiciousActivity(): Promise<{ suspiciousIps: Suspicio
     .where(and(eq(loginAttemptsTable.success, false), gte(loginAttemptsTable.attemptedAt, oneHourAgo), ne(loginAttemptsTable.email, "admin-unlock")))
     .groupBy(loginAttemptsTable.email)
     .having(({ distinctIps }) => gte(distinctIps, 3))
-    .orderBy(desc(countDistinct(loginAttemptsTable.ip)));
+    .orderBy(safeOrderBy(countDistinct(loginAttemptsTable.ip), "desc"));
 
   return {
     suspiciousIps,
