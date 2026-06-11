@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { db, usersTable, loginAttemptsTable, refreshTokensTable } from "@workspace/db";
 import { eq, and, or, desc, gt, isNull, count } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
+import { safeOrderBy } from "../lib/drizzleOrderBy";
 import {
   listTrustedDevices,
   removeTrustedDevice,
@@ -70,7 +71,7 @@ router.get("/account/security/login-history", requireAuth, async (req, res): Pro
     })
       .from(loginAttemptsTable)
       .where(where)
-      .orderBy(desc(loginAttemptsTable.attemptedAt))
+      .orderBy(safeOrderBy(loginAttemptsTable.attemptedAt, "desc"))
       .limit(limitNum)
       .offset(offset),
     db.select({ total: count() }).from(loginAttemptsTable).where(where),
@@ -98,7 +99,7 @@ router.get("/account/security/sessions", requireAuth, async (req, res): Promise<
         gt(refreshTokensTable.expiresAt, new Date()),
       ),
     )
-    .orderBy(desc(refreshTokensTable.lastUsedAt));
+    .orderBy(safeOrderBy(refreshTokensTable.lastUsedAt, "desc"));
   res.json(sessions);
 });
 
