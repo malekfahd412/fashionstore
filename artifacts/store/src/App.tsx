@@ -18,6 +18,7 @@ import Register from "@/pages/Register";
 import CustomerDashboard from "@/pages/CustomerDashboard";
 import VendorDashboard from "@/pages/VendorDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import OrderTracking from "@/pages/OrderTracking";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -66,6 +67,7 @@ function Router() {
         <Route path="/register" component={Register} />
         <Route path="/dashboard/customer" component={CustomerDashboard} />
         <Route path="/dashboard/vendor" component={VendorDashboard} />
+        <Route path="/order/:id/tracking" component={OrderTracking} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

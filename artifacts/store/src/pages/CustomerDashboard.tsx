@@ -119,8 +119,11 @@ export default function CustomerDashboard() {
                       <p className="text-sm text-muted-foreground mb-1">Placed on {format(new Date(order.createdAt), "MMM dd, yyyy")}</p>
                       <p className="text-sm text-muted-foreground">{order.items?.length || 0} items</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold mb-2">${order.totalPrice.toFixed(2)}</p>
+                    <div className="text-right space-y-2">
+                      <p className="text-2xl font-bold">${order.totalPrice.toFixed(2)}</p>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/order/${order.id}/tracking`}>Track Order</Link>
+                      </Button>
                     </div>
                   </div>
                 ))}

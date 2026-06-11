@@ -230,7 +230,17 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
   const [before] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!before) { res.status(404).json({ error: "Order not found" }); return; }
 
-  const [order] = await db.update(ordersTable).set({ status: parsed.data.status }).where(eq(ordersTable.id, params.data.id)).returning();
+  const newStatus = parsed.data.status;
+  const statusTimestamps: Partial<typeof ordersTable.$inferInsert> = {};
+  if (newStatus === "paid") statusTimestamps.paidAt = new Date();
+  else if (newStatus === "processing") statusTimestamps.processingAt = new Date();
+  else if (newStatus === "shipped") statusTimestamps.shippedAt = new Date();
+  else if (newStatus === "delivered") statusTimestamps.deliveredAt = new Date();
+
+  const [order] = await db.update(ordersTable)
+    .set({ status: newStatus, ...statusTimestamps })
+    .where(eq(ordersTable.id, params.data.id))
+    .returning();
 
   await Promise.all([
     db.insert(notificationsTable).values({

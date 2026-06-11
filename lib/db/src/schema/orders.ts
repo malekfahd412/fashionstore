@@ -10,6 +10,10 @@ export const ordersTable = pgTable("orders", {
   status: text("status").notNull().default("new"),
   couponCode: text("coupon_code"),
   discount: numeric("discount", { precision: 10, scale: 2 }).default("0"),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  processingAt: timestamp("processing_at", { withTimezone: true }),
+  shippedAt: timestamp("shipped_at", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
