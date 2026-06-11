@@ -4,3 +4,6 @@
 - [Email graceful degradation](email-config.md) — email.ts skips sends (logs warning) when RESEND_API_KEY/RESEND_FROM_EMAIL not set; never crashes the request; env vars injected via Resend integration.
 - [Paymob 3-step flow](paymob-flow.md) — auth token → create order → payment key; integration IDs and iframe ID stored in store_settings table (not env vars); PAYMOB_API_KEY + PAYMOB_HMAC_SECRET are env vars.
 - [Store settings pattern](store-settings.md) — key-value table (store_settings); DEFAULT_SETTINGS exported from schema; public/admin split at route level; seeded via POST /settings/seed.
+- [Orval TanStack Query v5 queryKey](orval-tanstack-v5-querykey.md) — generated hooks use UseQueryOptions (requires queryKey in v5); call sites must pass queryKey: [] as placeholder; hooks override it internally via getXxxQueryOptions.
+- [Vite config env vars build default](vite-config-build-defaults.md) — store and mockup-sandbox vite configs must not throw on missing PORT/BASE_PATH; use ?? defaults so pnpm run build works without those env vars set.
+- [scripts package direct imports](scripts-package-deps.md) — scripts/create-admin.ts imports drizzle-orm and pg directly; add drizzle-orm (catalog:) + pg + @types/pg as explicit deps in scripts/package.json or typecheck fails.

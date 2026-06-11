@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { language } = useLanguage();
-  const { data: banners } = useListBanners({ query: { enabled: true } });
-  const { data: featured } = useGetFeaturedProducts({ query: { enabled: true } });
-  const { data: newArrivals } = useGetNewArrivals({ query: { enabled: true } });
-  const { data: categories } = useListCategories({ query: { enabled: true } });
+  const { data: banners } = useListBanners({ query: { enabled: true, queryKey: [] } });
+  const { data: featured } = useGetFeaturedProducts({ query: { enabled: true, queryKey: [] } });
+  const { data: newArrivals } = useGetNewArrivals({ query: { enabled: true, queryKey: [] } });
+  const { data: categories } = useListCategories({ query: { enabled: true, queryKey: [] } });
 
   const activeBanners = banners?.filter(b => b.active).sort((a, b) => a.sortOrder - b.sortOrder) || [];
 

@@ -17,7 +17,7 @@ export default function ProductDetails() {
   const [activeImage, setActiveImage] = useState<string>("");
 
   const { data: product, isLoading } = useGetProduct(productId, {
-    query: { enabled: !!productId }
+    query: { enabled: !!productId, queryKey: [] }
   });
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function ProductDetails() {
   }, [product]);
 
   const { data: relatedProducts } = useGetRelatedProducts(productId, {
-    query: { enabled: !!productId }
+    query: { enabled: !!productId, queryKey: [] }
   });
 
   const addToCartMutation = useAddToCart();

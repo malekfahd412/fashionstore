@@ -12,7 +12,7 @@ export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const [, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { data: cart } = useGetCart({ query: { enabled: !!user } });
+  const { data: cart } = useGetCart({ query: { enabled: !!user, queryKey: [] } });
 
   const cartItemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 

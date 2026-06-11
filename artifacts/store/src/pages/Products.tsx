@@ -32,7 +32,7 @@ export default function Products() {
     setPage(1);
   };
 
-  const { data: categories } = useListCategories({ query: { enabled: true } });
+  const { data: categories } = useListCategories({ query: { enabled: true, queryKey: [] } });
 
   const { data: productsData, isLoading } = useListProducts({
     search: debouncedSearch || undefined,
