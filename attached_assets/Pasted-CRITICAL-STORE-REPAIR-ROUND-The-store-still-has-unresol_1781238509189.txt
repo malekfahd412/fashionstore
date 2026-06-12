@@ -1,0 +1,311 @@
+CRITICAL STORE REPAIR ROUND
+
+
+
+The store still has unresolved production issues.
+
+
+
+Fix all of the following and verify them end-to-end.
+
+
+
+1. SETTINGS MODULE BROKEN
+
+
+
+Current issue:
+
+
+
+Admin Panel → Settings
+
+
+
+Shows:
+
+
+
+"Failed to load settings"
+
+
+
+Requirements:
+
+
+
+* Find the root cause.
+
+* Verify frontend API call.
+
+* Verify React Query request.
+
+* Verify admin authorization.
+
+* Verify settings endpoint.
+
+* Verify database records.
+
+* Verify settings seed data.
+
+
+
+Fix the issue completely.
+
+
+
+After fix:
+
+
+
+* Settings must load successfully.
+
+* Settings must save successfully.
+
+* Values must persist after refresh.
+
+* All tabs must work:
+
+
+
+  * General
+
+  * Contact
+
+  * Social
+
+  * Email
+
+  * Payment
+
+  * Shipping
+
+  * SEO
+
+  * Homepage
+
+
+
+2. FORGOT PASSWORD BROKEN
+
+
+
+Current issue:
+
+
+
+Login Page
+
+→ Forgot Password
+
+
+
+Leads to:
+
+
+
+404 Page Not Found
+
+
+
+Requirements:
+
+
+
+* Create a proper Forgot Password page.
+
+* Connect it to the existing backend password reset flow.
+
+* Verify:
+
+
+
+  * Email submission
+
+  * Success message
+
+  * Token generation
+
+  * Reset page
+
+  * Password update
+
+
+
+No dead links.
+
+
+
+3. COUPON SYSTEM IMPROVEMENT
+
+
+
+Current issue:
+
+
+
+Coupons exist in Admin Panel
+
+but customer experience is incomplete.
+
+
+
+Requirements:
+
+
+
+Add coupon input box in:
+
+
+
+* Cart page
+
+* Checkout page
+
+
+
+Customer should:
+
+
+
+* Enter coupon code
+
+* Validate instantly
+
+* See discount amount
+
+* See updated total
+
+* See coupon success/error messages
+
+
+
+Verify:
+
+
+
+* Percentage coupons
+
+* Fixed amount coupons
+
+* Expired coupons
+
+* Disabled coupons
+
+* Usage limit coupons
+
+
+
+4. FULL STORE AUDIT
+
+
+
+Search for:
+
+
+
+* Broken buttons
+
+* Broken links
+
+* 404 pages
+
+* Missing routes
+
+* Failed API requests
+
+* Unauthorized errors
+
+* HTTP 500 errors
+
+* React Query failures
+
+* Forms that do not save
+
+* Empty placeholder pages
+
+
+
+Fix all issues found.
+
+
+
+5. FINAL VALIDATION
+
+
+
+Run:
+
+
+
+pnpm run typecheck
+
+pnpm run build
+
+
+
+Then verify:
+
+
+
+* Admin Panel
+
+* Customer Dashboard
+
+* Login
+
+* Register
+
+* Forgot Password
+
+* Products
+
+* Cart
+
+* Coupons
+
+* Checkout
+
+* Orders
+
+* Settings
+
+
+
+6. REPORT
+
+
+
+Provide:
+
+
+
+* Root cause of Failed to load settings
+
+* Root cause of Forgot Password 404
+
+* Files changed
+
+* Bugs fixed
+
+* Remaining issues
+
+
+
+Do not stop after fixing only these three issues.
+
+
+
+Perform a complete repair audit and fix any additional issues discovered during testing.
+
+Priority order:
+
+
+
+1. Failed to load settings
+
+2. Forgot Password 404
+
+3. Coupon input on Cart + Checkout
+
+4. Any remaining broken buttons/pages
