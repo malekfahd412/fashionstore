@@ -84,16 +84,18 @@ export default function Checkout() {
     }
   }
 
+  const cartSubtotal = cart!.subtotal ?? 0;
+
   function calcDiscount(): number {
     if (!couponApplied || !couponData) return 0;
     if (couponData.discountType === "percentage") {
-      return Math.min((cart.subtotal * couponData.discountValue) / 100, cart.subtotal);
+      return Math.min((cartSubtotal * couponData.discountValue) / 100, cartSubtotal);
     }
-    return Math.min(couponData.discountValue, cart.subtotal);
+    return Math.min(couponData.discountValue, cartSubtotal);
   }
 
   const discount = calcDiscount();
-  const total = Math.max(0, cart.subtotal - discount);
+  const total = Math.max(0, cartSubtotal - discount);
 
   async function initiatePaymob(orderId: number) {
     const token = localStorage.getItem("auth_token");

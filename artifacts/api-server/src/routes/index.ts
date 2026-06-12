@@ -19,13 +19,10 @@ import settingsRouter from "./settings";
 import paymentsRouter from "./payments";
 import adminSecurityRouter from "./admin-security";
 import securityRouter from "./security";
-<<<<<<< HEAD
 import addressesRouter from "./addresses";
-=======
 import newsletterRouter from "./newsletter";
 import faqsRouter from "./faqs";
 import contactRouter from "./contact";
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
 
 const router: IRouter = Router();
 
@@ -49,12 +46,9 @@ router.use(settingsRouter);
 router.use(paymentsRouter);
 router.use(adminSecurityRouter);
 router.use(securityRouter);
-<<<<<<< HEAD
 router.use(addressesRouter);
-=======
 router.use(newsletterRouter);
 router.use(faqsRouter);
 router.use(contactRouter);
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
 
 export default router;

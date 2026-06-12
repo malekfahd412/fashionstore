@@ -26,6 +26,8 @@ import About from "@/pages/About";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import ShippingPolicy from "@/pages/ShippingPolicy";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -82,6 +84,8 @@ function Router() {
         <Route path="/privacy-policy" component={PrivacyPolicy} />
         <Route path="/terms" component={Terms} />
         <Route path="/shipping-policy" component={ShippingPolicy} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

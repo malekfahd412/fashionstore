@@ -4,7 +4,7 @@ import { eq, ilike, and, SQL } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { UpdateUserBody, GetUserParams, DeleteUserParams, UpdateUserParams, ListUsersQueryParams } from "@workspace/api-zod";
 import { auditLog } from "../lib/audit";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 const router: IRouter = Router();
 

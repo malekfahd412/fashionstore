@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import { asc, desc, type SQL } from "drizzle-orm";
-=======
 import { asc, desc, sql, type SQL, type AnyColumn } from "drizzle-orm";
 
 /**
@@ -30,7 +27,6 @@ import { asc, desc, sql, type SQL, type AnyColumn } from "drizzle-orm";
  *   expressions (count(), countDistinct(), sql`...`) carry it.
  *   The old checks for __isSelectable / __brand do NOT exist in 0.45.x.
  */
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
 
 // The symbol Drizzle 0.45.x uses to mark all entity constructors.
 const DRIZZLE_ENTITY_KIND = Symbol.for("drizzle:entityKind");
@@ -48,8 +44,6 @@ function isDrizzleEntity(value: unknown): boolean {
 
 export type OrderDirection = "asc" | "desc";
 
-<<<<<<< HEAD
-=======
 /**
  * Safe wrapper for Drizzle orderBy() that enforces strict column + direction signature.
  *
@@ -73,32 +67,19 @@ export type OrderDirection = "asc" | "desc";
  * .orderBy(safeOrderBy("attemptedAt", "desc"))       // string
  * .orderBy(safeOrderBy(undefined, "desc"))           // undefined
  */
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
 export function safeOrderBy(
   column: unknown,
   direction: OrderDirection = "asc",
-<<<<<<< HEAD
-) {
-  if (column == null) {
-    throw new TypeError(
-      "[safeOrderBy] column cannot be null or undefined",
-=======
 ): SQL<unknown> {
   // ── Guard 1: column must be defined ────────────────────────────────────────
   if (column === undefined || column === null) {
     console.error(
       "[safeOrderBy] column is undefined or null — returning fallback ORDER BY 1 ASC. " +
       "Did you pass undefined or null instead of a column reference?",
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
     );
     return sql`1`;
   }
 
-<<<<<<< HEAD
-  if (typeof column === "string") {
-    throw new TypeError(
-      `[safeOrderBy] strings are not allowed: "${column}". Use table.column instead.`,
-=======
   // ── Guard 2: column must be a Drizzle entity (Column, SQL, aggregate, etc.) ──
   // Drizzle 0.45.x marks all entity constructors with Symbol.for("drizzle:entityKind").
   // __isSelectable and __brand do NOT exist in this version — do not use them.
@@ -109,33 +90,20 @@ export function safeOrderBy(
       (typeof column === "string" ? ` ("${column}")` : "") +
       ". Did you pass a table object, string, or plain object instead of table.column? " +
       "Returning fallback ORDER BY 1 ASC.",
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
     );
     return sql`1`;
   }
 
-<<<<<<< HEAD
-  if (direction !== "asc" && direction !== "desc") {
-    throw new TypeError(
-      `[safeOrderBy] invalid direction "${direction}"`,
-=======
   // ── Guard 3: direction must be valid ───────────────────────────────────────
   if (direction !== "asc" && direction !== "desc") {
     console.warn(
       `[safeOrderBy] direction must be "asc" or "desc". Received: "${direction}". Defaulting to "asc".`,
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
     );
     direction = "asc";
   }
 
-<<<<<<< HEAD
-  return direction === "asc"
-    ? asc(column as any)
-    : desc(column as any);
-=======
   // ── Construct & return ─────────────────────────────────────────────────────
   return direction === "asc" ? asc(column as AnyColumn) : desc(column as AnyColumn);
->>>>>>> 3e48d0cf0ebb0e23b58be28ba2c257e18fdc5593
 }
 
 export type SafeOrderByColumn = unknown;

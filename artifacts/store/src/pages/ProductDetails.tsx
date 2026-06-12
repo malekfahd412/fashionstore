@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { useGetProduct, useGetRelatedProducts, useAddToCart } from "@workspace/api-client-react";
+import { useGetProduct, useGetRelatedProducts, useAddToCart, getGetProductQueryKey, getGetRelatedProductsQueryKey } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,7 @@ export default function ProductDetails() {
   const [activeImage, setActiveImage] = useState<string>("");
 
   const { data: product, isLoading } = useGetProduct(productId, {
-    query: { enabled: !!productId }
+    query: { enabled: !!productId, queryKey: getGetProductQueryKey(productId) }
   });
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function ProductDetails() {
   }, [product]);
 
   const { data: relatedProducts } = useGetRelatedProducts(productId, {
-    query: { enabled: !!productId }
+    query: { enabled: !!productId, queryKey: getGetRelatedProductsQueryKey(productId) }
   });
 
   const addToCartMutation = useAddToCart();

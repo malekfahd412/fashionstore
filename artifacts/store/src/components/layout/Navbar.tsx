@@ -5,14 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useGetCart } from "@workspace/api-client-react";
+import { useGetCart, getGetCartQueryKey } from "@workspace/api-client-react";
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const [, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { data: cart } = useGetCart({ query: { enabled: !!user } });
+  const { data: cart } = useGetCart({ query: { enabled: !!user, queryKey: getGetCartQueryKey() } });
 
   const cartItemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
