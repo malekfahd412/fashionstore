@@ -282,6 +282,7 @@ export default function CustomerDashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col md:flex-row gap-8">
         <TabsList className="flex flex-col w-full md:w-64 h-auto bg-transparent items-stretch space-y-2 p-0 shrink-0">
           <TabsTrigger value="orders" className={triggerStyle}>Orders</TabsTrigger>
+          <TabsTrigger value="tracking" className={triggerStyle}>Track Orders</TabsTrigger>
           <TabsTrigger value="addresses" className={triggerStyle}>Addresses</TabsTrigger>
           <TabsTrigger value="wishlist" className={triggerStyle}>Wishlist</TabsTrigger>
           <TabsTrigger value="notifications" className={`${triggerStyle} flex justify-between`}>
@@ -330,6 +331,57 @@ export default function CustomerDashboard() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* ── TRACK ORDERS ────────────────────────────────────────────── */}
+          <TabsContent value="tracking" className="m-0 space-y-6">
+            <h2 className="text-2xl font-serif font-bold mb-6">Track Orders</h2>
+            {(() => {
+              const activeOrders = ordersData?.orders?.filter(o => !["delivered", "cancelled"].includes(o.status)) ?? [];
+              if (!activeOrders.length) {
+                return (
+                  <div className="bg-muted/30 p-8 text-center border border-border">
+                    <p className="text-muted-foreground mb-4">No active orders to track right now.</p>
+                    <Button variant="outline" asChild><Link href="/products">Start Shopping</Link></Button>
+                  </div>
+                );
+              }
+              return (
+                <div className="space-y-4">
+                  {activeOrders.map(order => {
+                    const STEPS = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
+                    const stepIdx = STEPS.indexOf(order.status);
+                    const progress = Math.round(((stepIdx + 1) / STEPS.length) * 100);
+                    return (
+                      <div key={order.id} className="border border-border p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold">Order #{order.id}</span>
+                            <StatusBadge status={order.status} />
+                          </div>
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/order/${order.id}/tracking`}>View Details →</Link>
+                          </Button>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>Order placed</span>
+                            <span>Delivered</span>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground capitalize">{order.status.replace(/_/g, " ")} — {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? "s" : ""}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* ── ADDRESSES ──────────────────────────────────────────────── */}

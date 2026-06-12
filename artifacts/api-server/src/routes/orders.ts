@@ -198,16 +198,20 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
   res.status(201).json(enriched);
 
   // Send order confirmation + vendor notifications (non-blocking, after response sent)
-  const [customer] = await db.select({ email: usersTable.email, name: usersTable.name })
+  const [customer] = await db.select({ email: usersTable.email, name: usersTable.name, emailPreferences: usersTable.emailPreferences })
     .from(usersTable).where(eq(usersTable.id, order.userId));
   if (customer) {
     type EnrichedItem = { nameEn: string; vendorId: number | null; quantity: number; price: number };
     const emailItems = (enriched.items as EnrichedItem[]).map(i => ({
       nameEn: i.nameEn, quantity: i.quantity, price: i.price,
     }));
-    sendOrderConfirmationEmail(customer.email, customer.name, order.id, Number(order.totalPrice), emailItems).catch(() => {});
+    // Respect customer email preferences — orderUpdates defaults to true
+    const wantsOrderUpdates = customer.emailPreferences?.orderUpdates !== false;
+    if (wantsOrderUpdates) {
+      sendOrderConfirmationEmail(customer.email, customer.name, order.id, Number(order.totalPrice), emailItems).catch(() => {});
+    }
 
-    // Notify each vendor whose products are in this order
+    // Notify each vendor whose products are in this order (vendor preference not applicable here)
     const vendorIds = [...new Set((enriched.items as EnrichedItem[]).map(i => i.vendorId).filter((v): v is number => v !== null))];
     for (const vid of vendorIds) {
       const [vendor] = await db.select({ email: usersTable.email, name: usersTable.name })
@@ -256,10 +260,14 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
   res.json(await enrichOrder(order));
 
   // Send status update email (non-blocking, after response sent)
-  const [customer] = await db.select({ email: usersTable.email, name: usersTable.name })
+  const [customer] = await db.select({ email: usersTable.email, name: usersTable.name, emailPreferences: usersTable.emailPreferences })
     .from(usersTable).where(eq(usersTable.id, order.userId));
   if (customer) {
-    sendOrderStatusEmail(customer.email, customer.name, order.id, parsed.data.status).catch(() => {});
+    // Respect customer email preferences — orderUpdates defaults to true
+    const wantsOrderUpdates = customer.emailPreferences?.orderUpdates !== false;
+    if (wantsOrderUpdates) {
+      sendOrderStatusEmail(customer.email, customer.name, order.id, parsed.data.status).catch(() => {});
+    }
   }
 });
 

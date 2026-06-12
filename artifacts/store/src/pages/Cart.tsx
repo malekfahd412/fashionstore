@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetCart, useUpdateCartItem, useRemoveFromCart, useClearCart } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Trash2, ShoppingBag } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Trash2, ShoppingBag, Tag, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+type CouponData = { discountType: "percentage" | "fixed"; discountValue: number; code: string };
 
 export default function Cart() {
   const { language } = useLanguage();
@@ -14,6 +20,11 @@ export default function Cart() {
   const updateMutation = useUpdateCartItem();
   const removeMutation = useRemoveFromCart();
   const clearMutation = useClearCart();
+
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<CouponData | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const handleUpdateQuantity = (variantId: number, quantity: number) => {
     if (quantity < 1) return;
@@ -28,8 +39,44 @@ export default function Cart() {
 
   const handleClear = () => {
     clearMutation.mutate(undefined, {
-      onSuccess: () => toast({ title: "Cart cleared" })
+      onSuccess: () => { toast({ title: "Cart cleared" }); setCoupon(null); }
     });
+  };
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponError("");
+    setCouponLoading(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`${BASE}/api/coupons/validate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ code }),
+      });
+      if (!res.ok) {
+        const err = await res.json() as { error?: string };
+        setCouponError(err.error ?? "Invalid coupon");
+        return;
+      }
+      const data = await res.json() as { discountType: "percentage" | "fixed"; discountValue: number };
+      setCoupon({ ...data, code });
+      toast({ title: "Coupon applied!", description: `${data.discountType === "percentage" ? `${data.discountValue}% off` : `$${data.discountValue} off`}` });
+    } catch {
+      setCouponError("Failed to validate coupon. Please try again.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCoupon(null);
+    setCouponInput("");
+    setCouponError("");
   };
 
   if (isLoading) {
@@ -50,6 +97,18 @@ export default function Cart() {
   }
 
   const totalItems = cart.items.reduce((acc, item) => acc + item.quantity, 0);
+  const subtotal = cart.subtotal ?? 0;
+
+  const calcDiscount = (): number => {
+    if (!coupon) return 0;
+    if (coupon.discountType === "percentage") return Math.min((subtotal * coupon.discountValue) / 100, subtotal);
+    return Math.min(coupon.discountValue, subtotal);
+  };
+
+  const discount = calcDiscount();
+  const total = Math.max(0, subtotal - discount);
+
+  const checkoutUrl = coupon ? `/checkout?coupon=${encodeURIComponent(coupon.code)}` : "/checkout";
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -59,6 +118,7 @@ export default function Cart() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-12">
+        {/* ── Cart Items ─────────────────────────────────────────────── */}
         <div className="lg:w-2/3">
           <div className="space-y-6">
             {cart.items.map(item => (
@@ -127,38 +187,69 @@ export default function Cart() {
           </div>
         </div>
 
+        {/* ── Order Summary ──────────────────────────────────────────── */}
         <div className="lg:w-1/3">
-          <div className="bg-muted/30 p-8 border border-border sticky top-24">
-            <h2 className="font-serif text-2xl font-bold mb-6 border-b border-border pb-4">Order Summary</h2>
+          <div className="bg-muted/30 p-8 border border-border sticky top-24 space-y-6">
+            <h2 className="font-serif text-2xl font-bold border-b border-border pb-4">Order Summary</h2>
 
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal ({totalItems} items)</span>
-                <span>${cart.subtotal.toFixed(2)}</span>
-              </div>
-              {cart.discount && cart.discount > 0 ? (
-                <div className="flex justify-between text-destructive">
-                  <span>Discount</span>
-                  <span>−${cart.discount.toFixed(2)}</span>
+            {/* Coupon input */}
+            <div>
+              <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5" /> Have a coupon?
+              </p>
+              {coupon ? (
+                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded px-3 py-2">
+                  <span className="text-sm font-medium text-green-700">{coupon.code} applied</span>
+                  <button onClick={handleRemoveCoupon} className="text-green-600 hover:text-green-800 ml-2">
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-              ) : null}
-              <div className="flex justify-between">
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter code"
+                    value={couponInput}
+                    onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
+                    onKeyDown={e => e.key === "Enter" && handleApplyCoupon()}
+                    className="uppercase text-sm h-9"
+                  />
+                  <Button size="sm" variant="outline" onClick={handleApplyCoupon} disabled={couponLoading || !couponInput.trim()}>
+                    {couponLoading ? "..." : "Apply"}
+                  </Button>
+                </div>
+              )}
+              {couponError && <p className="text-xs text-destructive mt-1">{couponError}</p>}
+            </div>
+
+            {/* Totals */}
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal ({totalItems} items)</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm text-green-600 font-medium">
+                  <span>Coupon discount</span>
+                  <span>−${discount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
                 <span className="text-green-600 font-medium">Free</span>
               </div>
             </div>
 
-            <div className="border-t border-border pt-4 mb-8">
+            <div className="border-t border-border pt-4">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-xl">Total</span>
-                <span className="font-bold text-2xl">${cart.total.toFixed(2)}</span>
+                <span className="font-bold text-2xl">${total.toFixed(2)}</span>
               </div>
             </div>
 
             <Button
               size="lg"
               className="w-full rounded-none uppercase tracking-widest h-14 text-lg"
-              onClick={() => setLocation('/checkout')}
+              onClick={() => setLocation(checkoutUrl)}
             >
               Proceed to Checkout
             </Button>
