@@ -45,6 +45,7 @@ type Order = {
   shippedAt: string | null;
   outForDeliveryAt: string | null;
   deliveredAt: string | null;
+  trackingNote: string | null;
   items: OrderItem[];
 };
 
@@ -66,8 +67,8 @@ const STEPS: Step[] = [
   },
   {
     key: "paid",
-    label: "Payment Confirmed",
-    description: "Payment received. Your order is being prepared for packing.",
+    label: "Order Confirmed",
+    description: "Your order has been confirmed and is being prepared for packing.",
     icon: CreditCard,
     timestampField: "paidAt",
   },
@@ -222,6 +223,13 @@ export default function OrderTracking() {
         <div className="border border-border bg-muted/30 px-5 py-3 mb-6 flex items-center gap-3">
           <Clock className="w-4 h-4 text-primary shrink-0" />
           <p className="text-sm"><span className="font-medium">Estimated delivery:</span> {estDelivery}</p>
+        </div>
+      )}
+
+      {order.trackingNote && (
+        <div className="border border-primary/20 bg-primary/5 px-5 py-3 mb-6 flex items-start gap-3">
+          <Package className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+          <p className="text-sm"><span className="font-medium">Tracking note:</span> {order.trackingNote}</p>
         </div>
       )}
 

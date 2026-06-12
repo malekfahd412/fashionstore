@@ -235,6 +235,7 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
   if (!before) { res.status(404).json({ error: "Order not found" }); return; }
 
   const newStatus = parsed.data.status;
+  const { trackingNote } = req.body as { trackingNote?: string };
   const statusTimestamps: Partial<typeof ordersTable.$inferInsert> = {};
   if (newStatus === "paid") statusTimestamps.paidAt = new Date();
   else if (newStatus === "processing") statusTimestamps.processingAt = new Date();
@@ -244,7 +245,7 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
   else if (newStatus === "delivered") statusTimestamps.deliveredAt = new Date();
 
   const [order] = await db.update(ordersTable)
-    .set({ status: newStatus, ...statusTimestamps })
+    .set({ status: newStatus, ...statusTimestamps, ...(trackingNote !== undefined ? { trackingNote } : {}) })
     .where(eq(ordersTable.id, params.data.id))
     .returning();
 

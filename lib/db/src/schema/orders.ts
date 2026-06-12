@@ -16,6 +16,7 @@ export const ordersTable = pgTable("orders", {
   shippedAt: timestamp("shipped_at", { withTimezone: true }),
   outForDeliveryAt: timestamp("out_for_delivery_at", { withTimezone: true }),
   deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  trackingNote: text("tracking_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
