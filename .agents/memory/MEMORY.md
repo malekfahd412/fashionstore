@@ -7,3 +7,6 @@
 - [Orval TanStack Query v5 queryKey](orval-tanstack-v5-querykey.md) — generated hooks use UseQueryOptions (requires queryKey in v5); call sites must pass queryKey: [] as placeholder; hooks override it internally via getXxxQueryOptions.
 - [Vite config env vars build default](vite-config-build-defaults.md) — store and mockup-sandbox vite configs must not throw on missing PORT/BASE_PATH; use ?? defaults so pnpm run build works without those env vars set.
 - [scripts package direct imports](scripts-package-deps.md) — scripts/create-admin.ts imports drizzle-orm and pg directly; add drizzle-orm (catalog:) + pg + @types/pg as explicit deps in scripts/package.json or typecheck fails.
+- [Guest cart pattern](guest-cart.md) — localStorage hook (useGuestCart.ts) for unauthenticated shopping; merge into server on login via AuthContext.login(); Cart.tsx and ProductDetails.tsx branch on !!user.
+- [Order status pipeline](order-status-pipeline.md) — canonical 7-step flow: new→paid→processing→packed→shipped→out_for_delivery→delivered; STATUS_ORDER and STEPS must both include "processing" or timeline breaks for that state.
+- [Payment status field](payment-status-field.md) — batchEnrichOrders derives paymentStatus (cod/paid/failed/pending) from paymentsTable in one batch query; never read paidAt directly for badge display.
