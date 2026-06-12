@@ -16,3 +16,6 @@ export * from "./payments";
 export * from "./login-attempts";
 export * from "./trusted-devices";
 export * from "./user-security-prefs";
+export * from "./newsletter-subscribers";
+export * from "./faqs";
+export * from "./contact-messages";

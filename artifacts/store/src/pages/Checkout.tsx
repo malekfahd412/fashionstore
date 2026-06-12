@@ -54,7 +54,7 @@ export default function Checkout() {
   }
 
   async function initiatePaymob(orderId: number) {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth_token");
     const res = await fetch(`${BASE}/api/payments/paymob/initiate`, {
       method: "POST",
       headers: {
