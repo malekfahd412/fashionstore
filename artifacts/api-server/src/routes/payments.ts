@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import crypto from "node:crypto";
-import { db, paymentsTable, ordersTable, usersTable, storeSettingsTable } from "@workspace/db";
+import { db, paymentsTable, ordersTable, usersTable, storeSettingsTable, notificationsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
@@ -230,16 +230,27 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
       .where(eq(paymentsTable.id, payment.id));
 
     if (success) {
-      // Confirm the order
-      await db.update(ordersTable)
-        .set({ status: "confirmed" })
-        .where(eq(ordersTable.id, payment.orderId));
+      // Advance order to "paid" — aligned with canonical status pipeline
+      const [order] = await db.update(ordersTable)
+        .set({ status: "paid", paidAt: new Date() })
+        .where(eq(ordersTable.id, payment.orderId))
+        .returning();
 
-      // Send emails
-      const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, payment.orderId));
       if (order) {
-        const [user] = await db.select().from(usersTable).where(eq(usersTable.id, order.userId));
+        const [user] = await db.select({
+          email: usersTable.email,
+          name: usersTable.name,
+          emailPreferences: usersTable.emailPreferences,
+        }).from(usersTable).where(eq(usersTable.id, order.userId));
+
         if (user) {
+          // In-app notification (same pattern as orders.ts status updates)
+          db.insert(notificationsTable).values({
+            userId: order.userId,
+            title: "Payment Confirmed",
+            message: `Your payment for order #${order.id} was successful. We're processing your order now.`,
+          }).catch(() => {});
+
           // Fetch items for confirmation email
           const items = await db.select({
             nameEn: productsTable.nameEn,
@@ -251,13 +262,17 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
             .innerJoin(productsTable, eq(productsTable.id, productVariantsTable.productId))
             .where(eq(orderItemsTable.orderId, order.id));
 
-          await sendOrderConfirmationEmail(
-            user.email,
-            user.name,
-            order.id,
-            Number(order.totalPrice),
-            items.map(i => ({ nameEn: i.nameEn, quantity: i.quantity, price: Number(i.price) }))
-          );
+          // Respect customer email preferences — orderUpdates defaults to true
+          const wantsOrderUpdates = user.emailPreferences?.orderUpdates !== false;
+          if (wantsOrderUpdates) {
+            sendOrderConfirmationEmail(
+              user.email,
+              user.name,
+              order.id,
+              Number(order.totalPrice),
+              items.map(i => ({ nameEn: i.nameEn, quantity: i.quantity, price: Number(i.price) }))
+            ).catch(() => {});
+          }
         }
       }
     }
