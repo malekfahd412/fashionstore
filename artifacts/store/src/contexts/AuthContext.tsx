@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { readGuestCartItems, clearGuestCart } from "@/hooks/useGuestCart";
 import {
   setAuthTokenGetter,
   setTokenRefresher,
@@ -101,6 +102,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(newUser));
     localStorage.setItem(STORAGE_KEYS.token, newToken);
     localStorage.setItem(STORAGE_KEYS.refreshToken, newRefreshToken);
+
+    // Merge any guest cart items into the server cart (fire-and-forget)
+    const guestItems = readGuestCartItems();
+    if (guestItems.length > 0) {
+      clearGuestCart();
+      for (const item of guestItems) {
+        fetch("/api/cart/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${newToken}` },
+          body: JSON.stringify({ variantId: item.variantId, quantity: item.quantity }),
+        }).catch(() => {});
+      }
+    }
   };
 
   const logout = () => {

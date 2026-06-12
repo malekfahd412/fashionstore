@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useGetCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useGuestCart } from "@/hooks/useGuestCart";
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -13,8 +14,11 @@ export function Navbar() {
   const [, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { data: cart } = useGetCart({ query: { enabled: !!user, queryKey: getGetCartQueryKey() } });
+  const { totalItems: guestCartCount } = useGuestCart();
 
-  const cartItemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+  const cartItemCount = user
+    ? (cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0)
+    : guestCartCount;
 
   const handleLogout = () => {
     logout();

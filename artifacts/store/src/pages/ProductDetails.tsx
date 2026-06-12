@@ -4,6 +4,8 @@ import { useGetProduct, useGetRelatedProducts, useAddToCart, getGetProductQueryK
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGuestCart } from "@/hooks/useGuestCart";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -31,6 +33,8 @@ export default function ProductDetails() {
   });
 
   const addToCartMutation = useAddToCart();
+  const { user } = useAuth();
+  const guestCart = useGuestCart();
 
   if (isLoading) {
     return (
@@ -83,6 +87,23 @@ export default function ProductDetails() {
     }
     if (!selectedVariant) {
       toast({ title: "This combination is not available", variant: "destructive" });
+      return;
+    }
+    if (!user) {
+      guestCart.addItem({
+        variantId: selectedVariant.id,
+        productId: product.id,
+        nameEn: product.nameEn,
+        nameAr: product.nameAr,
+        imageUrl: product.images?.[0]?.imageUrl ?? null,
+        price: Number(product.price),
+        salePrice: product.salePrice ? Number(product.salePrice) : null,
+        color: selectedVariant.color,
+        size: selectedVariant.size,
+        stockQuantity: selectedVariant.stockQuantity ?? 0,
+        quantity,
+      });
+      toast({ title: "Added to cart", description: `${language === 'en' ? product.nameEn : product.nameAr} — ${selectedColor}, ${selectedSize}` });
       return;
     }
     addToCartMutation.mutate({

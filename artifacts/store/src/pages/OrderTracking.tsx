@@ -55,7 +55,7 @@ type Step = {
   label: string;
   description: string;
   icon: typeof Package;
-  timestampField: keyof Pick<Order, "createdAt" | "paidAt" | "packedAt" | "shippedAt" | "outForDeliveryAt" | "deliveredAt"> | null;
+  timestampField: keyof Pick<Order, "createdAt" | "paidAt" | "processingAt" | "packedAt" | "shippedAt" | "outForDeliveryAt" | "deliveredAt"> | null;
 };
 
 const STEPS: Step[] = [
@@ -72,6 +72,13 @@ const STEPS: Step[] = [
     description: "Your order has been confirmed and is being prepared for packing.",
     icon: CreditCard,
     timestampField: "paidAt",
+  },
+  {
+    key: "processing",
+    label: "Processing",
+    description: "Your order is being reviewed and prepared for packing.",
+    icon: BoxIcon,
+    timestampField: "processingAt",
   },
   {
     key: "packed",
@@ -103,7 +110,7 @@ const STEPS: Step[] = [
   },
 ];
 
-const STATUS_ORDER = ["new", "paid", "packed", "shipped", "out_for_delivery", "delivered"];
+const STATUS_ORDER = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
 
 function stepState(stepKey: string, currentStatus: string): "done" | "active" | "pending" {
   if (currentStatus === "cancelled") return "pending";

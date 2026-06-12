@@ -297,7 +297,7 @@ export async function sendPaymentFailedEmail(
     <h2 style="font-size:22px;font-weight:400;margin:0 0 8px;color:#b91c1c">Payment Failed</h2>
     <p style="color:#888;margin:0 0 24px">Order #${orderId}</p>
     <p style="line-height:1.7;color:#444">Hi ${name}, unfortunately your payment of <strong>$${total.toFixed(2)}</strong> for order #${orderId} could not be processed.</p>
-    <p style="line-height:1.7;color:#444">Your order has not been placed. Please try again or use a different payment method.</p>
+    <p style="line-height:1.7;color:#444">Your order has been placed but payment is still pending. Please try paying again or use a different payment method.</p>
     <div style="background:#fff5f5;padding:20px;margin:20px 0;border-left:3px solid #b91c1c">
       <p style="margin:0;font-size:14px;color:#b91c1c">Common reasons: insufficient funds, card declined, or session timeout.</p>
     </div>
