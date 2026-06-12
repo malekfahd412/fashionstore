@@ -46,6 +46,7 @@ type Order = {
   outForDeliveryAt: string | null;
   deliveredAt: string | null;
   trackingNote: string | null;
+  paymentStatus: string | null;
   items: OrderItem[];
 };
 
@@ -102,7 +103,7 @@ const STEPS: Step[] = [
   },
 ];
 
-const STATUS_ORDER = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
+const STATUS_ORDER = ["new", "paid", "packed", "shipped", "out_for_delivery", "delivered"];
 
 function stepState(stepKey: string, currentStatus: string): "done" | "active" | "pending" {
   if (currentStatus === "cancelled") return "pending";
@@ -134,14 +135,18 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function PaymentStatusBadge({ order }: { order: Order }) {
-  if (order.paymentMethod === "cash_on_delivery") {
+  const ps = order.paymentStatus;
+  if (ps === "cod") {
     if (order.status === "delivered") {
       return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">COD Paid</span>;
     }
     return <span className="text-xs font-medium text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Pay on Delivery</span>;
   }
-  if (order.paidAt) {
+  if (ps === "paid") {
     return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Paid</span>;
+  }
+  if (ps === "failed") {
+    return <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">Payment Failed</span>;
   }
   return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">Payment Pending</span>;
 }

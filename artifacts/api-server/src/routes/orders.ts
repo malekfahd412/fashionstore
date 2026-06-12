@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable } from "@workspace/db";
 import { eq, and, SQL, desc, inArray, gt, isNull } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, ListOrdersQueryParams } from "@workspace/api-zod";
@@ -32,6 +32,20 @@ async function batchEnrichOrders(orders: (typeof ordersTable.$inferSelect)[]) {
       ])
     : [[], []];
 
+  // Fetch latest payment record per order to derive paymentStatus
+  const allPayments = orderIds.length
+    ? await db.select({ orderId: paymentsTable.orderId, status: paymentsTable.status, createdAt: paymentsTable.createdAt })
+        .from(paymentsTable)
+        .where(inArray(paymentsTable.orderId, orderIds))
+        .orderBy(desc(paymentsTable.createdAt))
+    : [];
+
+  // Keep only the most recent payment per order
+  const latestPaymentByOrder = new Map<number, string>();
+  for (const p of allPayments) {
+    if (!latestPaymentByOrder.has(p.orderId)) latestPaymentByOrder.set(p.orderId, p.status);
+  }
+
   const variantMap = new Map(variants.map(v => [v.id, v]));
   const productMap = new Map(products.map(p => [p.id, p]));
   const imageMap = new Map(images.map(img => [img.productId, img.imageUrl]));
@@ -42,11 +56,20 @@ async function batchEnrichOrders(orders: (typeof ordersTable.$inferSelect)[]) {
     itemsByOrder.get(item.orderId)!.push(item);
   }
 
-  return orders.map(order => ({
+  return orders.map(order => {
+    let paymentStatus: string;
+    if (order.paymentMethod === "cash_on_delivery") {
+      paymentStatus = "cod";
+    } else {
+      const ps = latestPaymentByOrder.get(order.id);
+      paymentStatus = ps === "paid" ? "paid" : ps === "failed" ? "failed" : "pending";
+    }
+    return {
     ...order,
     totalPrice: Number(order.totalPrice),
     discount: order.discount ? Number(order.discount) : null,
     userName: userMap.get(order.userId) ?? "",
+    paymentStatus,
     items: (itemsByOrder.get(order.id) ?? []).map(item => {
       const variant = variantMap.get(item.productVariantId);
       const product = variant ? productMap.get(variant.productId) : null;
@@ -65,7 +88,8 @@ async function batchEnrichOrders(orders: (typeof ordersTable.$inferSelect)[]) {
         price: Number(item.price),
       };
     }),
-  }));
+  };
+  });
 }
 
 async function enrichOrder(order: typeof ordersTable.$inferSelect) {

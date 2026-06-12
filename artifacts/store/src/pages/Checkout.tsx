@@ -167,7 +167,7 @@ export default function Checkout() {
       const result = await new Promise<{ id: number }>((resolve, reject) => {
         createOrderMutation.mutate({
           data: {
-            paymentMethod: isPaymob ? "paymob" : "cash_on_delivery",
+            paymentMethod: paymentMethod,
             couponCode: couponApplied && couponCode ? couponCode : undefined,
             items: orderItems,
           }

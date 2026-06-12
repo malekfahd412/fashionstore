@@ -49,12 +49,13 @@ const EMPTY_ADDRESS: AddressFormData = {
   label: "Home", firstName: "", lastName: "", address: "", city: "Cairo", phone: "", isDefault: false,
 };
 
-function PaymentStatusBadge({ paymentMethod, status, paidAt }: { paymentMethod: string; status: string; paidAt?: string | null }) {
-  if (paymentMethod === "cash_on_delivery") {
-    if (status === "delivered") return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">COD Paid</span>;
+function PaymentStatusBadge({ paymentStatus, orderStatus }: { paymentStatus?: string | null; orderStatus: string }) {
+  if (paymentStatus === "cod") {
+    if (orderStatus === "delivered") return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">COD Paid</span>;
     return <span className="text-xs text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Pay on Delivery</span>;
   }
-  if (paidAt) return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Paid</span>;
+  if (paymentStatus === "paid") return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Paid</span>;
+  if (paymentStatus === "failed") return <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">Payment Failed</span>;
   return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">Pending</span>;
 }
 
@@ -313,9 +314,8 @@ export default function CustomerDashboard() {
                         <span className="font-bold">Order #{order.id}</span>
                         <StatusBadge status={order.status} />
                         <PaymentStatusBadge
-                          paymentMethod={order.paymentMethod}
-                          status={order.status}
-                          paidAt={(order as unknown as { paidAt?: string | null }).paidAt}
+                          paymentStatus={(order as unknown as { paymentStatus?: string }).paymentStatus}
+                          orderStatus={order.status}
                         />
                       </div>
                       <p className="text-sm text-muted-foreground mb-0.5">Placed on {format(new Date(order.createdAt), "MMM dd, yyyy")}</p>
