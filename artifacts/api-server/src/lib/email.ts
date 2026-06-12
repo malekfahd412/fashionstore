@@ -260,6 +260,54 @@ export async function sendForcePasswordResetEmail(opts: {
   `));
 }
 
+export async function sendPaymentSuccessEmail(
+  email: string,
+  name: string,
+  orderId: number,
+  total: number,
+  method: string
+): Promise<void> {
+  const methodLabel = method === "card" ? "Credit / Debit Card"
+    : method === "meeza" ? "Meeza Card"
+    : method === "vodafone" ? "Vodafone Cash"
+    : method;
+  await send(email, `Payment Received — Order #${orderId}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 8px">Payment Successful</h2>
+    <p style="color:#888;margin:0 0 24px">Order #${orderId}</p>
+    <p style="line-height:1.7;color:#444">Hi ${name}, your payment has been received and confirmed.</p>
+    <div style="background:#f9f9f9;padding:20px;margin:20px 0">
+      <p style="margin:0 0 8px"><strong>Order:</strong> #${orderId}</p>
+      <p style="margin:0 0 8px"><strong>Payment Method:</strong> ${methodLabel}</p>
+      <p style="margin:0"><strong>Amount Paid:</strong> $${total.toFixed(2)}</p>
+    </div>
+    <p style="line-height:1.7;color:#444">We're now processing your order and will notify you when it ships.</p>
+    <div style="text-align:center">
+      <a href="${APP_URL()}/dashboard/customer" style="${btnStyle}">TRACK YOUR ORDER</a>
+    </div>
+  `));
+}
+
+export async function sendPaymentFailedEmail(
+  email: string,
+  name: string,
+  orderId: number,
+  total: number
+): Promise<void> {
+  await send(email, `Payment Failed — Order #${orderId}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 8px;color:#b91c1c">Payment Failed</h2>
+    <p style="color:#888;margin:0 0 24px">Order #${orderId}</p>
+    <p style="line-height:1.7;color:#444">Hi ${name}, unfortunately your payment of <strong>$${total.toFixed(2)}</strong> for order #${orderId} could not be processed.</p>
+    <p style="line-height:1.7;color:#444">Your order has not been placed. Please try again or use a different payment method.</p>
+    <div style="background:#fff5f5;padding:20px;margin:20px 0;border-left:3px solid #b91c1c">
+      <p style="margin:0;font-size:14px;color:#b91c1c">Common reasons: insufficient funds, card declined, or session timeout.</p>
+    </div>
+    <div style="text-align:center">
+      <a href="${APP_URL()}/cart" style="${btnStyle}">TRY AGAIN</a>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:24px">If you continue to experience issues, please contact our support team.</p>
+  `));
+}
+
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
   await send(email, `Welcome to LUXE, ${name}`, wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to LUXE</h2>

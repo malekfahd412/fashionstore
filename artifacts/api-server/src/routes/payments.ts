@@ -4,9 +4,7 @@ import { db, paymentsTable, ordersTable, usersTable, storeSettingsTable, notific
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
-import { sendOrderConfirmationEmail, sendOrderStatusEmail } from "../lib/email";
-import { orderItemsTable, productVariantsTable, productsTable } from "@workspace/db";
-import { inArray } from "drizzle-orm";
+import { sendPaymentSuccessEmail, sendPaymentFailedEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -251,27 +249,48 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
             message: `Your payment for order #${order.id} was successful. We're processing your order now.`,
           }).catch(() => {});
 
-          // Fetch items for confirmation email
-          const items = await db.select({
-            nameEn: productsTable.nameEn,
-            quantity: orderItemsTable.quantity,
-            price: orderItemsTable.price,
-          })
-            .from(orderItemsTable)
-            .innerJoin(productVariantsTable, eq(productVariantsTable.id, orderItemsTable.productVariantId))
-            .innerJoin(productsTable, eq(productsTable.id, productVariantsTable.productId))
-            .where(eq(orderItemsTable.orderId, order.id));
-
           // Respect customer email preferences — orderUpdates defaults to true
           const wantsOrderUpdates = user.emailPreferences?.orderUpdates !== false;
           if (wantsOrderUpdates) {
-            sendOrderConfirmationEmail(
+            sendPaymentSuccessEmail(
               user.email,
               user.name,
               order.id,
               Number(order.totalPrice),
-              items.map(i => ({ nameEn: i.nameEn, quantity: i.quantity, price: Number(i.price) }))
+              method
             ).catch(() => {});
+          }
+        }
+      }
+    } else {
+      // Payment failed — notify customer
+      if (payment) {
+        const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, payment.orderId));
+        if (order) {
+          const [user] = await db.select({
+            email: usersTable.email,
+            name: usersTable.name,
+            emailPreferences: usersTable.emailPreferences,
+          }).from(usersTable).where(eq(usersTable.id, order.userId));
+
+          if (user) {
+            // In-app notification for failed payment
+            db.insert(notificationsTable).values({
+              userId: order.userId,
+              title: "Payment Failed",
+              message: `Your payment for order #${order.id} could not be processed. Please try again.`,
+            }).catch(() => {});
+
+            // Email notification (gated on preferences)
+            const wantsOrderUpdates = user.emailPreferences?.orderUpdates !== false;
+            if (wantsOrderUpdates) {
+              sendPaymentFailedEmail(
+                user.email,
+                user.name,
+                order.id,
+                Number(order.totalPrice)
+              ).catch(() => {});
+            }
           }
         }
       }

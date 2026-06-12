@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect, useRef } from "react";
+import { useLocation, useSearch } from "wouter";
 import { useGetCart, useCreateOrder } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,30 @@ export default function Checkout() {
   const [billing, setBilling] = useState({
     firstName: "", lastName: "", address: "", city: "Cairo", phone: "",
   });
+
+  const search = useSearch();
+  const autoAppliedRef = useRef(false);
+
+  useEffect(() => {
+    if (autoAppliedRef.current) return;
+    const params = new URLSearchParams(search);
+    const code = params.get("coupon")?.trim().toUpperCase();
+    if (!code) return;
+    autoAppliedRef.current = true;
+    setCouponCode(code);
+    fetch(`${BASE}/api/coupons/validate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    }).then(r => r.json() as Promise<{ discountType?: string; discountValue?: number; error?: string }>).then(data => {
+      if (data.discountType && data.discountValue !== undefined) {
+        setCouponData({ discountType: data.discountType, discountValue: data.discountValue });
+        setCouponApplied(true);
+      } else {
+        setCouponError(data.error ?? "Coupon could not be applied");
+      }
+    }).catch(() => setCouponError("Failed to validate coupon"));
+  }, [search]);
 
   if (isLoading) return <div className="p-16 text-center">Loading...</div>;
   if (!cart || !cart.items?.length) {

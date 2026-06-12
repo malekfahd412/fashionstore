@@ -473,26 +473,61 @@ export default function CustomerDashboard() {
             <h2 className="text-2xl font-serif font-bold mb-6">Notifications</h2>
             {!notifications?.length ? (
               <div className="bg-muted/30 p-8 text-center border border-border">
-                <p className="text-muted-foreground">You have no notifications.</p>
+                <p className="text-muted-foreground">You have no notifications yet.</p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {notifications.map(notification => (
-                  <div key={notification.id} className={`p-4 border ${notification.isRead ? "border-border" : "border-primary/50 bg-primary/5"} flex justify-between items-start gap-4`}>
-                    <div className="flex-1 min-w-0">
-                      <h4 className={`font-semibold mb-1 text-sm ${!notification.isRead ? "text-foreground" : "text-muted-foreground"}`}>{notification.title}</h4>
-                      <p className="text-sm text-muted-foreground">{notification.message}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{format(new Date(notification.createdAt), "MMM dd, yyyy HH:mm")}</p>
+            ) : (() => {
+              // Group notifications by order ID (extracted from message text), others go in a "general" bucket
+              const orderGroups = new Map<string, typeof notifications>();
+              const general: typeof notifications = [];
+              for (const n of notifications) {
+                const match = n.message.match(/order #(\d+)/i) ?? n.title.match(/order #(\d+)/i);
+                if (match) {
+                  const key = `Order #${match[1]}`;
+                  if (!orderGroups.has(key)) orderGroups.set(key, []);
+                  orderGroups.get(key)!.push(n);
+                } else {
+                  general.push(n);
+                }
+              }
+              const sections: Array<{ label: string | null; items: typeof notifications }> = [];
+              orderGroups.forEach((items, label) => sections.push({ label, items }));
+              sections.sort((a, b) => {
+                const aTime = Math.max(...a.items.map(i => new Date(i.createdAt).getTime()));
+                const bTime = Math.max(...b.items.map(i => new Date(i.createdAt).getTime()));
+                return bTime - aTime;
+              });
+              if (general.length) sections.push({ label: null, items: general });
+
+              return (
+                <div className="space-y-6">
+                  {sections.map((section, si) => (
+                    <div key={si}>
+                      {section.label && (
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 border-b border-border pb-1">
+                          {section.label}
+                        </p>
+                      )}
+                      <div className="space-y-2">
+                        {section.items.map(notification => (
+                          <div key={notification.id} className={`p-4 border ${notification.isRead ? "border-border" : "border-primary/50 bg-primary/5"} flex justify-between items-start gap-4`}>
+                            <div className="flex-1 min-w-0">
+                              <h4 className={`font-semibold mb-1 text-sm ${!notification.isRead ? "text-foreground" : "text-muted-foreground"}`}>{notification.title}</h4>
+                              <p className="text-sm text-muted-foreground">{notification.message}</p>
+                              <p className="text-xs text-muted-foreground mt-2">{format(new Date(notification.createdAt), "MMM dd, yyyy HH:mm")}</p>
+                            </div>
+                            {!notification.isRead && (
+                              <Button variant="ghost" size="sm" className="shrink-0" onClick={() => handleMarkRead(notification.id)}>
+                                Mark read
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    {!notification.isRead && (
-                      <Button variant="ghost" size="sm" className="shrink-0" onClick={() => handleMarkRead(notification.id)}>
-                        Mark read
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* ── SECURITY ────────────────────────────────────────────────── */}
