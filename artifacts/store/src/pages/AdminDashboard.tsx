@@ -20,13 +20,19 @@ import AdminProductsTab from "@/components/admin/AdminProductsTab";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-async function apiFetch<T>(path: string): Promise<T> {
-  const token = localStorage.getItem("token");
+async function apiFetch<T = void>(path: string, options?: RequestInit): Promise<T> {
+  const token = localStorage.getItem("auth_token");
   const res = await fetch(`${BASE}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options?.headers as Record<string, string> ?? {}),
+    },
   });
   if (!res.ok) throw new Error(await res.text());
-  return res.json() as Promise<T>;
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 type BIData = {
@@ -56,6 +62,9 @@ const TABS = [
   { id: 'categories', label: 'Categories' },
   { id: 'coupons', label: 'Coupons' },
   { id: 'banners', label: 'Banners' },
+  { id: 'faq', label: 'FAQ' },
+  { id: 'contact-messages', label: 'Messages' },
+  { id: 'newsletter', label: 'Newsletter' },
   { id: 'audit-logs', label: 'Audit Logs' },
   { id: 'security', label: 'Security' },
   { id: 'settings', label: 'Settings' },
@@ -406,6 +415,15 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* ── FAQ ──────────────────────────────────────────────────── */}
+        {activeTab === 'faq' && <AdminFaqTab />}
+
+        {/* ── CONTACT MESSAGES ─────────────────────────────────────── */}
+        {activeTab === 'contact-messages' && <AdminContactMessagesTab />}
+
+        {/* ── NEWSLETTER ───────────────────────────────────────────── */}
+        {activeTab === 'newsletter' && <AdminNewsletterTab />}
+
         {/* ── SECURITY ─────────────────────────────────────────────── */}
         {activeTab === 'security' && <SecurityPanel />}
 
@@ -414,6 +432,246 @@ export default function AdminDashboard() {
 
         </div>
       </div>
+    </div>
+  );
+}
+
+type FaqEntry = { id: number; category: string; questionEn: string; questionAr: string; answerEn: string; answerAr: string; sortOrder: number; active: boolean };
+type ContactMsg = { id: number; name: string; email: string; subject: string | null; message: string; status: string; createdAt: string };
+type NewsletterSub = { id: number; email: string; active: boolean; subscribedAt: string };
+
+function AdminFaqTab() {
+  const [faqs, setFaqs] = useState<FaqEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editTarget, setEditTarget] = useState<FaqEntry | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ category: 'orders', questionEn: '', questionAr: '', answerEn: '', answerAr: '', sortOrder: 0, active: true });
+
+  const load = async () => {
+    try { const data = await apiFetch<FaqEntry[]>('/api/admin/faq'); setFaqs(data); } finally { setLoading(false); }
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const save = async () => {
+    if (!form.questionEn || !form.answerEn) return;
+    if (editTarget) {
+      await apiFetch(`/api/admin/faq/${editTarget.id}`, { method: 'PATCH', body: JSON.stringify(form) } as RequestInit);
+    } else {
+      await apiFetch('/api/admin/faq', { method: 'POST', body: JSON.stringify(form) } as RequestInit);
+    }
+    setShowForm(false); setEditTarget(null); setForm({ category: 'orders', questionEn: '', questionAr: '', answerEn: '', answerAr: '', sortOrder: 0, active: true });
+    void load();
+  };
+
+  const del = async (id: number) => {
+    if (!confirm('Delete this FAQ?')) return;
+    await apiFetch(`/api/admin/faq/${id}`, { method: 'DELETE' } as RequestInit);
+    void load();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold font-serif">FAQ Management</h1>
+        <button onClick={() => { setShowForm(true); setEditTarget(null); }} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">+ Add FAQ</button>
+      </div>
+      {showForm && (
+        <div className="border border-border p-6 bg-card space-y-3">
+          <h3 className="font-bold">{editTarget ? 'Edit FAQ' : 'New FAQ'}</h3>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><label className="text-xs font-medium block mb-1">Category</label>
+              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full border border-input bg-background px-3 py-2 text-sm">
+                {['orders','shipping','payments','returns','account'].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div><label className="text-xs font-medium block mb-1">Sort Order</label>
+              <input type="number" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: Number(e.target.value) }))} className="w-full border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+            <div><label className="text-xs font-medium block mb-1">Question (EN) *</label>
+              <input value={form.questionEn} onChange={e => setForm(f => ({ ...f, questionEn: e.target.value }))} className="w-full border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+            <div><label className="text-xs font-medium block mb-1">Question (AR)</label>
+              <input value={form.questionAr} onChange={e => setForm(f => ({ ...f, questionAr: e.target.value }))} dir="rtl" className="w-full border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+            <div><label className="text-xs font-medium block mb-1">Answer (EN) *</label>
+              <textarea value={form.answerEn} onChange={e => setForm(f => ({ ...f, answerEn: e.target.value }))} rows={3} className="w-full border border-input bg-background px-3 py-2 text-sm resize-none" />
+            </div>
+            <div><label className="text-xs font-medium block mb-1">Answer (AR)</label>
+              <textarea value={form.answerAr} onChange={e => setForm(f => ({ ...f, answerAr: e.target.value }))} rows={3} dir="rtl" className="w-full border border-input bg-background px-3 py-2 text-sm resize-none" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={save} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Save</button>
+            <button onClick={() => { setShowForm(false); setEditTarget(null); }} className="px-4 py-2 border border-border text-sm hover:bg-muted">Cancel</button>
+          </div>
+        </div>
+      )}
+      {loading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
+        <div className="border border-border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-muted-foreground text-xs uppercase">
+              <tr>{['Category','Question','Active','Actions'].map(h => <th key={h} className="px-4 py-3 text-left">{h}</th>)}</tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {faqs.map(faq => (
+                <tr key={faq.id} className="hover:bg-muted/20">
+                  <td className="px-4 py-3 capitalize">{faq.category}</td>
+                  <td className="px-4 py-3 max-w-sm truncate">{faq.questionEn}</td>
+                  <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs ${faq.active ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{faq.active ? 'Active' : 'Hidden'}</span></td>
+                  <td className="px-4 py-3 flex gap-2">
+                    <button onClick={() => { setEditTarget(faq); setForm({ category: faq.category, questionEn: faq.questionEn, questionAr: faq.questionAr, answerEn: faq.answerEn, answerAr: faq.answerAr, sortOrder: faq.sortOrder, active: faq.active }); setShowForm(true); }} className="text-xs px-2 py-1 border border-border hover:bg-muted">Edit</button>
+                    <button onClick={() => del(faq.id)} className="text-xs px-2 py-1 border border-destructive text-destructive hover:bg-destructive/10">Delete</button>
+                  </td>
+                </tr>
+              ))}
+              {!faqs.length && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No FAQs yet. Add your first one above.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminContactMessagesTab() {
+  const [messages, setMessages] = useState<ContactMsg[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<ContactMsg | null>(null);
+
+  const load = async () => {
+    try { const data = await apiFetch<{ messages: ContactMsg[]; total: number }>('/api/admin/contact-messages'); setMessages(data.messages); setTotal(data.total); } finally { setLoading(false); }
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const updateStatus = async (id: number, status: string) => {
+    await apiFetch(`/api/admin/contact-messages/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) } as RequestInit);
+    void load();
+  };
+
+  const del = async (id: number) => {
+    if (!confirm('Delete this message?')) return;
+    await apiFetch(`/api/admin/contact-messages/${id}`, { method: 'DELETE' } as RequestInit);
+    if (selected?.id === id) setSelected(null);
+    void load();
+  };
+
+  const statusColor = (s: string) => s === 'new' ? 'bg-blue-100 text-blue-700' : s === 'replied' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground';
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold font-serif">Contact Messages</h1>
+        <span className="text-sm text-muted-foreground">{total} total</span>
+      </div>
+      {selected && (
+        <div className="border border-border p-6 bg-card space-y-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-bold">{selected.name} &lt;{selected.email}&gt;</h3>
+              {selected.subject && <p className="text-sm text-muted-foreground">{selected.subject}</p>}
+            </div>
+            <button onClick={() => setSelected(null)} className="text-sm text-muted-foreground hover:text-foreground">✕</button>
+          </div>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap border-t pt-3">{selected.message}</p>
+          <div className="flex gap-2 pt-2">
+            <button onClick={() => updateStatus(selected.id, 'read')} className="text-xs px-3 py-1.5 border border-border hover:bg-muted">Mark Read</button>
+            <button onClick={() => updateStatus(selected.id, 'replied')} className="text-xs px-3 py-1.5 bg-green-600 text-white hover:bg-green-700">Mark Replied</button>
+            <button onClick={() => del(selected.id)} className="text-xs px-3 py-1.5 border border-destructive text-destructive hover:bg-destructive/10 ml-auto">Delete</button>
+          </div>
+        </div>
+      )}
+      {loading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
+        <div className="border border-border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-muted-foreground text-xs uppercase">
+              <tr>{['Name','Email','Subject','Status','Date','Actions'].map(h => <th key={h} className="px-4 py-3 text-left">{h}</th>)}</tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {messages.map(msg => (
+                <tr key={msg.id} className="hover:bg-muted/20 cursor-pointer" onClick={() => setSelected(msg)}>
+                  <td className="px-4 py-3 font-medium">{msg.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{msg.email}</td>
+                  <td className="px-4 py-3 max-w-[180px] truncate text-muted-foreground">{msg.subject || '—'}</td>
+                  <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs capitalize ${statusColor(msg.status)}`}>{msg.status}</span></td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs">{format(new Date(msg.createdAt), 'MMM d, HH:mm')}</td>
+                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => del(msg.id)} className="text-xs px-2 py-1 border border-destructive text-destructive hover:bg-destructive/10">Delete</button>
+                  </td>
+                </tr>
+              ))}
+              {!messages.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No messages yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminNewsletterTab() {
+  const [subscribers, setSubscribers] = useState<NewsletterSub[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    try { const data = await apiFetch<{ subscribers: NewsletterSub[]; total: number }>('/api/admin/newsletter/subscribers'); setSubscribers(data.subscribers); setTotal(data.total); } finally { setLoading(false); }
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const del = async (id: number) => {
+    if (!confirm('Remove this subscriber?')) return;
+    await apiFetch(`/api/admin/newsletter/subscribers/${id}`, { method: 'DELETE' } as RequestInit);
+    void load();
+  };
+
+  const exportCsv = () => {
+    const csv = ['Email,Subscribed At', ...subscribers.map(s => `${s.email},${s.subscribedAt}`)].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'newsletter-subscribers.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-serif">Newsletter Subscribers</h1>
+          <p className="text-muted-foreground text-sm mt-1">{total} total subscribers</p>
+        </div>
+        <button onClick={exportCsv} className="px-4 py-2 border border-border text-sm font-medium hover:bg-muted">Export CSV</button>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatCard label="Total Subscribers" value={total} />
+        <StatCard label="Active" value={subscribers.filter(s => s.active).length} />
+        <StatCard label="Inactive" value={subscribers.filter(s => !s.active).length} />
+      </div>
+      {loading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
+        <div className="border border-border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-muted-foreground text-xs uppercase">
+              <tr>{['Email','Status','Subscribed','Actions'].map(h => <th key={h} className="px-4 py-3 text-left">{h}</th>)}</tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {subscribers.map(sub => (
+                <tr key={sub.id} className="hover:bg-muted/20">
+                  <td className="px-4 py-3 font-medium">{sub.email}</td>
+                  <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs ${sub.active ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{sub.active ? 'Active' : 'Unsubscribed'}</span></td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs">{format(new Date(sub.subscribedAt), 'MMM d, yyyy')}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => del(sub.id)} className="text-xs px-2 py-1 border border-destructive text-destructive hover:bg-destructive/10">Remove</button>
+                  </td>
+                </tr>
+              ))}
+              {!subscribers.length && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No subscribers yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

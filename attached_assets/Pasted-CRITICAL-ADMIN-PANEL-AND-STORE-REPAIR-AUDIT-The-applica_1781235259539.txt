@@ -1,0 +1,223 @@
+CRITICAL ADMIN PANEL AND STORE REPAIR AUDIT
+
+The application currently has major functional issues.
+
+Observed problems:
+
+1. Admin Panel mutations fail with:
+   {"error":"Unauthorized"}
+
+Examples:
+
+* Create Category
+* Edit Category
+* Create Product
+* Edit Product
+* Create Coupon
+* Edit Coupon
+* Create Banner
+* Edit Banner
+* Settings Save
+* Any admin action
+
+This indicates auth, role protection, token handling, API client, refresh token, request headers, route protection, or frontend API integration issues.
+
+Requirements:
+
+AUTHORIZATION AUDIT
+
+1. Audit every admin API endpoint.
+
+Verify:
+
+* Authorization header exists
+* JWT is sent correctly
+* Token refresh works
+* Admin role is detected correctly
+* Frontend requests match backend requirements
+
+2. Trace a complete mutation flow:
+
+Frontend Button
+→ React Query Mutation
+→ API Client
+→ Authorization Header
+→ Express Middleware
+→ requireAuth
+→ requireRole("admin")
+→ Route Handler
+→ Database
+
+Find exactly where Unauthorized is occurring.
+
+3. Fix ALL unauthorized admin operations.
+
+SETTINGS MODULE
+
+4. Audit the entire Settings system.
+
+Verify:
+
+* Settings load from DB
+* Settings save to DB
+* Refresh persists values
+* Every settings tab works
+
+Tabs:
+
+* General
+* Contact
+* Social
+* Email
+* Payment
+* Shipping
+* SEO
+* Homepage Sections
+
+Remove any placeholder implementation.
+
+ADMIN PANEL COMPLETE AUDIT
+
+5. Verify every module:
+
+* Dashboard
+* Analytics
+* Users
+* Vendors
+* Products
+* Orders
+* Categories
+* Coupons
+* Banners
+* Security
+* Audit Logs
+* Settings
+
+For each module:
+
+* Buttons work
+* Forms work
+* CRUD works
+* Data persists
+* Success messages work
+* Error messages work
+* React Query cache updates correctly
+
+STORE FOOTER
+
+6. Rebuild footer completely.
+
+Verify all links.
+
+Add:
+
+* About Us
+* Contact Us
+* FAQ
+* Privacy Policy
+* Terms & Conditions
+* Shipping Policy
+* Return Policy
+
+Create missing pages if they do not exist.
+
+CONTACT US
+
+7. Build a complete Contact Us page.
+
+Include:
+
+* Store email
+* Phone
+* Address
+* Contact form
+* Social links
+* Google Maps placeholder
+
+Form submissions must be stored and visible in Admin Panel.
+
+FAQ
+
+8. Build a real FAQ page.
+
+Categories:
+
+* Orders
+* Shipping
+* Payments
+* Returns
+* Account
+
+Admin must be able to manage FAQ entries.
+
+NEWSLETTER
+
+9. Newsletter currently appears broken.
+
+Verify:
+
+* Subscription form
+* Database storage
+* Duplicate protection
+* Success message
+* Error handling
+
+Create:
+
+newsletter_subscribers table
+
+Admin panel section:
+
+* Subscriber count
+* Export emails
+* Delete subscriber
+
+ORDER & PAYMENT AUDIT
+
+10. Verify:
+
+* Checkout
+* Orders
+* Coupons
+* Paymob
+* COD
+* Vodafone Cash
+
+Ensure no broken flows remain.
+
+ERROR AUDIT
+
+11. Search entire application for:
+
+* Unauthorized errors
+* HTTP 500 errors
+* Console errors
+* Dead buttons
+* Missing routes
+* Missing pages
+* Broken forms
+
+12. Run:
+
+pnpm run typecheck
+pnpm run build
+
+Fix all errors.
+
+FINAL REPORT
+
+Provide:
+
+* Root cause of Unauthorized issue
+* Exact files changed
+* Exact lines changed
+* Total bugs found
+* Total bugs fixed
+* Remaining issues
+* Admin Panel readiness score
+* Store readiness score
+* Production readiness score
+
+Do not assume modules work.
+
+Verify every action end-to-end using the real APIs and database.

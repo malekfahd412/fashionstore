@@ -1,7 +1,7 @@
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export async function adminFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("auth_token");
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     headers: {

@@ -19,6 +19,13 @@ import CustomerDashboard from "@/pages/CustomerDashboard";
 import VendorDashboard from "@/pages/VendorDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import OrderTracking from "@/pages/OrderTracking";
+import Contact from "@/pages/Contact";
+import FAQ from "@/pages/FAQ";
+import Returns from "@/pages/Returns";
+import About from "@/pages/About";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import Terms from "@/pages/Terms";
+import ShippingPolicy from "@/pages/ShippingPolicy";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -68,6 +75,13 @@ function Router() {
         <Route path="/dashboard/customer" component={CustomerDashboard} />
         <Route path="/dashboard/vendor" component={VendorDashboard} />
         <Route path="/order/:id/tracking" component={OrderTracking} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/faq" component={FAQ} />
+        <Route path="/returns" component={Returns} />
+        <Route path="/about" component={About} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/shipping-policy" component={ShippingPolicy} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
