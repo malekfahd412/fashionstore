@@ -1,0 +1,175 @@
+LUXE Fashion Store — Phase 2
+
+Build a complete enterprise-grade Order Tracking System, Customer Portal, and UI/UX overhaul.
+
+Requirements:
+
+ORDER TRACKING
+
+* Create a dedicated order tracking page
+* Route: /track-order/:orderId
+* Customer can view:
+
+  * Order number
+  * Order date
+  * Payment status
+  * Shipping status
+  * Estimated delivery date
+  * Tracking timeline
+
+Timeline stages:
+
+1. Order Placed
+2. Payment Confirmed
+3. Processing
+4. Packed
+5. Shipped
+6. Out For Delivery
+7. Delivered
+
+Each stage must show:
+
+* timestamp
+* icon
+* status color
+* description
+
+Add animated progress bar.
+
+CUSTOMER PORTAL
+
+Replace the basic dashboard with a modern customer portal.
+
+Sections:
+
+1. Overview
+
+* Total orders
+* Active orders
+* Wishlist count
+* Reward points placeholder
+
+2. My Orders
+
+* Search
+* Filter by status
+* View details
+* Reorder button
+* Download invoice
+
+3. Order Tracking
+
+* Active orders card
+* Progress visualization
+* Track button
+
+4. Addresses
+
+* Add/Edit/Delete
+* Default address support
+
+5. Wishlist
+
+* Grid view
+* Move to cart
+* Remove
+
+6. Notifications
+
+* Group by order
+* Mark read
+* Unread badge
+
+7. Account Settings
+
+* Name
+* Phone
+* Email
+* Password change
+* Email preferences
+
+8. Security
+
+* Active sessions
+* Logout device
+* Logout all devices
+* Last login information
+
+UI/UX OVERHAUL
+
+Homepage:
+
+* Modern luxury fashion style
+* Better spacing
+* Better typography
+* Premium hero section
+* Smooth animations
+* Skeleton loading states
+
+Navbar:
+
+* Sticky
+* Better mobile menu
+* Improved search
+* Better cart indicator
+
+Product Cards:
+
+* Hover animation
+* Quick view
+* Rating display
+* Sale badge
+* Wishlist button
+
+Product Page:
+
+* Better image gallery
+* Zoom
+* Review summary placeholder
+* Shipping info
+* Return policy
+
+Cart:
+
+* Modern layout
+* Coupon area improved
+* Better order summary
+
+Checkout:
+
+* Multi-step design
+* Better payment section
+* Better mobile responsiveness
+
+General:
+
+* Improve spacing everywhere
+* Improve color hierarchy
+* Improve loading states
+* Improve empty states
+* Improve error states
+* Improve responsiveness
+
+PERFORMANCE
+
+* No mock data
+* No placeholder APIs
+* Use TanStack Query
+* Add loading skeletons
+* Add error boundaries
+* Optimize rerenders
+
+DELIVERABLES
+
+Provide:
+
+1. Files changed
+2. New routes added
+3. New components created
+4. Database changes
+5. APIs added
+6. Typecheck status
+7. Remaining issues found
+8. Production readiness score after implementation
+
+Do not stop until everything is implemented, wired, tested, and typechecked successfully.

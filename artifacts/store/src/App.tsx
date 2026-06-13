@@ -19,6 +19,7 @@ import CustomerDashboard from "@/pages/CustomerDashboard";
 import VendorDashboard from "@/pages/VendorDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import OrderTracking from "@/pages/OrderTracking";
+import TrackOrder from "@/pages/TrackOrder";
 import Contact from "@/pages/Contact";
 import FAQ from "@/pages/FAQ";
 import Returns from "@/pages/Returns";
@@ -77,6 +78,7 @@ function Router() {
         <Route path="/dashboard/customer" component={CustomerDashboard} />
         <Route path="/dashboard/vendor" component={VendorDashboard} />
         <Route path="/order/:id/tracking" component={OrderTracking} />
+        <Route path="/track-order/:orderId" component={TrackOrder} />
         <Route path="/contact" component={Contact} />
         <Route path="/faq" component={FAQ} />
         <Route path="/returns" component={Returns} />
