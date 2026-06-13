@@ -598,6 +598,39 @@ export interface ForcePasswordResetResult {
   blockApplied: boolean;
 }
 
+export interface GoogleAuthInput {
+  /** Google ID token received from the Google Identity Services client */
+  credential: string;
+}
+
+export interface UserAddress {
+  id: number;
+  label: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  phone: string;
+  isDefault: boolean;
+  createdAt?: string;
+}
+
+export interface AddressInput {
+  label: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  phone: string;
+  isDefault?: boolean;
+}
+
+export interface EmailPreferences {
+  orderUpdates?: boolean;
+  promotions?: boolean;
+  securityAlerts?: boolean;
+}
+
 export type ListUsersParams = {
 role?: string;
 search?: string;
@@ -628,6 +661,10 @@ limit?: number;
 
 export type GetSalesTimelineParams = {
 period?: string;
+};
+
+export type UpdateEmailPreferences200 = {
+  emailPreferences?: EmailPreferences;
 };
 
 export type ListAuditLogsParams = {

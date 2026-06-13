@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddressInput,
   AnalyticsSummary,
   AuditLogList,
   AuthResult,
@@ -37,12 +38,14 @@ import type {
   CouponInput,
   CouponUpdate,
   CouponValidateInput,
+  EmailPreferences,
   ForcePasswordResetInput,
   ForcePasswordResetResult,
   GetCompromisedAccounts200,
   GetLockedAccounts200,
   GetLoginHistoryParams,
   GetSalesTimelineParams,
+  GoogleAuthInput,
   HealthStatus,
   ListAuditLogsParams,
   ListOrdersParams,
@@ -75,9 +78,11 @@ import type {
   TopCategory,
   TopProduct,
   UnlockInput,
+  UpdateEmailPreferences200,
   UploadImageInput,
   UploadResult,
   User,
+  UserAddress,
   UserListResponse,
   UserUpdate,
   VendorPerformanceRow,
@@ -533,6 +538,77 @@ export const useLogout = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getLogoutMutationOptions(options));
+    }
+
+export const getGoogleAuthUrl = () => {
+
+
+
+
+  return `/api/auth/google`
+}
+
+/**
+ * @summary Sign in or register with Google
+ */
+export const googleAuth = async (googleAuthInput: GoogleAuthInput, options?: RequestInit): Promise<AuthResult> => {
+
+  return customFetch<AuthResult>(getGoogleAuthUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      googleAuthInput,)
+  }
+);}
+
+
+
+
+export const getGoogleAuthMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof googleAuth>>, TError,{data: BodyType<GoogleAuthInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof googleAuth>>, TError,{data: BodyType<GoogleAuthInput>}, TContext> => {
+
+const mutationKey = ['googleAuth'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof googleAuth>>, {data: BodyType<GoogleAuthInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  googleAuth(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GoogleAuthMutationResult = NonNullable<Awaited<ReturnType<typeof googleAuth>>>
+    export type GoogleAuthMutationBody = BodyType<GoogleAuthInput>
+    export type GoogleAuthMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Sign in or register with Google
+ */
+export const useGoogleAuth = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof googleAuth>>, TError,{data: BodyType<GoogleAuthInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof googleAuth>>,
+        TError,
+        {data: BodyType<GoogleAuthInput>},
+        TContext
+      > => {
+      return useMutation(getGoogleAuthMutationOptions(options));
     }
 
 export const getListUsersUrl = (params?: ListUsersParams,) => {
@@ -4585,6 +4661,368 @@ export const usePaymobWebhook = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getPaymobWebhookMutationOptions(options));
+    }
+
+export const getListAddressesUrl = () => {
+
+
+
+
+  return `/api/addresses`
+}
+
+/**
+ * @summary List saved addresses for the current user
+ */
+export const listAddresses = async ( options?: RequestInit): Promise<UserAddress[]> => {
+
+  return customFetch<UserAddress[]>(getListAddressesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAddressesQueryKey = () => {
+    return [
+    `/api/addresses`
+    ] as const;
+    }
+
+
+export const getListAddressesQueryOptions = <TData = Awaited<ReturnType<typeof listAddresses>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAddresses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAddressesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAddresses>>> = ({ signal }) => listAddresses({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAddresses>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAddressesQueryResult = NonNullable<Awaited<ReturnType<typeof listAddresses>>>
+export type ListAddressesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List saved addresses for the current user
+ */
+
+export function useListAddresses<TData = Awaited<ReturnType<typeof listAddresses>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAddresses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAddressesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAddressUrl = () => {
+
+
+
+
+  return `/api/addresses`
+}
+
+/**
+ * @summary Create a new saved address
+ */
+export const createAddress = async (addressInput: AddressInput, options?: RequestInit): Promise<UserAddress> => {
+
+  return customFetch<UserAddress>(getCreateAddressUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      addressInput,)
+  }
+);}
+
+
+
+
+export const getCreateAddressMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAddress>>, TError,{data: BodyType<AddressInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAddress>>, TError,{data: BodyType<AddressInput>}, TContext> => {
+
+const mutationKey = ['createAddress'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAddress>>, {data: BodyType<AddressInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAddress(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAddressMutationResult = NonNullable<Awaited<ReturnType<typeof createAddress>>>
+    export type CreateAddressMutationBody = BodyType<AddressInput>
+    export type CreateAddressMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new saved address
+ */
+export const useCreateAddress = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAddress>>, TError,{data: BodyType<AddressInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAddress>>,
+        TError,
+        {data: BodyType<AddressInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAddressMutationOptions(options));
+    }
+
+export const getUpdateAddressUrl = (id: number,) => {
+
+
+
+
+  return `/api/addresses/${id}`
+}
+
+/**
+ * @summary Update a saved address
+ */
+export const updateAddress = async (id: number,
+    addressInput: AddressInput, options?: RequestInit): Promise<UserAddress> => {
+
+  return customFetch<UserAddress>(getUpdateAddressUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      addressInput,)
+  }
+);}
+
+
+
+
+export const getUpdateAddressMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAddress>>, TError,{id: number;data: BodyType<AddressInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAddress>>, TError,{id: number;data: BodyType<AddressInput>}, TContext> => {
+
+const mutationKey = ['updateAddress'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAddress>>, {id: number;data: BodyType<AddressInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAddress(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAddressMutationResult = NonNullable<Awaited<ReturnType<typeof updateAddress>>>
+    export type UpdateAddressMutationBody = BodyType<AddressInput>
+    export type UpdateAddressMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a saved address
+ */
+export const useUpdateAddress = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAddress>>, TError,{id: number;data: BodyType<AddressInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAddress>>,
+        TError,
+        {id: number;data: BodyType<AddressInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAddressMutationOptions(options));
+    }
+
+export const getDeleteAddressUrl = (id: number,) => {
+
+
+
+
+  return `/api/addresses/${id}`
+}
+
+/**
+ * @summary Delete a saved address
+ */
+export const deleteAddress = async (id: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteAddressUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAddressMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAddress>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAddress>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAddress'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAddress>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAddress(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAddressMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAddress>>>
+
+    export type DeleteAddressMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a saved address
+ */
+export const useDeleteAddress = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAddress>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAddress>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAddressMutationOptions(options));
+    }
+
+export const getUpdateEmailPreferencesUrl = (id: number,) => {
+
+
+
+
+  return `/api/users/${id}/email-preferences`
+}
+
+/**
+ * @summary Update email notification preferences for a user
+ */
+export const updateEmailPreferences = async (id: number,
+    emailPreferences: EmailPreferences, options?: RequestInit): Promise<UpdateEmailPreferences200> => {
+
+  return customFetch<UpdateEmailPreferences200>(getUpdateEmailPreferencesUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailPreferences,)
+  }
+);}
+
+
+
+
+export const getUpdateEmailPreferencesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmailPreferences>>, TError,{id: number;data: BodyType<EmailPreferences>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEmailPreferences>>, TError,{id: number;data: BodyType<EmailPreferences>}, TContext> => {
+
+const mutationKey = ['updateEmailPreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmailPreferences>>, {id: number;data: BodyType<EmailPreferences>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateEmailPreferences(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEmailPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmailPreferences>>>
+    export type UpdateEmailPreferencesMutationBody = BodyType<EmailPreferences>
+    export type UpdateEmailPreferencesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update email notification preferences for a user
+ */
+export const useUpdateEmailPreferences = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmailPreferences>>, TError,{id: number;data: BodyType<EmailPreferences>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateEmailPreferences>>,
+        TError,
+        {id: number;data: BodyType<EmailPreferences>},
+        TContext
+      > => {
+      return useMutation(getUpdateEmailPreferencesMutationOptions(options));
     }
 
 export const getGetBusinessIntelligenceUrl = () => {

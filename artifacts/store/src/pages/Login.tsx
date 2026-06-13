@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import GoogleButton from "@/components/GoogleButton";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -44,8 +45,9 @@ export default function Login() {
         toast({ title: "Welcome back!", description: `Signed in as ${result.user.name}` });
         setLocation(redirectTo);
       },
-      onError: (error: any) => {
-        toast({ title: "Login failed", description: error.message || "Invalid email or password", variant: "destructive" });
+      onError: (error: unknown) => {
+        const msg = error instanceof Error ? error.message : "Invalid email or password";
+        toast({ title: "Login failed", description: msg, variant: "destructive" });
       }
     });
   };
@@ -55,6 +57,21 @@ export default function Login() {
       <div className="text-center mb-8">
         <h1 className="font-serif text-4xl font-bold mb-2">{t("nav.login")}</h1>
         <p className="text-muted-foreground">Welcome back to LUXE</p>
+      </div>
+
+      {/* Google Sign-In */}
+      <div className="mb-6">
+        <GoogleButton onSuccess={() => setLocation(redirectTo)} label="signin_with" />
+      </div>
+
+      {/* Divider */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-3 text-muted-foreground">Or continue with email</span>
+        </div>
       </div>
 
       <Form {...form}>

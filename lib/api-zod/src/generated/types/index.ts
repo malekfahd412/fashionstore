@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './addressInput';
 export * from './analyticsSummary';
 export * from './auditLogEntry';
 export * from './auditLogList';
@@ -27,6 +28,7 @@ export * from './coupon';
 export * from './couponInput';
 export * from './couponUpdate';
 export * from './couponValidateInput';
+export * from './emailPreferences';
 export * from './forcePasswordResetInput';
 export * from './forcePasswordResetResult';
 export * from './forcePasswordResetResultAffectedUser';
@@ -34,6 +36,7 @@ export * from './getCompromisedAccounts200';
 export * from './getLockedAccounts200';
 export * from './getLoginHistoryParams';
 export * from './getSalesTimelineParams';
+export * from './googleAuthInput';
 export * from './healthStatus';
 export * from './listAuditLogsParams';
 export * from './listOrdersParams';
@@ -76,9 +79,11 @@ export * from './suspiciousActivitySuspiciousIpsItem';
 export * from './topCategory';
 export * from './topProduct';
 export * from './unlockInput';
+export * from './updateEmailPreferences200';
 export * from './uploadImageInput';
 export * from './uploadResult';
 export * from './user';
+export * from './userAddress';
 export * from './userListResponse';
 export * from './userUpdate';
 export * from './variantInput';

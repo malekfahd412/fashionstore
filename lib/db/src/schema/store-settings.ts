@@ -40,4 +40,5 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   homepage_show_new_arrivals: "true",
   homepage_show_best_sellers: "true",
   homepage_show_categories: "true",
+  google_client_id: "",
 };

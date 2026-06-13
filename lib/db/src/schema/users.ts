@@ -14,6 +14,7 @@ export const usersTable = pgTable("users", {
   emailVerificationToken: text("email_verification_token"),
   emailVerificationExpires: timestamp("email_verification_expires", { withTimezone: true }),
   emailPreferences: jsonb("email_preferences").$type<{ orderUpdates: boolean; promotions: boolean; securityAlerts: boolean }>().default({ orderUpdates: true, promotions: true, securityAlerts: true }),
+  googleId: text("google_id").unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [

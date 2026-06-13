@@ -6,7 +6,7 @@ import { Shield, AlertTriangle, History, Unlock, BarChart3, TrendingDown, Shield
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("auth_token");
   const res = await fetch(`${BASE}${path}`, {
     ...opts,
     headers: {

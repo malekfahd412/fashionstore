@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import GoogleButton from "@/components/GoogleButton";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -48,8 +49,9 @@ export default function Register() {
         toast({ title: "Welcome to LUXE!", description: "Your account has been created." });
         setLocation("/");
       },
-      onError: (error: any) => {
-        toast({ title: "Registration failed", description: error.message || "An error occurred", variant: "destructive" });
+      onError: (error: unknown) => {
+        const msg = error instanceof Error ? error.message : "An error occurred";
+        toast({ title: "Registration failed", description: msg, variant: "destructive" });
       }
     });
   };
@@ -59,6 +61,21 @@ export default function Register() {
       <div className="text-center mb-8">
         <h1 className="font-serif text-4xl font-bold mb-2">{t("nav.register")}</h1>
         <p className="text-muted-foreground">Join the LUXE community</p>
+      </div>
+
+      {/* Google Sign-Up */}
+      <div className="mb-6">
+        <GoogleButton onSuccess={() => setLocation("/")} label="signup_with" />
+      </div>
+
+      {/* Divider */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-3 text-muted-foreground">Or register with email</span>
+        </div>
       </div>
 
       <Form {...form}>

@@ -85,6 +85,27 @@ export const LogoutResponse = zod.object({
 
 
 /**
+ * @summary Sign in or register with Google
+ */
+export const GoogleAuthBody = zod.object({
+  "credential": zod.string().describe('Google ID token received from the Google Identity Services client')
+})
+
+export const GoogleAuthResponse = zod.object({
+  "token": zod.string(),
+  "refreshToken": zod.string(),
+  "user": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "avatar": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+})
+
+
+/**
  * @summary List all users (admin)
  */
 export const ListUsersQueryParams = zod.object({
@@ -1128,6 +1149,101 @@ export const InitiatePaymobPaymentResponse = zod.object({
   "checkoutUrl": zod.string(),
   "paymentToken": zod.string(),
   "paymobOrderId": zod.number()
+})
+
+
+/**
+ * @summary List saved addresses for the current user
+ */
+export const ListAddressesResponseItem = zod.object({
+  "id": zod.number(),
+  "label": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "address": zod.string(),
+  "city": zod.string(),
+  "phone": zod.string(),
+  "isDefault": zod.boolean(),
+  "createdAt": zod.string().optional()
+})
+export const ListAddressesResponse = zod.array(ListAddressesResponseItem)
+
+
+/**
+ * @summary Create a new saved address
+ */
+export const CreateAddressBody = zod.object({
+  "label": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "address": zod.string(),
+  "city": zod.string(),
+  "phone": zod.string(),
+  "isDefault": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Update a saved address
+ */
+export const UpdateAddressParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAddressBody = zod.object({
+  "label": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "address": zod.string(),
+  "city": zod.string(),
+  "phone": zod.string(),
+  "isDefault": zod.boolean().optional()
+})
+
+export const UpdateAddressResponse = zod.object({
+  "id": zod.number(),
+  "label": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "address": zod.string(),
+  "city": zod.string(),
+  "phone": zod.string(),
+  "isDefault": zod.boolean(),
+  "createdAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a saved address
+ */
+export const DeleteAddressParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteAddressResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Update email notification preferences for a user
+ */
+export const UpdateEmailPreferencesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateEmailPreferencesBody = zod.object({
+  "orderUpdates": zod.boolean().optional(),
+  "promotions": zod.boolean().optional(),
+  "securityAlerts": zod.boolean().optional()
+})
+
+export const UpdateEmailPreferencesResponse = zod.object({
+  "emailPreferences": zod.object({
+  "orderUpdates": zod.boolean().optional(),
+  "promotions": zod.boolean().optional(),
+  "securityAlerts": zod.boolean().optional()
+}).optional()
 })
 
 

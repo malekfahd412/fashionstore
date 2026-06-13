@@ -10,7 +10,7 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 type Settings = Record<string, string>;
 
 async function apiFetch<T>(path: string, method = "GET", body?: unknown): Promise<T> {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("auth_token");
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: {
@@ -31,6 +31,7 @@ const SETTING_SECTIONS = [
       { key: "store_name", label: "Store Name (English)", type: "text" },
       { key: "store_name_ar", label: "Store Name (Arabic)", type: "text", dir: "rtl" },
       { key: "store_logo", label: "Logo URL", type: "url", hint: "Paste a direct image URL or upload via Cloudinary" },
+      { key: "google_client_id", label: "Google Client ID", type: "text", hint: "From Google Cloud Console → OAuth 2.0 Client IDs. Required for Google Sign-In." },
     ],
   },
   {

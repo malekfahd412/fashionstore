@@ -23,6 +23,7 @@ import addressesRouter from "./addresses";
 import newsletterRouter from "./newsletter";
 import faqsRouter from "./faqs";
 import contactRouter from "./contact";
+import googleAuthRouter from "./google-auth";
 
 const router: IRouter = Router();
 
@@ -50,5 +51,6 @@ router.use(addressesRouter);
 router.use(newsletterRouter);
 router.use(faqsRouter);
 router.use(contactRouter);
+router.use(googleAuthRouter);
 
 export default router;

@@ -15,6 +15,7 @@ const PUBLIC_KEYS = new Set([
   "shipping_free_threshold", "shipping_fee",
   "homepage_show_banners", "homepage_show_featured",
   "homepage_show_new_arrivals", "homepage_show_best_sellers", "homepage_show_categories",
+  "google_client_id",
 ]);
 
 async function getAllSettings(): Promise<Record<string, string>> {
