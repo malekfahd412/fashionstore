@@ -1,0 +1,1281 @@
+PHASE 1 — AUTHENTICATION AUDIT + ADMIN PANEL RECOVERY + GOOGLE LOGIN IMPLEMENTATION 
+
+
+
+You are a Senior Staff Engineer performing a production-grade audit and repair of the entire LUXE Fashion Store codebase.
+
+
+
+IMPORTANT:
+
+Do not add mock data.
+
+Do not remove existing features.
+
+Do not change business logic unless required to fix a bug.
+
+Maintain backward compatibility whenever possible.
+
+
+
+==================================================
+
+PART 1 — FULL AUTHENTICATION AUDIT
+
+==================================
+
+
+
+Perform a complete end-to-end audit of the authentication system.
+
+
+
+Verify:
+
+
+
+* Registration
+
+* Login
+
+* Logout
+
+* Refresh Token Flow
+
+* Session Restore
+
+* Forgot Password
+
+* Reset Password
+
+* Account Lockout
+
+* Rate Limiting
+
+* JWT Validation
+
+* Refresh Token Rotation
+
+* Multi-device Sessions
+
+* Session Revocation
+
+* Customer Role
+
+* Vendor Role
+
+* Admin Role
+
+
+
+Create test accounts and verify:
+
+
+
+✓ Customer login
+
+✓ Vendor login
+
+✓ Admin login
+
+
+
+Test:
+
+
+
+✓ Invalid password
+
+✓ Invalid email
+
+✓ Expired access token
+
+✓ Expired refresh token
+
+✓ Revoked refresh token
+
+✓ Locked account
+
+✓ Multiple concurrent logins
+
+✓ Logout from one device
+
+✓ Logout from all devices
+
+
+
+Fix ALL failures found.
+
+
+
+==================================================
+
+PART 2 — LOGIN STABILITY REPAIR
+
+===============================
+
+
+
+Investigate and permanently eliminate:
+
+
+
+* HTTP 401 Invalid Credentials issues
+
+* HTTP 500 authentication errors
+
+* HTTP 502 Bad Gateway errors
+
+* Session restore failures
+
+* Token refresh failures
+
+* LocalStorage sync issues
+
+* Authorization header issues
+
+* CORS-related auth problems
+
+* Login lockout false positives
+
+
+
+Verify login works repeatedly:
+
+
+
+Login
+
+Logout
+
+Login Again
+
+Refresh Browser
+
+Login Again
+
+
+
+without any failures.
+
+
+
+==================================================
+
+PART 3 — ADMIN PANEL AUDIT
+
+==========================
+
+
+
+Perform a complete audit of the Admin Panel.
+
+
+
+Audit every section:
+
+
+
+* Overview
+
+* Analytics
+
+* Users
+
+* Vendors
+
+* Products
+
+* Orders
+
+* Categories
+
+* Coupons
+
+* Banners
+
+* Security
+
+* Audit Logs
+
+* Settings
+
+
+
+For every module verify:
+
+
+
+✓ Load data
+
+✓ Create
+
+✓ Update
+
+✓ Delete
+
+✓ Search
+
+✓ Filters
+
+✓ Pagination
+
+✓ Permissions
+
+
+
+Fix every failing operation.
+
+
+
+==================================================
+
+PART 4 — SETTINGS PANEL RECOVERY
+
+================================
+
+
+
+Current issue:
+
+
+
+"Failed to load settings"
+
+
+
+Investigate root cause.
+
+
+
+Verify:
+
+
+
+GET /api/settings
+
+GET /api/settings/admin
+
+PATCH /api/settings
+
+
+
+Check:
+
+
+
+* Auth permissions
+
+* Admin permissions
+
+* Query failures
+
+* Database reads
+
+* Database writes
+
+* Missing store_settings values
+
+* Zod validation
+
+* React Query integration
+
+* Frontend API hooks
+
+* Generated API client
+
+
+
+Fix all issues.
+
+
+
+Settings page must become fully operational.
+
+
+
+Verify saving:
+
+
+
+* General Settings
+
+* Contact Settings
+
+* Social Links
+
+* Email Settings
+
+* Payment Settings
+
+* Shipping Settings
+
+* SEO Settings
+
+* Homepage Settings
+
+
+
+==================================================
+
+PART 5 — ADMIN AUTHORIZATION AUDIT
+
+==================================
+
+
+
+Verify:
+
+
+
+Admin can access:
+
+
+
+/admin-panel
+
+
+
+Vendor cannot access admin-only areas.
+
+
+
+Customer cannot access admin-only areas.
+
+
+
+Ensure:
+
+
+
+* requireRole("admin")
+
+* requireRole("vendor")
+
+* requireAuth()
+
+
+
+are correctly applied.
+
+
+
+Fix all permission issues.
+
+
+
+==================================================
+
+PART 6 — GOOGLE LOGIN IMPLEMENTATION
+
+====================================
+
+
+
+Implement production-grade Google Authentication.
+
+
+
+Requirements:
+
+
+
+* Sign in with Google
+
+* Sign up with Google
+
+* Existing account linking
+
+* New account creation
+
+* Works with customer accounts
+
+* Email verification automatically trusted from Google
+
+* Role defaults to customer
+
+
+
+Add:
+
+
+
+Google Login Button
+
+
+
+on:
+
+
+
+* Login Page
+
+* Register Page
+
+
+
+==================================================
+
+PART 7 — GOOGLE ACCOUNT LINKING
+
+===============================
+
+
+
+Handle scenarios:
+
+
+
+Case 1:
+
+Existing email/password user logs in with Google.
+
+Link account automatically.
+
+
+
+Case 2:
+
+New Google user.
+
+Create account automatically.
+
+
+
+Case 3:
+
+Existing Google account.
+
+Log in directly.
+
+
+
+Prevent duplicate accounts.
+
+
+
+==================================================
+
+PART 8 — GOOGLE SESSION INTEGRATION
+
+===================================
+
+
+
+Google login must integrate with:
+
+
+
+* JWT access tokens
+
+* Refresh tokens
+
+* Session management
+
+* Logout
+
+* Logout all devices
+
+
+
+Google users should behave exactly like normal users.
+
+
+
+==================================================
+
+PART 9 — SECURITY REVIEW
+
+========================
+
+
+
+Verify Google implementation against:
+
+
+
+* Account takeover
+
+* Email spoofing
+
+* Duplicate account creation
+
+* Refresh token abuse
+
+* Session fixation
+
+* OAuth callback vulnerabilities
+
+
+
+Fix any findings.
+
+
+
+==================================================
+
+PART 10 — FINAL REPORT
+
+======================
+
+
+
+After all repairs:
+
+
+
+Provide a report containing:
+
+
+
+1. Authentication score
+
+2. Admin Panel score
+
+3. Settings score
+
+4. Google Login score
+
+5. Security score
+
+6. Production readiness score
+
+
+
+List:
+
+
+
+* Files modified
+
+* New files created
+
+* Database migrations added
+
+* New environment variables required
+
+* Remaining issues (if any)
+
+
+
+Goal:
+
+
+
+100% working authentication,
+
+100% working admin panel,
+
+100% working settings page,
+
+fully functional Google Login,
+
+zero TypeScript errors,
+
+zero build errors,
+
+zero runtime errors,
+
+and successful completion of:
+
+
+
+pnpm run typecheck
+
+pnpm run build
+
+
+
+PHASE 1 — CUSTOMER EXPERIENCE OVERHAUL 
+
+
+
+You are a Senior Product Engineer and Senior UI/UX Designer.
+
+
+
+Your mission is to transform LUXE Fashion Store into a premium e-commerce experience comparable to Amazon, Noon, Namshi, Trendyol, and Zara.
+
+
+
+IMPORTANT:
+
+
+
+* Do not break existing functionality.
+
+* Do not introduce mock data.
+
+* Preserve all existing business logic.
+
+* Maintain bilingual Arabic/English support.
+
+* Maintain RTL/LTR support.
+
+* Maintain type safety.
+
+* No TypeScript errors.
+
+* No build errors.
+
+
+
+==================================================
+
+PART 1 — ADVANCED ORDER TRACKING SYSTEM
+
+=======================================
+
+
+
+Replace the basic order status display with a modern tracking experience.
+
+
+
+Create a dedicated Order Tracking page.
+
+
+
+Example flow:
+
+
+
+Order Placed
+
+↓
+
+Payment Confirmed
+
+↓
+
+Processing
+
+↓
+
+Packed
+
+↓
+
+Ready For Shipment
+
+↓
+
+Shipped
+
+↓
+
+Out For Delivery
+
+↓
+
+Delivered
+
+
+
+Requirements:
+
+
+
+✓ visual timeline
+
+✓ progress bar
+
+✓ timestamps
+
+✓ completed steps highlighted
+
+✓ current step animated
+
+✓ future steps disabled
+
+
+
+Display:
+
+
+
+* order number
+
+* order date
+
+* payment method
+
+* payment status
+
+* shipping address
+
+* shipping method
+
+* total amount
+
+* tracking status
+
+
+
+==================================================
+
+PART 2 — ORDER DETAILS EXPERIENCE
+
+=================================
+
+
+
+Create a premium order details page.
+
+
+
+Show:
+
+
+
+* order summary
+
+* product thumbnails
+
+* quantity
+
+* size
+
+* color
+
+* price breakdown
+
+* coupon discount
+
+* shipping cost
+
+* payment status
+
+* order timeline
+
+
+
+Add:
+
+
+
+"Reorder"
+
+
+
+button.
+
+
+
+==================================================
+
+PART 3 — CUSTOMER PORTAL
+
+========================
+
+
+
+Replace the current basic dashboard.
+
+
+
+Create a complete customer portal.
+
+
+
+Sections:
+
+
+
+Dashboard
+
+Orders
+
+Wishlist
+
+Addresses
+
+Notifications
+
+Profile
+
+Security
+
+Support
+
+
+
+==================================================
+
+PART 4 — CUSTOMER DASHBOARD
+
+===========================
+
+
+
+Dashboard should show:
+
+
+
+* total orders
+
+* completed orders
+
+* pending orders
+
+* wishlist count
+
+* loyalty points placeholder
+
+* latest orders
+
+* latest notifications
+
+
+
+Use professional cards and charts.
+
+
+
+==================================================
+
+PART 5 — ADDRESS MANAGEMENT
+
+===========================
+
+
+
+Allow:
+
+
+
+✓ add address
+
+✓ edit address
+
+✓ delete address
+
+✓ default address
+
+
+
+Support:
+
+
+
+* country
+
+* city
+
+* area
+
+* street
+
+* building
+
+* floor
+
+* notes
+
+
+
+==================================================
+
+PART 6 — PROFILE MANAGEMENT
+
+===========================
+
+
+
+Allow customer to edit:
+
+
+
+* name
+
+* phone
+
+* profile image
+
+* language
+
+* email preferences
+
+
+
+==================================================
+
+PART 7 — ACCOUNT SECURITY CENTER
+
+================================
+
+
+
+Create:
+
+
+
+Security tab
+
+
+
+Display:
+
+
+
+* active sessions
+
+* login history
+
+* device history
+
+* recent security events
+
+
+
+Allow:
+
+
+
+✓ logout device
+
+✓ logout all devices
+
+✓ change password
+
+
+
+==================================================
+
+PART 8 — CUSTOMER SUPPORT CENTER
+
+================================
+
+
+
+Create Support section.
+
+
+
+Features:
+
+
+
+* submit support ticket
+
+* ticket status
+
+* ticket history
+
+* conversation view
+
+
+
+Statuses:
+
+
+
+Open
+
+Pending
+
+Resolved
+
+Closed
+
+
+
+==================================================
+
+PART 9 — STORE UI/UX OVERHAUL
+
+=============================
+
+
+
+Perform a complete UI audit.
+
+
+
+Review:
+
+
+
+Home Page
+
+Product Listing
+
+Product Details
+
+Cart
+
+Checkout
+
+Customer Portal
+
+Login
+
+Register
+
+Order Tracking
+
+
+
+Fix all UX issues.
+
+
+
+==================================================
+
+PART 10 — HOMEPAGE REDESIGN
+
+===========================
+
+
+
+Upgrade homepage to premium quality.
+
+
+
+Add:
+
+
+
+✓ cleaner hero section
+
+✓ stronger typography
+
+✓ trust indicators
+
+✓ featured collections
+
+✓ best sellers
+
+✓ new arrivals
+
+✓ promotional banners
+
+✓ customer reviews section
+
+✓ newsletter section
+
+✓ FAQ preview
+
+
+
+==================================================
+
+PART 11 — PRODUCT PAGE REDESIGN
+
+===============================
+
+
+
+Modern product experience.
+
+
+
+Add:
+
+
+
+✓ image gallery
+
+✓ zoom
+
+✓ thumbnails
+
+✓ stock indicators
+
+✓ variant selector
+
+✓ review summary
+
+✓ related products
+
+✓ recently viewed
+
+
+
+Improve:
+
+
+
+spacing
+
+layout
+
+mobile responsiveness
+
+
+
+==================================================
+
+PART 12 — CART EXPERIENCE
+
+=========================
+
+
+
+Improve cart.
+
+
+
+Add:
+
+
+
+✓ estimated savings
+
+✓ applied coupons section
+
+✓ continue shopping button
+
+✓ recommended products
+
+✓ cleaner quantity controls
+
+
+
+==================================================
+
+PART 13 — CHECKOUT EXPERIENCE
+
+=============================
+
+
+
+Improve checkout.
+
+
+
+Add:
+
+
+
+✓ step-by-step checkout
+
+✓ address selection
+
+✓ payment selection
+
+✓ order review
+
+
+
+Show:
+
+
+
+* coupon savings
+
+* payment summary
+
+* order total
+
+
+
+==================================================
+
+PART 14 — MOBILE EXPERIENCE
+
+===========================
+
+
+
+Audit every page.
+
+
+
+Fix:
+
+
+
+✓ mobile overflow
+
+✓ spacing issues
+
+✓ broken layouts
+
+✓ menu issues
+
+✓ touch targets
+
+✓ responsiveness
+
+
+
+Target:
+
+
+
+excellent mobile experience.
+
+
+
+==================================================
+
+PART 15 — PERFORMANCE
+
+=====================
+
+
+
+Improve:
+
+
+
+* lazy loading
+
+* image optimization
+
+* skeleton loaders
+
+* empty states
+
+* loading states
+
+
+
+==================================================
+
+PART 16 — FINAL REPORT
+
+======================
+
+
+
+After implementation provide:
+
+
+
+1. Customer Portal score
+
+2. Order Tracking score
+
+3. Mobile UX score
+
+4. Desktop UX score
+
+5. Performance score
+
+6. Overall Store Experience score
+
+
+
+List:
+
+
+
+* files modified
+
+* new files created
+
+* APIs added
+
+* database changes
+
+* remaining recommendations
+
+
+
+Goal:
+
+
+
+Transform LUXE into a premium modern fashion store with an enterprise-level customer experience comparable to major e-commerce platforms.
