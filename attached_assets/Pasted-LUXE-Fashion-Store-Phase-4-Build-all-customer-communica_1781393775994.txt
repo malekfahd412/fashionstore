@@ -1,0 +1,316 @@
+LUXE Fashion Store — Phase 4
+
+Build all customer communication and support systems.
+
+GOAL
+
+Customers must be able to:
+
+* Contact the store
+* Read FAQs
+* Subscribe to newsletters
+* Unsubscribe safely
+* Open support tickets
+* Download invoices
+
+Everything must be production-ready and fully integrated.
+
+====================================================
+
+1. CONTACT US SYSTEM
+   ====================================================
+
+Create a full Contact Us page.
+
+Route:
+
+* /contact
+
+Fields:
+
+* Name
+* Email
+* Phone
+* Subject
+* Message
+
+Validation:
+
+* Required fields
+* Email validation
+* Length limits
+
+Backend:
+
+POST /contact
+
+Behavior:
+
+* Save message to DB
+* Send notification email to store admin
+* Send confirmation email to customer
+
+Admin Panel:
+
+New tab:
+Contact Messages
+
+Features:
+
+* Search
+* View
+* Mark as read
+* Delete
+
+====================================================
+2. FAQ MANAGEMENT SYSTEM
+========================
+
+Database:
+
+faq_items
+
+Fields:
+
+* id
+* questionEn
+* questionAr
+* answerEn
+* answerAr
+* category
+* sortOrder
+* active
+* createdAt
+
+Frontend:
+
+Route:
+
+* /faq
+
+Features:
+
+* Categories
+* Search
+* Accordion UI
+* Mobile responsive
+
+Admin:
+
+FAQ Management
+
+CRUD:
+
+* Create
+* Edit
+* Delete
+* Reorder
+* Activate/Deactivate
+
+====================================================
+3. NEWSLETTER SYSTEM
+====================
+
+Database:
+
+newsletter_subscribers
+
+Fields:
+
+* id
+* email
+* active
+* unsubscribeToken
+* createdAt
+
+Frontend:
+
+Newsletter component
+
+Footer newsletter
+
+Homepage newsletter
+
+Backend:
+
+POST /newsletter/subscribe
+
+POST /newsletter/unsubscribe
+
+Requirements:
+
+* No duplicate subscriptions
+* Confirmation email
+* Unsubscribe email link
+
+Admin:
+
+Newsletter tab
+
+Features:
+
+* Subscriber count
+* Export CSV
+* Deactivate subscriber
+
+====================================================
+4. SUPPORT TICKET SYSTEM
+========================
+
+Database:
+
+support_tickets
+
+Fields:
+
+* id
+* userId
+* subject
+* category
+* status
+* priority
+* createdAt
+* updatedAt
+
+ticket_messages
+
+Fields:
+
+* id
+* ticketId
+* senderId
+* message
+* createdAt
+
+Statuses:
+
+* Open
+* In Progress
+* Waiting Customer
+* Resolved
+* Closed
+
+Customer Portal:
+
+New tab:
+Support
+
+Features:
+
+* Open ticket
+* Reply
+* View status
+* Attach messages
+
+Admin Panel:
+
+Support Center
+
+Features:
+
+* Queue
+* Filters
+* Reply
+* Status change
+* Priority change
+
+====================================================
+5. PDF INVOICE SYSTEM
+=====================
+
+Install:
+
+pdfkit OR pdf-lib
+
+Generate professional invoices.
+
+Customer:
+
+Download Invoice button
+
+Locations:
+
+* Order tracking page
+* Order details
+* Customer portal
+
+Invoice includes:
+
+* Store logo
+* Order number
+* Customer info
+* Shipping address
+* Products
+* Totals
+* Payment method
+* Order status
+
+====================================================
+6. PRODUCT CARD RATINGS
+=======================
+
+Show:
+
+* Average rating
+* Total reviews
+
+On:
+
+* Product cards
+* Product listing
+* Search results
+* Featured products
+
+Must use aggregate query.
+
+No N+1.
+
+====================================================
+ADMIN PANEL
+===========
+
+Add tabs:
+
+* Contact Messages
+* FAQ
+* Newsletter
+* Support
+
+Must follow existing admin architecture.
+
+Must use:
+
+requireRole("admin")
+
+====================================================
+QUALITY
+=======
+
+* No mock data
+* No placeholders
+* No fake APIs
+* Full OpenAPI updates
+* Full codegen
+* Full type safety
+* Mobile responsive
+* Loading states
+* Empty states
+* Error states
+
+====================================================
+DELIVERABLES
+============
+
+Provide:
+
+1. Files changed
+2. New tables
+3. New routes
+4. New admin modules
+5. New customer modules
+6. Tests added
+7. Typecheck result
+8. Performance impact
+9. Production readiness score
+
+Do not stop until everything is implemented, tested, wired, and typechecked successfully.

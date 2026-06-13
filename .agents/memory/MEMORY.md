@@ -10,3 +10,4 @@
 - [Guest cart pattern](guest-cart.md) — localStorage hook (useGuestCart.ts) for unauthenticated shopping; merge into server on login via AuthContext.login(); Cart.tsx and ProductDetails.tsx branch on !!user.
 - [Order status pipeline](order-status-pipeline.md) — canonical 7-step flow: new→paid→processing→packed→shipped→out_for_delivery→delivered; STATUS_ORDER and STEPS must both include "processing" or timeline breaks for that state.
 - [Payment status field](payment-status-field.md) — batchEnrichOrders derives paymentStatus (cod/paid/failed/pending) from paymentsTable in one batch query; never read paidAt directly for badge display.
+- [Orders table schema limits](orders-schema-limits.md) — ordersTable has totalPrice + discount only; no shippingFee, shippingAddressId, or totalAmount columns; addresses are userAddressesTable (not addressesTable).

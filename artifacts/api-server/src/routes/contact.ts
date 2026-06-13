@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
-import { db, contactMessagesTable } from "@workspace/db";
+import { db, contactMessagesTable, storeSettingsTable } from "@workspace/db";
 import { eq, desc, count } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
+import { sendContactConfirmation, sendContactAdminNotification } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -10,7 +11,7 @@ function isValidEmail(email: string): boolean {
 }
 
 router.post("/contact", async (req, res): Promise<void> => {
-  const { name, email, subject, message } = req.body ?? {};
+  const { name, email, phone, subject, message } = req.body ?? {};
   if (!name || typeof name !== "string" || name.trim().length < 1) {
     res.status(400).json({ error: "Name is required" }); return;
   }
@@ -23,9 +24,24 @@ router.post("/contact", async (req, res): Promise<void> => {
   const [msg] = await db.insert(contactMessagesTable).values({
     name: String(name).trim().slice(0, 200),
     email: String(email).trim(),
+    phone: phone ? String(phone).trim().slice(0, 30) : null,
     subject: subject ? String(subject).trim().slice(0, 500) : null,
     message: String(message).trim().slice(0, 5000),
   }).returning();
+
+  void (async () => {
+    try {
+      const settings = await db.select().from(storeSettingsTable).where(eq(storeSettingsTable.key, "contact_email"));
+      const adminEmail = settings[0]?.value || process.env.RESEND_FROM_EMAIL;
+      if (adminEmail) {
+        await sendContactAdminNotification(adminEmail, {
+          name: msg.name, email: msg.email, phone: msg.phone, subject: msg.subject, message: msg.message,
+        });
+      }
+      await sendContactConfirmation(msg.email, msg.name, msg.message.slice(0, 200) + (msg.message.length > 200 ? "…" : ""));
+    } catch { /* non-critical */ }
+  })();
+
   res.status(201).json({ message: "Message sent successfully", id: msg.id });
 });
 

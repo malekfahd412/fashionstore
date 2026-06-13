@@ -6,6 +6,7 @@ export const contactMessagesTable = pgTable("contact_messages", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
+  phone: text("phone"),
   subject: text("subject"),
   message: text("message").notNull(),
   status: text("status").notNull().default("new"),

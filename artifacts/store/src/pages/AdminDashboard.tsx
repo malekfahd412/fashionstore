@@ -68,6 +68,7 @@ const TABS = [
   { id: 'faq', label: 'FAQ' },
   { id: 'contact-messages', label: 'Messages' },
   { id: 'newsletter', label: 'Newsletter' },
+  { id: 'support', label: 'Support' },
   { id: 'audit-logs', label: 'Audit Logs' },
   { id: 'security', label: 'Security' },
   { id: 'settings', label: 'Settings' },
@@ -429,6 +430,7 @@ export default function AdminDashboard() {
 
         {/* ── NEWSLETTER ───────────────────────────────────────────── */}
         {activeTab === 'newsletter' && <AdminNewsletterTab />}
+        {activeTab === 'support' && <AdminSupportTab />}
 
         {/* ── SECURITY ─────────────────────────────────────────────── */}
         {activeTab === 'security' && <SecurityPanel />}
@@ -846,6 +848,164 @@ function AdminReviewsTab() {
           >
             Next →
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Admin Support Tab ────────────────────────────────────────────────────────
+type SupportTicketAdmin = { id: number; userId: number; subject: string; category: string; status: string; priority: string; createdAt: string; updatedAt: string; userName?: string; userEmail?: string };
+type TicketMsgAdmin = { id: number; senderId: number; message: string; createdAt: string; senderName?: string; senderRole?: string };
+
+const TICKET_STATUS_COLORS: Record<string, string> = {
+  open: "bg-blue-100 text-blue-700",
+  in_progress: "bg-amber-100 text-amber-700",
+  waiting_customer: "bg-purple-100 text-purple-700",
+  resolved: "bg-green-100 text-green-700",
+  closed: "bg-muted text-muted-foreground",
+};
+const TICKET_PRIORITY_COLORS: Record<string, string> = {
+  low: "text-muted-foreground", normal: "text-foreground", high: "text-amber-600 font-semibold", urgent: "text-destructive font-bold",
+};
+
+function AdminSupportTab() {
+  const [tickets, setTickets] = useState<SupportTicketAdmin[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [selected, setSelected] = useState<SupportTicketAdmin | null>(null);
+  const [messages, setMessages] = useState<TicketMsgAdmin[]>([]);
+  const [reply, setReply] = useState("");
+  const [replyPending, setReplyPending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const LIMIT = 20;
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const qs = new URLSearchParams({ page: String(page), limit: String(LIMIT), ...(statusFilter ? { status: statusFilter } : {}) });
+      const data = await apiFetch<{ tickets: SupportTicketAdmin[]; total: number }>(`/api/admin/support/tickets?${qs}`);
+      setTickets(data.tickets); setTotal(data.total);
+    } finally { setLoading(false); }
+  };
+
+  const loadTicket = async (t: SupportTicketAdmin) => {
+    setSelected(t);
+    const data = await apiFetch<{ ticket: SupportTicketAdmin; messages: TicketMsgAdmin[] }>(`/api/support/tickets/${t.id}`);
+    setMessages(data.messages);
+  };
+
+  const sendReply = async () => {
+    if (!selected || !reply.trim()) return;
+    setReplyPending(true);
+    try {
+      await apiFetch(`/api/support/tickets/${selected.id}/messages`, { method: 'POST', body: JSON.stringify({ message: reply.trim() }) } as RequestInit);
+      setReply("");
+      await loadTicket(selected);
+    } finally { setReplyPending(false); }
+  };
+
+  const updateTicket = async (id: number, update: { status?: string; priority?: string }) => {
+    await apiFetch(`/api/admin/support/tickets/${id}`, { method: 'PATCH', body: JSON.stringify(update) } as RequestInit);
+    if (selected?.id === id) setSelected(s => s ? { ...s, ...update } : s);
+    void load();
+  };
+
+  useEffect(() => { void load(); }, [page, statusFilter]);
+
+  if (selected) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <button onClick={() => { setSelected(null); setMessages([]); }} className="text-sm text-muted-foreground hover:text-foreground">← Back</button>
+          <span className="font-bold">#{selected.id}: {selected.subject}</span>
+          <span className="text-xs text-muted-foreground">{selected.userName} &lt;{selected.userEmail}&gt;</span>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <select value={selected.status} onChange={e => updateTicket(selected.id, { status: e.target.value })} className="border border-input bg-background px-3 py-1.5 text-xs">
+            {["open","in_progress","waiting_customer","resolved","closed"].map(s => <option key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</option>)}
+          </select>
+          <select value={selected.priority} onChange={e => updateTicket(selected.id, { priority: e.target.value })} className="border border-input bg-background px-3 py-1.5 text-xs">
+            {["low","normal","high","urgent"].map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+          </select>
+        </div>
+        <div className="space-y-3 max-h-96 overflow-y-auto border border-border p-4 bg-muted/20">
+          {messages.map(msg => (
+            <div key={msg.id} className={`flex gap-3 ${msg.senderRole === "admin" ? "flex-row-reverse" : ""}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${msg.senderRole === "admin" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                {msg.senderRole === "admin" ? "Me" : "C"}
+              </div>
+              <div className={`max-w-[80%] p-3 text-sm ${msg.senderRole === "admin" ? "bg-primary/10" : "bg-background border border-border"}`}>
+                <p className="text-xs font-medium text-muted-foreground mb-1">{msg.senderName}</p>
+                <p className="leading-relaxed">{msg.message}</p>
+                <p className="text-xs text-muted-foreground mt-1">{format(new Date(msg.createdAt), "MMM d, HH:mm")}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {selected.status !== "closed" && (
+          <div className="flex gap-2">
+            <textarea value={reply} onChange={e => setReply(e.target.value)} placeholder="Type your reply to the customer..." rows={3}
+              className="flex-1 border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none" />
+            <button onClick={sendReply} disabled={replyPending || !reply.trim()}
+              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
+              Send
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-3xl font-bold font-serif">Support Center</h1>
+        <span className="text-sm text-muted-foreground">{total} total tickets</span>
+      </div>
+      <div className="flex gap-3">
+        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
+          className="border border-border px-3 py-2 text-sm bg-background focus:outline-none">
+          <option value="">All Statuses</option>
+          {["open","in_progress","waiting_customer","resolved","closed"].map(s =>
+            <option key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</option>)}
+        </select>
+        {statusFilter && <button onClick={() => { setStatusFilter(""); setPage(1); }} className="text-sm text-muted-foreground hover:text-foreground border border-border px-3 py-2">Clear</button>}
+      </div>
+      <div className="border border-border bg-card overflow-hidden">
+        {loading ? <div className="p-8 text-center text-muted-foreground">Loading...</div> : !tickets.length ? (
+          <div className="p-8 text-center text-muted-foreground">No tickets found.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-muted-foreground text-xs uppercase">
+              <tr>{['#','Customer','Subject','Category','Status','Priority','Updated',''].map(h => <th key={h} className="px-4 py-3 text-left">{h}</th>)}</tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {tickets.map(t => (
+                <tr key={t.id} className="hover:bg-muted/20 cursor-pointer" onClick={() => loadTicket(t)}>
+                  <td className="px-4 py-3 text-muted-foreground text-xs">{t.id}</td>
+                  <td className="px-4 py-3 text-xs">
+                    <p className="font-medium">{t.userName ?? `User #${t.userId}`}</p>
+                    <p className="text-muted-foreground">{t.userEmail}</p>
+                  </td>
+                  <td className="px-4 py-3 max-w-[200px] truncate font-medium text-xs">{t.subject}</td>
+                  <td className="px-4 py-3 text-xs capitalize text-muted-foreground">{t.category}</td>
+                  <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs capitalize rounded ${TICKET_STATUS_COLORS[t.status] ?? ""}`}>{t.status.replace(/_/g, " ")}</span></td>
+                  <td className="px-4 py-3 text-xs capitalize"><span className={TICKET_PRIORITY_COLORS[t.priority] ?? ""}>{t.priority}</span></td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(t.updatedAt), "MMM d, HH:mm")}</td>
+                  <td className="px-4 py-3"><button onClick={e => { e.stopPropagation(); loadTicket(t); }} className="text-xs px-2 py-1 border border-border hover:bg-muted">Reply</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      {Math.ceil(total / LIMIT) > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1.5 text-sm border border-border hover:bg-muted disabled:opacity-40">← Prev</button>
+          <span className="text-sm text-muted-foreground">Page {page} of {Math.ceil(total / LIMIT)}</span>
+          <button disabled={page >= Math.ceil(total / LIMIT)} onClick={() => setPage(p => p + 1)} className="px-3 py-1.5 text-sm border border-border hover:bg-muted disabled:opacity-40">Next →</button>
         </div>
       )}
     </div>

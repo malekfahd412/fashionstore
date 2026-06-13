@@ -318,3 +318,47 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
     </div>
   `));
 }
+
+export async function sendContactConfirmation(to: string, name: string, messageSnippet: string): Promise<void> {
+  await send(to, "We received your message — LUXE", wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Message Received</h2>
+    <p style="line-height:1.7;color:#444">Hi ${name}, thank you for contacting LUXE.</p>
+    <p style="line-height:1.7;color:#444">We've received your message and will get back to you within 1–2 business days.</p>
+    <div style="background:#f9f9f9;padding:16px 20px;margin:20px 0;border-left:3px solid #d4af37;font-style:italic;color:#666">
+      "${messageSnippet}"
+    </div>
+    <div style="text-align:center">
+      <a href="${APP_URL()}/faq" style="${btnStyle}">BROWSE FAQs</a>
+    </div>
+  `));
+}
+
+export async function sendContactAdminNotification(adminEmail: string, from: { name: string; email: string; phone?: string | null; subject?: string | null; message: string }): Promise<void> {
+  await send(adminEmail, `New Contact Message: ${from.subject ?? "(no subject)"}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">New Contact Message</h2>
+    <div style="background:#f9f9f9;padding:20px;margin:16px 0">
+      <p style="margin:0 0 8px"><strong>Name:</strong> ${from.name}</p>
+      <p style="margin:0 0 8px"><strong>Email:</strong> ${from.email}</p>
+      ${from.phone ? `<p style="margin:0 0 8px"><strong>Phone:</strong> ${from.phone}</p>` : ""}
+      <p style="margin:0"><strong>Subject:</strong> ${from.subject ?? "(none)"}</p>
+    </div>
+    <div style="border:1px solid #eee;padding:20px;white-space:pre-wrap;font-size:14px;line-height:1.7;color:#444">${from.message}</div>
+    <div style="text-align:center;margin-top:24px">
+      <a href="${APP_URL()}/admin-panel" style="${btnStyle}">VIEW IN ADMIN</a>
+    </div>
+  `));
+}
+
+export async function sendNewsletterWelcome(to: string, unsubscribeToken: string): Promise<void> {
+  const unsubUrl = `${APP_URL()}/newsletter/unsubscribe?token=${unsubscribeToken}`;
+  await send(to, "Welcome to LUXE — You're subscribed!", wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to LUXE</h2>
+    <p style="line-height:1.7;color:#444">Thank you for subscribing to LUXE updates. You'll be the first to know about new arrivals, exclusive sales, and fashion inspiration.</p>
+    <div style="text-align:center">
+      <a href="${APP_URL()}/products" style="${btnStyle}">SHOP NEW ARRIVALS</a>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:32px;text-align:center">
+      Don't want these emails? <a href="${unsubUrl}" style="color:#666">Unsubscribe here</a>.
+    </p>
+  `));
+}

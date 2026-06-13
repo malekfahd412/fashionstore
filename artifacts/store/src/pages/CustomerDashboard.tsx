@@ -19,7 +19,7 @@ import SecurityCenterTab from "@/components/SecurityCenterTab";
 import {
   MapPin, Plus, Pencil, Trash2, Star, Package, ShoppingBag,
   Heart, Bell, Shield, Settings, LayoutDashboard, RefreshCw,
-  TrendingUp, Clock, Check, PenLine, CheckCircle2, X,
+  TrendingUp, Clock, Check, PenLine, CheckCircle2, X, FileDown, Headphones, Send, MessageCircle,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -303,6 +303,7 @@ export default function CustomerDashboard() {
     { value: "addresses", label: "Addresses", icon: MapPin },
     { value: "wishlist", label: "Wishlist", icon: Heart },
     { value: "my-reviews", label: "My Reviews", icon: Star },
+    { value: "support", label: "Support", icon: Shield },
     { value: "notifications", label: "Notifications", icon: Bell, badge: unreadCount },
     { value: "security", label: "Security", icon: Shield },
     { value: "profile", label: "Account Settings", icon: Settings },
@@ -519,6 +520,25 @@ export default function CustomerDashboard() {
                           <Button variant="outline" size="sm" asChild>
                             <Link href={`/track-order/${order.id}`}>Track</Link>
                           </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => {
+                              const token = localStorage.getItem("auth_token");
+                              const a = document.createElement("a");
+                              a.href = `${BASE}/api/orders/${order.id}/invoice`;
+                              a.download = `invoice-${order.id}.pdf`;
+                              const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+                              void fetch(a.href, { headers }).then(r => r.blob()).then(blob => {
+                                const url = URL.createObjectURL(blob);
+                                a.href = url; a.click(); URL.revokeObjectURL(url);
+                              });
+                            }}
+                          >
+                            <FileDown className="w-3 h-3" />
+                            Invoice
+                          </Button>
                           {["delivered", "cancelled"].includes(order.status) && (
                             <Button
                               variant="outline"
@@ -672,6 +692,11 @@ export default function CustomerDashboard() {
           {/* ── MY REVIEWS ────────────────────────────────────────────────── */}
           <TabsContent value="my-reviews" className="m-0 space-y-6">
             <MyReviewsTab userId={user.id} />
+          </TabsContent>
+
+          {/* ── SUPPORT ───────────────────────────────────────────────────── */}
+          <TabsContent value="support" className="m-0 space-y-6">
+            <SupportTab userId={user.id} />
           </TabsContent>
 
           {/* ── NOTIFICATIONS ─────────────────────────────────────────────── */}
@@ -946,6 +971,213 @@ function MyReviewsTab({ userId }: { userId: number }) {
               </div>
             </form>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Support Tab ──────────────────────────────────────────────────────────────
+type SupportTicket = { id: number; subject: string; category: string; status: string; priority: string; createdAt: string; updatedAt: string };
+type TicketMsg = { id: number; ticketId: number; senderId: number; message: string; createdAt: string; senderName?: string; senderRole?: string };
+
+const STATUS_COLORS: Record<string, string> = {
+  open: "bg-blue-100 text-blue-700",
+  in_progress: "bg-amber-100 text-amber-700",
+  waiting_customer: "bg-purple-100 text-purple-700",
+  resolved: "bg-green-100 text-green-700",
+  closed: "bg-muted text-muted-foreground",
+};
+const STATUS_LABELS: Record<string, string> = {
+  open: "Open", in_progress: "In Progress", waiting_customer: "Waiting", resolved: "Resolved", closed: "Closed",
+};
+
+function SupportTab({ userId }: { userId: number }) {
+  void userId;
+  const { toast } = useToast();
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [selected, setSelected] = useState<SupportTicket | null>(null);
+  const [messages, setMessages] = useState<TicketMsg[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [reply, setReply] = useState("");
+  const [replyPending, setReplyPending] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [newForm, setNewForm] = useState({ subject: "", category: "general", message: "" });
+  const [creating, setCreating] = useState(false);
+
+  const load = async () => {
+    const token = localStorage.getItem("auth_token");
+    try {
+      const res = await fetch(`${BASE}/api/support/tickets`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) setTickets(await res.json() as SupportTicket[]);
+    } finally { setLoading(false); }
+  };
+
+  const loadTicket = async (t: SupportTicket) => {
+    const token = localStorage.getItem("auth_token");
+    setSelected(t);
+    const res = await fetch(`${BASE}/api/support/tickets/${t.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) {
+      const data = await res.json() as { ticket: SupportTicket; messages: TicketMsg[] };
+      setMessages(data.messages);
+    }
+  };
+
+  const sendReply = async () => {
+    if (!selected || !reply.trim()) return;
+    const token = localStorage.getItem("auth_token");
+    setReplyPending(true);
+    try {
+      const res = await fetch(`${BASE}/api/support/tickets/${selected.id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ message: reply.trim() }),
+      });
+      if (!res.ok) throw new Error();
+      setReply("");
+      await loadTicket(selected);
+    } catch {
+      toast({ title: "Failed to send reply", variant: "destructive" });
+    } finally { setReplyPending(false); }
+  };
+
+  const createTicket = async () => {
+    if (!newForm.subject || !newForm.message) {
+      toast({ title: "Subject and message are required", variant: "destructive" }); return;
+    }
+    const token = localStorage.getItem("auth_token");
+    setCreating(true);
+    try {
+      const res = await fetch(`${BASE}/api/support/tickets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(newForm),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "Ticket opened successfully" });
+      setShowNew(false); setNewForm({ subject: "", category: "general", message: "" });
+      await load();
+    } catch {
+      toast({ title: "Failed to open ticket", variant: "destructive" });
+    } finally { setCreating(false); }
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  if (selected) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => { setSelected(null); setMessages([]); void load(); }} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+            ← Back
+          </button>
+          <span className="text-xs text-muted-foreground">Ticket #{selected.id}</span>
+          <span className={`px-2 py-0.5 text-xs capitalize rounded ${STATUS_COLORS[selected.status] ?? ""}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
+        </div>
+        <div className="border border-border p-4">
+          <h3 className="font-bold">{selected.subject}</h3>
+          <p className="text-xs text-muted-foreground mt-1">Opened {format(new Date(selected.createdAt), "MMM d, yyyy")}</p>
+        </div>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {messages.map(msg => (
+            <div key={msg.id} className={`flex gap-3 ${msg.senderRole === "admin" ? "" : "flex-row-reverse"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${msg.senderRole === "admin" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                {msg.senderRole === "admin" ? "S" : "Me"}
+              </div>
+              <div className={`max-w-[80%] p-3 text-sm ${msg.senderRole === "admin" ? "bg-muted" : "bg-primary/10"}`}>
+                <p className="leading-relaxed">{msg.message}</p>
+                <p className="text-xs text-muted-foreground mt-1">{format(new Date(msg.createdAt), "MMM d, HH:mm")}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {selected.status !== "closed" && (
+          <div className="flex gap-2">
+            <textarea
+              value={reply}
+              onChange={e => setReply(e.target.value)}
+              placeholder="Type your reply..."
+              rows={3}
+              className="flex-1 border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              onClick={sendReply}
+              disabled={replyPending || !reply.trim()}
+              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-serif font-bold">Support</h2>
+        <button onClick={() => setShowNew(!showNew)} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
+          + New Ticket
+        </button>
+      </div>
+
+      {showNew && (
+        <div className="border border-border p-5 bg-card space-y-3">
+          <h3 className="font-bold text-sm">Open Support Ticket</h3>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium block mb-1">Category</label>
+              <select value={newForm.category} onChange={e => setNewForm(f => ({ ...f, category: e.target.value }))} className="w-full border border-input bg-background px-3 py-2 text-sm">
+                {["general", "order", "payment", "shipping", "returns", "account", "other"].map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium block mb-1">Subject *</label>
+              <input value={newForm.subject} onChange={e => setNewForm(f => ({ ...f, subject: e.target.value }))} placeholder="Brief summary of your issue" className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1">Message *</label>
+            <textarea value={newForm.message} onChange={e => setNewForm(f => ({ ...f, message: e.target.value }))} placeholder="Describe your issue in detail..." rows={4} className="w-full border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none" />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={createTicket} disabled={creating} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
+              {creating ? "Opening..." : "Open Ticket"}
+            </button>
+            <button onClick={() => setShowNew(false)} className="px-4 py-2 border border-border text-sm hover:bg-muted">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="p-8 text-center text-muted-foreground text-sm">Loading...</div>
+      ) : !tickets.length ? (
+        <div className="border border-border p-12 text-center">
+          <MessageCircle className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+          <h3 className="font-medium mb-1">No support tickets yet</h3>
+          <p className="text-muted-foreground text-sm mb-4">Open a ticket if you need help with an order, payment, or anything else.</p>
+          <button onClick={() => setShowNew(true)} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
+            Open Your First Ticket
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {tickets.map(t => (
+            <button key={t.id} onClick={() => loadTicket(t)} className="w-full text-left border border-border p-4 hover:bg-muted/30 transition-colors">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">#{t.id}</span>
+                    <span className={`px-2 py-0.5 text-xs capitalize rounded ${STATUS_COLORS[t.status] ?? ""}`}>{STATUS_LABELS[t.status] ?? t.status}</span>
+                    <span className="text-xs text-muted-foreground capitalize">{t.category}</span>
+                  </div>
+                  <p className="text-sm truncate">{t.subject}</p>
+                </div>
+                <p className="text-xs text-muted-foreground shrink-0">{format(new Date(t.updatedAt), "MMM d")}</p>
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>

@@ -2,11 +2,17 @@ import { Router, type IRouter } from "express";
 import { db, newsletterSubscribersTable } from "@workspace/db";
 import { eq, desc, count } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
+import { sendNewsletterWelcome } from "../lib/email";
+import crypto from "node:crypto";
 
 const router: IRouter = Router();
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function genToken(): string {
+  return crypto.randomBytes(32).toString("hex");
 }
 
 router.post("/newsletter/subscribe", async (req, res): Promise<void> => {
@@ -20,12 +26,34 @@ router.post("/newsletter/subscribe", async (req, res): Promise<void> => {
     if (existing[0].active) {
       res.status(409).json({ error: "Already subscribed" }); return;
     }
-    await db.update(newsletterSubscribersTable).set({ active: true }).where(eq(newsletterSubscribersTable.email, email));
+    const token = genToken();
+    await db.update(newsletterSubscribersTable).set({ active: true, unsubscribeToken: token }).where(eq(newsletterSubscribersTable.email, email));
+    void sendNewsletterWelcome(email, token);
     res.json({ message: "Resubscribed successfully" }); return;
   }
 
-  const [sub] = await db.insert(newsletterSubscribersTable).values({ email }).returning();
+  const token = genToken();
+  const [sub] = await db.insert(newsletterSubscribersTable).values({ email, unsubscribeToken: token }).returning();
+  void sendNewsletterWelcome(email, token);
   res.status(201).json({ message: "Subscribed successfully", subscriber: sub });
+});
+
+router.post("/newsletter/unsubscribe", async (req, res): Promise<void> => {
+  const { token, email } = req.body ?? {};
+
+  if (token) {
+    const rows = await db.select().from(newsletterSubscribersTable).where(eq(newsletterSubscribersTable.unsubscribeToken, String(token)));
+    if (!rows.length) { res.status(404).json({ error: "Token not found" }); return; }
+    await db.update(newsletterSubscribersTable).set({ active: false }).where(eq(newsletterSubscribersTable.unsubscribeToken, String(token)));
+    res.json({ message: "Unsubscribed successfully" }); return;
+  }
+
+  if (email && isValidEmail(String(email))) {
+    await db.update(newsletterSubscribersTable).set({ active: false }).where(eq(newsletterSubscribersTable.email, String(email)));
+    res.json({ message: "Unsubscribed successfully" }); return;
+  }
+
+  res.status(400).json({ error: "Provide token or email" });
 });
 
 router.get("/admin/newsletter/subscribers", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {

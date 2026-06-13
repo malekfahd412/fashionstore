@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAddToWishlist, useRemoveFromWishlist, useAddToCart, getGetWishlistQueryKey } from "@workspace/api-client-react";
@@ -30,6 +30,8 @@ export interface ProductCardProps {
   imageUrl?: string | null;
   categoryName?: string | null;
   variants?: { id: number; color: string | null; size: string | null; stockQuantity: number }[];
+  averageRating?: number | null;
+  reviewCount?: number | null;
 }
 
 export function ProductCardSkeleton() {
@@ -42,7 +44,7 @@ export function ProductCardSkeleton() {
   );
 }
 
-export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imageUrl, variants }: ProductCardProps) {
+export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imageUrl, variants, averageRating, reviewCount }: ProductCardProps) {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -116,6 +118,8 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
     ? Math.round((1 - Number(salePrice) / Number(price)) * 100)
     : null;
 
+  const hasRating = typeof averageRating === "number" && averageRating > 0 && typeof reviewCount === "number" && reviewCount > 0;
+
   return (
     <Link href={`/products/${id}`} className="group block">
       <div
@@ -176,6 +180,21 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
         <h3 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors leading-tight">
           {displayName}
         </h3>
+        {hasRating && (
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Star
+                  key={i}
+                  className={`w-3 h-3 ${i <= Math.round(averageRating!) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {averageRating!.toFixed(1)} ({reviewCount})
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-sm">
           {displaySalePrice ? (
             <>

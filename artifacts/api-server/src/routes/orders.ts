@@ -296,4 +296,136 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
   }
 });
 
+// ── PDF Invoice ─────────────────────────────────────────────────────────────
+router.get("/orders/:id/invoice", requireAuth, async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!id) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+  if (req.user!.role !== "admin" && order.userId !== req.user!.id) {
+    res.status(403).json({ error: "Forbidden" }); return;
+  }
+
+  const [customer] = await db.select({ name: usersTable.name, email: usersTable.email })
+    .from(usersTable).where(eq(usersTable.id, order.userId));
+
+  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, id));
+  const variantIds = items.map(i => i.productVariantId);
+  const variants = variantIds.length
+    ? await db.select({ id: productVariantsTable.id, color: productVariantsTable.color, size: productVariantsTable.size, productId: productVariantsTable.productId })
+        .from(productVariantsTable).where(inArray(productVariantsTable.id, variantIds))
+    : [];
+  const productIds = [...new Set(variants.map(v => v.productId))];
+  const products = productIds.length
+    ? await db.select({ id: productsTable.id, nameEn: productsTable.nameEn })
+        .from(productsTable).where(inArray(productsTable.id, productIds))
+    : [];
+
+  // Shipping address not stored per-order in this schema — skip
+  const shippingAddr = "";
+
+  const variantMap = new Map(variants.map(v => [v.id, v]));
+  const productMap = new Map(products.map(p => [p.id, p]));
+
+  const enrichedItems = items.map(item => {
+    const v = variantMap.get(item.productVariantId);
+    const p = v ? productMap.get(v.productId) : null;
+    return {
+      name: p?.nameEn ?? `Item #${item.productVariantId}`,
+      color: v?.color ?? null,
+      size: v?.size ?? null,
+      quantity: item.quantity,
+      price: Number(item.price),
+      total: Number(item.price) * item.quantity,
+    };
+  });
+
+  const subtotal = enrichedItems.reduce((s, i) => s + i.total, 0);
+  const shippingFee = 0;
+  const discount = Number(order.discount ?? 0);
+  const grandTotal = Number(order.totalPrice);
+
+  // Build PDF with pdfkit
+  const PDFDocument = (await import("pdfkit")).default;
+  const doc = new PDFDocument({ size: "A4", margin: 50 });
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="invoice-${order.id}.pdf"`);
+  doc.pipe(res);
+
+  // Header
+  doc.fontSize(28).font("Helvetica-Bold").text("LUXE", 50, 50);
+  doc.fontSize(10).font("Helvetica").fillColor("#666").text("Premium Fashion", 50, 85);
+  doc.fillColor("#000").fontSize(20).font("Helvetica-Bold").text("INVOICE", 400, 50, { align: "right" });
+  doc.fontSize(10).font("Helvetica").fillColor("#444");
+  doc.text(`Invoice #${order.id}`, 400, 78, { align: "right" });
+  doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString("en-GB")}`, 400, 92, { align: "right" });
+  doc.text(`Status: ${order.status.toUpperCase()}`, 400, 106, { align: "right" });
+
+  doc.moveTo(50, 130).lineTo(545, 130).strokeColor("#d4af37").lineWidth(2).stroke();
+
+  // Bill To
+  doc.fontSize(9).font("Helvetica-Bold").fillColor("#888").text("BILL TO", 50, 148);
+  doc.fontSize(11).font("Helvetica-Bold").fillColor("#000").text(customer?.name ?? "Customer", 50, 162);
+  doc.fontSize(10).font("Helvetica").fillColor("#444").text(customer?.email ?? "", 50, 176);
+  if (shippingAddr) doc.text(shippingAddr, 50, 190, { width: 240 });
+
+  // Payment Method
+  doc.fontSize(9).font("Helvetica-Bold").fillColor("#888").text("PAYMENT", 400, 148);
+  doc.fontSize(10).font("Helvetica").fillColor("#444")
+    .text(order.paymentMethod === "cod" ? "Cash on Delivery" : (order.paymentMethod ?? "—"), 400, 162);
+
+  const tableTop = shippingAddr ? 240 : 210;
+  doc.moveTo(50, tableTop).lineTo(545, tableTop).strokeColor("#eee").lineWidth(1).stroke();
+
+  // Table header
+  doc.fontSize(9).font("Helvetica-Bold").fillColor("#888");
+  doc.text("ITEM", 50, tableTop + 10);
+  doc.text("QTY", 350, tableTop + 10);
+  doc.text("PRICE", 400, tableTop + 10);
+  doc.text("TOTAL", 470, tableTop + 10, { align: "right", width: 75 });
+
+  doc.moveTo(50, tableTop + 26).lineTo(545, tableTop + 26).strokeColor("#eee").lineWidth(1).stroke();
+
+  let y = tableTop + 36;
+  for (const item of enrichedItems) {
+    const desc2 = [item.color, item.size].filter(Boolean).join(" / ");
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#000").text(item.name, 50, y, { width: 290 });
+    if (desc2) doc.fontSize(9).font("Helvetica").fillColor("#888").text(desc2, 50, y + 13, { width: 290 });
+    doc.fontSize(10).font("Helvetica").fillColor("#000");
+    doc.text(String(item.quantity), 350, y);
+    doc.text(`${item.price.toLocaleString()} EGP`, 400, y);
+    doc.text(`${item.total.toLocaleString()} EGP`, 470, y, { align: "right", width: 75 });
+    y += desc2 ? 35 : 24;
+    doc.moveTo(50, y - 4).lineTo(545, y - 4).strokeColor("#f5f5f5").lineWidth(1).stroke();
+  }
+
+  // Totals
+  y += 10;
+  const totalsX = 380;
+  doc.fontSize(10).font("Helvetica").fillColor("#444");
+  doc.text("Subtotal:", totalsX, y); doc.text(`${subtotal.toLocaleString()} EGP`, 470, y, { align: "right", width: 75 });
+  y += 18;
+  if (shippingFee > 0) {
+    doc.text("Shipping:", totalsX, y); doc.text(`${shippingFee.toLocaleString()} EGP`, 470, y, { align: "right", width: 75 });
+    y += 18;
+  }
+  if (discount > 0) {
+    doc.fillColor("#16a34a").text("Discount:", totalsX, y);
+    doc.text(`-${discount.toLocaleString()} EGP`, 470, y, { align: "right", width: 75 });
+    y += 18;
+  }
+  doc.moveTo(totalsX, y).lineTo(545, y).strokeColor("#000").lineWidth(1).stroke();
+  y += 8;
+  doc.fontSize(12).font("Helvetica-Bold").fillColor("#000");
+  doc.text("Total:", totalsX, y); doc.text(`${grandTotal.toLocaleString()} EGP`, 470, y, { align: "right", width: 75 });
+
+  // Footer
+  doc.fontSize(9).font("Helvetica").fillColor("#aaa")
+    .text("Thank you for shopping with LUXE.", 50, 760, { align: "center", width: 495 });
+
+  doc.end();
+});
+
 export default router;

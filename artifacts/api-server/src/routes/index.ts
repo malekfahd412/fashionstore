@@ -24,6 +24,7 @@ import newsletterRouter from "./newsletter";
 import faqsRouter from "./faqs";
 import contactRouter from "./contact";
 import googleAuthRouter from "./google-auth";
+import supportRouter from "./support";
 
 const router: IRouter = Router();
 
@@ -52,5 +53,6 @@ router.use(newsletterRouter);
 router.use(faqsRouter);
 router.use(contactRouter);
 router.use(googleAuthRouter);
+router.use(supportRouter);
 
 export default router;
