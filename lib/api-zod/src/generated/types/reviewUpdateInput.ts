@@ -6,12 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ReviewInput {
+export interface ReviewUpdateInput {
   /**
      * @minimum 1
      * @maximum 5
      */
-  rating: number;
+  rating?: number;
   /** @maxLength 120 */
   title?: string;
   /**
@@ -19,5 +19,4 @@ export interface ReviewInput {
      * @maxLength 2000
      */
   comment?: string;
-  orderId?: number;
 }

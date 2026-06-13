@@ -10,11 +10,21 @@ export interface Review {
   id: number;
   productId: number;
   userId: number;
+  /** @nullable */
+  orderId?: number | null;
   userName?: string;
   /** @nullable */
   userAvatar?: string | null;
+  /** @nullable */
+  productNameEn?: string | null;
+  /** @nullable */
+  productImageUrl?: string | null;
   rating: number;
   /** @nullable */
+  title?: string | null;
+  /** @nullable */
   comment?: string | null;
+  verifiedPurchase: boolean;
   createdAt: string;
+  updatedAt: string;
 }

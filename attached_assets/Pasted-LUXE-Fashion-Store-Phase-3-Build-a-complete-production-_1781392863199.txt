@@ -1,0 +1,169 @@
+LUXE Fashion Store — Phase 3
+
+Build a complete production-grade Product Reviews & Ratings system.
+
+Requirements:
+
+DATABASE
+
+Create reviews table:
+
+* id
+* productId
+* userId
+* orderId
+* rating (1-5)
+* title
+* comment
+* verifiedPurchase
+* createdAt
+* updatedAt
+
+Indexes:
+
+* productId
+* userId
+* rating
+* createdAt
+
+BUSINESS RULES
+
+Only customers who purchased the product may review it.
+
+Only delivered orders count.
+
+One review per user per product.
+
+Customer may edit their own review.
+
+Customer may delete their own review.
+
+Admin may delete any review.
+
+API
+
+GET /reviews/product/:productId
+
+POST /reviews
+
+PATCH /reviews/:id
+
+DELETE /reviews/:id
+
+GET /reviews/my
+
+GET /admin/reviews
+
+Features:
+
+* pagination
+* sorting
+* average rating
+* rating distribution
+* verified purchase flag
+
+PRODUCT PAGE
+
+Add full Reviews section.
+
+Display:
+
+* average rating
+* total reviews
+* rating breakdown
+* review list
+
+Review cards show:
+
+* customer name
+* rating stars
+* verified purchase badge
+* review date
+* title
+* comment
+
+Allow sorting:
+
+* newest
+* oldest
+* highest rating
+* lowest rating
+
+WRITE REVIEW FLOW
+
+If user purchased and order delivered:
+
+Show:
+
+"Write a Review"
+
+Modal:
+
+* Star rating selector
+* Title
+* Comment
+
+Validation:
+
+* rating required
+* comment minimum length
+* max length protection
+
+CUSTOMER PORTAL
+
+Add new tab:
+
+"My Reviews"
+
+Customer can:
+
+* view reviews
+* edit reviews
+* delete reviews
+
+ADMIN PANEL
+
+Add Reviews section.
+
+Admin can:
+
+* search reviews
+* filter ratings
+* filter products
+* delete inappropriate reviews
+
+UI
+
+Use modern rating stars.
+
+Responsive on mobile.
+
+Skeleton loaders.
+
+Empty states.
+
+Error states.
+
+PERFORMANCE
+
+Use TanStack Query.
+
+Invalidate caches properly.
+
+Avoid N+1 queries.
+
+Use aggregate SQL for rating stats.
+
+DELIVERABLES
+
+Provide:
+
+1. Database changes
+2. API routes
+3. Components created
+4. Files changed
+5. Typecheck status
+6. Test coverage
+7. Production readiness score
+
+Do not stop until everything is implemented, wired, tested, and typechecked successfully.

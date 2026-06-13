@@ -12,13 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetMyReviews, useUpdateReview, useDeleteReview, getGetMyReviewsQueryKey } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import SecurityCenterTab from "@/components/SecurityCenterTab";
 import {
   MapPin, Plus, Pencil, Trash2, Star, Package, ShoppingBag,
   Heart, Bell, Shield, Settings, LayoutDashboard, RefreshCw,
-  TrendingUp, Clock, Check,
+  TrendingUp, Clock, Check, PenLine, CheckCircle2, X,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -301,6 +302,7 @@ export default function CustomerDashboard() {
     { value: "tracking", label: "Track Orders", icon: Package },
     { value: "addresses", label: "Addresses", icon: MapPin },
     { value: "wishlist", label: "Wishlist", icon: Heart },
+    { value: "my-reviews", label: "My Reviews", icon: Star },
     { value: "notifications", label: "Notifications", icon: Bell, badge: unreadCount },
     { value: "security", label: "Security", icon: Shield },
     { value: "profile", label: "Account Settings", icon: Settings },
@@ -667,6 +669,11 @@ export default function CustomerDashboard() {
             )}
           </TabsContent>
 
+          {/* ── MY REVIEWS ────────────────────────────────────────────────── */}
+          <TabsContent value="my-reviews" className="m-0 space-y-6">
+            <MyReviewsTab userId={user.id} />
+          </TabsContent>
+
           {/* ── NOTIFICATIONS ─────────────────────────────────────────────── */}
           <TabsContent value="notifications" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
@@ -790,6 +797,157 @@ export default function CustomerDashboard() {
 
         </div>
       </Tabs>
+    </div>
+  );
+}
+
+function StarDisplay({ value }: { value: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(i => (
+        <Star key={i} className={`w-3.5 h-3.5 ${i <= value ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+      ))}
+    </div>
+  );
+}
+
+function MyReviewsTab({ userId }: { userId: number }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: reviews, isLoading } = useGetMyReviews({
+    query: { queryKey: getGetMyReviewsQueryKey() },
+  });
+  const updateMutation = useUpdateReview();
+  const deleteMutation = useDeleteReview();
+
+  const [editTarget, setEditTarget] = useState<{ id: number; rating: number; title: string; comment: string } | null>(null);
+  const [editForm, setEditForm] = useState({ rating: 0, title: "", comment: "" });
+  const [hovered, setHovered] = useState(0);
+
+  const openEdit = (r: { id: number; rating: number; title?: string | null; comment?: string | null }) => {
+    setEditTarget({ id: r.id, rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
+    setEditForm({ rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTarget) return;
+    updateMutation.mutate(
+      { id: editTarget.id, data: { rating: editForm.rating, title: editForm.title || undefined, comment: editForm.comment || undefined } },
+      {
+        onSuccess: () => {
+          toast({ title: "Review updated" });
+          setEditTarget(null);
+          qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
+        },
+      }
+    );
+  };
+
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate({ id }, {
+      onSuccess: () => {
+        toast({ title: "Review deleted" });
+        qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
+      },
+    });
+  };
+
+  void userId;
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-serif font-bold">My Reviews</h2>
+
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2].map(i => <div key={i} className="border border-border p-5 h-28 animate-pulse bg-muted/30" />)}
+        </div>
+      ) : !reviews?.length ? (
+        <div className="bg-muted/30 p-8 text-center border border-border">
+          <Star className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground mb-2">You haven't written any reviews yet.</p>
+          <p className="text-xs text-muted-foreground">After your order is delivered, you can review purchased products from the product page.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {(reviews as Array<{ id: number; productId: number; rating: number; title?: string | null; comment?: string | null; verifiedPurchase: boolean; createdAt: string; productNameEn?: string | null }>).map(review => (
+            <div key={review.id} className="border border-border p-5 space-y-3">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link href={`/products/${review.productId}`} className="font-semibold text-sm hover:underline">
+                      {review.productNameEn ?? `Product #${review.productId}`}
+                    </Link>
+                    {review.verifiedPurchase && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        <CheckCircle2 className="w-3 h-3" /> Verified Purchase
+                      </span>
+                    )}
+                  </div>
+                  <StarDisplay value={review.rating} />
+                  <p className="text-xs text-muted-foreground">{format(new Date(review.createdAt), "MMM dd, yyyy")}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="rounded-none h-8 px-3" onClick={() => openEdit(review)}>
+                    <PenLine className="w-3.5 h-3.5 mr-1" /> Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-3 text-destructive hover:text-destructive rounded-none"
+                    onClick={() => handleDelete(review.id)} disabled={deleteMutation.isPending}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+              {review.title && <p className="font-medium text-sm">{review.title}</p>}
+              {review.comment && <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Edit modal */}
+      {editTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-background border border-border w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="font-serif text-lg font-bold">Edit Review</h3>
+              <button onClick={() => setEditTarget(null)} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleUpdate} className="p-6 space-y-5">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Rating</label>
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <button key={i} type="button"
+                      onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(0)}
+                      onClick={() => setEditForm(f => ({ ...f, rating: i }))}>
+                      <Star className={`w-6 h-6 transition-colors ${i <= (hovered || editForm.rating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Title</label>
+                <input type="text" maxLength={120} value={editForm.title}
+                  onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
+                  className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Comment</label>
+                <textarea rows={4} maxLength={2000} value={editForm.comment}
+                  onChange={e => setEditForm(f => ({ ...f, comment: e.target.value }))}
+                  className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button type="button" variant="outline" className="flex-1 rounded-none" onClick={() => setEditTarget(null)}>Cancel</Button>
+                <Button type="submit" className="flex-1 rounded-none" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? "Saving…" : "Update Review"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

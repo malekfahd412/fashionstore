@@ -271,18 +271,85 @@ export interface Review {
   id: number;
   productId: number;
   userId: number;
+  /** @nullable */
+  orderId?: number | null;
   userName?: string;
   /** @nullable */
   userAvatar?: string | null;
+  /** @nullable */
+  productNameEn?: string | null;
+  /** @nullable */
+  productImageUrl?: string | null;
   rating: number;
   /** @nullable */
+  title?: string | null;
+  /** @nullable */
   comment?: string | null;
+  verifiedPurchase: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ReviewInput {
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
   rating: number;
+  /** @maxLength 120 */
+  title?: string;
+  /**
+     * @minLength 10
+     * @maxLength 2000
+     */
   comment?: string;
+  orderId?: number;
+}
+
+export interface ReviewUpdateInput {
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating?: number;
+  /** @maxLength 120 */
+  title?: string;
+  /**
+     * @minLength 10
+     * @maxLength 2000
+     */
+  comment?: string;
+}
+
+export type ReviewStatsDistribution = {
+  '1': number;
+  '2': number;
+  '3': number;
+  '4': number;
+  '5': number;
+};
+
+export interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
+  distribution: ReviewStatsDistribution;
+}
+
+export interface ProductReviewsResponse {
+  stats: ReviewStats;
+  reviews: Review[];
+  total: number;
+  page: number;
+  limit: number;
+  canReview?: boolean;
+  userReview?: Review;
+}
+
+export interface AdminReviewsResponse {
+  reviews: Review[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface WishlistItem {
@@ -657,6 +724,14 @@ status?: string;
 userId?: number;
 page?: number;
 limit?: number;
+};
+
+export type AdminListReviewsParams = {
+page?: number;
+limit?: number;
+rating?: number;
+productId?: number;
+search?: string;
 };
 
 export type GetSalesTimelineParams = {

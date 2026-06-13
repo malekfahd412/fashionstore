@@ -676,16 +676,16 @@ paths:
             type: integer
       responses:
         "200":
-          description: Reviews
+          description: Reviews with stats
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Review"
+                $ref: "#/components/schemas/ProductReviewsResponse"
     post:
       operationId: createReview
       tags: [reviews]
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -706,10 +706,52 @@ paths:
               schema:
                 $ref: "#/components/schemas/Review"
 
+  /reviews/my:
+    get:
+      operationId: getMyReviews
+      tags: [reviews]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
   /reviews/{id}:
+    patch:
+      operationId: updateReview
+      tags: [reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewUpdateInput"
+      responses:
+        "200":
+          description: Updated review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
     delete:
       operationId: deleteReview
       tags: [reviews]
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -723,6 +765,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
+
+  /admin/reviews:
+    get:
+      operationId: adminListReviews
+      tags: [reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: rating
+          in: query
+          schema:
+            type: integer
+        - name: productId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Admin review list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReviewsResponse"
 
   # ── Wishlist ──────────────────────────────────────────────────────────
   /wishlist:
@@ -2034,7 +2111,7 @@ components:
     # ── Review ─────────────────────────────────────────────────────────
     Review:
       type: object
-      required: [id, productId, userId, rating, createdAt]
+      required: [id, productId, userId, rating, verifiedPurchase, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -2042,15 +2119,27 @@ components:
           type: integer
         userId:
           type: integer
+        orderId:
+          type: ["integer", "null"]
         userName:
           type: string
         userAvatar:
           type: ["string", "null"]
+        productNameEn:
+          type: ["string", "null"]
+        productImageUrl:
+          type: ["string", "null"]
         rating:
           type: integer
+        title:
+          type: ["string", "null"]
         comment:
           type: ["string", "null"]
+        verifiedPurchase:
+          type: boolean
         createdAt:
+          type: string
+        updatedAt:
           type: string
 
     ReviewInput:
@@ -2059,8 +2148,91 @@ components:
       properties:
         rating:
           type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+          maxLength: 120
         comment:
           type: string
+          minLength: 10
+          maxLength: 2000
+        orderId:
+          type: integer
+
+    ReviewUpdateInput:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+          maxLength: 120
+        comment:
+          type: string
+          minLength: 10
+          maxLength: 2000
+
+    ReviewStats:
+      type: object
+      required: [averageRating, totalReviews, distribution]
+      properties:
+        averageRating:
+          type: number
+        totalReviews:
+          type: integer
+        distribution:
+          type: object
+          required: ["1", "2", "3", "4", "5"]
+          properties:
+            "1":
+              type: integer
+            "2":
+              type: integer
+            "3":
+              type: integer
+            "4":
+              type: integer
+            "5":
+              type: integer
+
+    ProductReviewsResponse:
+      type: object
+      required: [stats, reviews, total, page, limit]
+      properties:
+        stats:
+          $ref: "#/components/schemas/ReviewStats"
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        canReview:
+          type: boolean
+        userReview:
+          $ref: "#/components/schemas/Review"
+
+    AdminReviewsResponse:
+      type: object
+      required: [reviews, total, page, limit]
+      properties:
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
 
     # ── Wishlist ───────────────────────────────────────────────────────
     WishlistItem:

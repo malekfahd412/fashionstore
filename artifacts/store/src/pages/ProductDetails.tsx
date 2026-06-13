@@ -2,15 +2,97 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
 import {
   useGetProduct, useGetRelatedProducts, useAddToCart, useAddToWishlist, useRemoveFromWishlist, useGetWishlist,
+  useCreateReview, useUpdateReview, useDeleteReview,
   getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey,
 } from "@workspace/api-client-react";
+import type { ProductReviewsResponse } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGuestCart } from "@/hooks/useGuestCart";
-import { Heart, Truck, RotateCcw, ShieldCheck, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { Heart, Truck, RotateCcw, ShieldCheck, ZoomIn, ChevronLeft, ChevronRight, Star, PenLine, Trash2, CheckCircle2, X } from "lucide-react";
 import ProductCard, { ProductCardSkeleton } from "@/components/ProductCard";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+async function fetchReviews(productId: number, sort: string, page: number, limit: number): Promise<ProductReviewsResponse> {
+  const token = localStorage.getItem("auth_token");
+  const qs = new URLSearchParams({ sort, page: String(page), limit: String(limit) });
+  const res = await fetch(`${BASE}/api/products/${productId}/reviews?${qs}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error("Failed to load reviews");
+  return res.json() as Promise<ProductReviewsResponse>;
+}
+
+function StarRating({ value, onChange, readonly = false, size = "md" }: {
+  value: number; onChange?: (v: number) => void; readonly?: boolean; size?: "sm" | "md";
+}) {
+  const [hovered, setHovered] = useState(0);
+  const sz = size === "sm" ? "w-4 h-4" : "w-6 h-6";
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(i => (
+        <button
+          key={i}
+          type="button"
+          disabled={readonly}
+          onClick={() => onChange?.(i)}
+          onMouseEnter={() => !readonly && setHovered(i)}
+          onMouseLeave={() => !readonly && setHovered(0)}
+          className={readonly ? "cursor-default" : "cursor-pointer"}
+        >
+          <Star
+            className={`${sz} transition-colors ${
+              i <= (hovered || value) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReviewCard({ review, currentUserId, onEdit, onDelete }: {
+  review: { id: number; userName?: string; rating: number; title?: string | null; comment?: string | null; verifiedPurchase: boolean; createdAt: string; userId: number };
+  currentUserId?: number;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
+  const isOwn = currentUserId === review.userId;
+  return (
+    <div className="border border-border p-5 space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-medium text-sm">{review.userName ?? "Anonymous"}</span>
+            {review.verifiedPurchase && (
+              <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <CheckCircle2 className="w-3 h-3" /> Verified Purchase
+              </span>
+            )}
+          </div>
+          <StarRating value={review.rating} readonly size="sm" />
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-muted-foreground">
+            {new Date(review.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+          </span>
+          {isOwn && (
+            <>
+              <button onClick={onEdit} className="p-1 text-muted-foreground hover:text-foreground transition-colors"><PenLine className="w-3.5 h-3.5" /></button>
+              <button onClick={onDelete} className="p-1 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+            </>
+          )}
+        </div>
+      </div>
+      {review.title && <p className="font-semibold text-sm">{review.title}</p>}
+      {review.comment && <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>}
+    </div>
+  );
+}
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -19,6 +101,7 @@ export default function ProductDetails() {
   const { toast } = useToast();
   const { user } = useAuth();
   const guestCart = useGuestCart();
+  const qc = useQueryClient();
 
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -29,6 +112,13 @@ export default function ProductDetails() {
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imageRef = useRef<HTMLDivElement>(null);
 
+  // Reviews state
+  const [reviewSort, setReviewSort] = useState("newest");
+  const [reviewPage, setReviewPage] = useState(1);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [editingReview, setEditingReview] = useState<{ id: number; rating: number; title: string; comment: string } | null>(null);
+  const [reviewForm, setReviewForm] = useState({ rating: 0, title: "", comment: "" });
+
   const { data: product, isLoading } = useGetProduct(productId, {
     query: { enabled: !!productId, queryKey: getGetProductQueryKey(productId) },
   });
@@ -38,9 +128,54 @@ export default function ProductDetails() {
   const { data: wishlist } = useGetWishlist({
     query: { enabled: !!user, queryKey: getGetWishlistQueryKey() },
   });
+  const reviewsQueryKey = ["product-reviews", productId, reviewSort, reviewPage];
+  const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
+    queryKey: reviewsQueryKey,
+    queryFn: () => fetchReviews(productId, reviewSort, reviewPage, 10),
+    enabled: !!productId,
+  });
+
   const addToCartMutation = useAddToCart();
   const addWishlistMutation = useAddToWishlist();
   const removeWishlistMutation = useRemoveFromWishlist();
+  const createReviewMutation = useCreateReview();
+  const updateReviewMutation = useUpdateReview();
+  const deleteReviewMutation = useDeleteReview();
+
+  const invalidateReviews = () => qc.invalidateQueries({ queryKey: ["product-reviews", productId] });
+
+  const openWriteReview = () => {
+    setReviewForm({ rating: 0, title: "", comment: "" });
+    setEditingReview(null);
+    setShowReviewModal(true);
+  };
+  const openEditReview = (r: { id: number; rating: number; title?: string | null; comment?: string | null }) => {
+    setEditingReview({ id: r.id, rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
+    setReviewForm({ rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
+    setShowReviewModal(true);
+  };
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reviewForm.rating === 0) { toast({ title: "Please select a rating", variant: "destructive" }); return; }
+    if (reviewForm.comment.length < 10) { toast({ title: "Comment must be at least 10 characters", variant: "destructive" }); return; }
+
+    if (editingReview) {
+      updateReviewMutation.mutate(
+        { id: editingReview.id, data: { rating: reviewForm.rating, title: reviewForm.title || undefined, comment: reviewForm.comment } },
+        { onSuccess: () => { toast({ title: "Review updated" }); setShowReviewModal(false); invalidateReviews(); } }
+      );
+    } else {
+      createReviewMutation.mutate(
+        { id: productId, data: { rating: reviewForm.rating, title: reviewForm.title || undefined, comment: reviewForm.comment } },
+        { onSuccess: () => { toast({ title: "Review submitted!" }); setShowReviewModal(false); invalidateReviews(); } }
+      );
+    }
+  };
+  const handleDeleteReview = (reviewId: number) => {
+    deleteReviewMutation.mutate({ id: reviewId }, {
+      onSuccess: () => { toast({ title: "Review deleted" }); invalidateReviews(); },
+    });
+  };
 
   const isWishlisted = !!wishlist?.some(w => w.productId === productId);
 
@@ -431,6 +566,190 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
+
+      {/* ── REVIEWS SECTION ──────────────────────────────────────────────── */}
+      <section className="border-t border-border pt-16 mb-20">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Customer Feedback</p>
+            <h2 className="font-serif text-3xl font-bold">Reviews</h2>
+          </div>
+          {reviewsData?.canReview && (
+            <Button onClick={openWriteReview} className="shrink-0 rounded-none uppercase tracking-widest text-xs">
+              <PenLine className="w-4 h-4 mr-2" /> Write a Review
+            </Button>
+          )}
+          {user && !reviewsData?.canReview && !reviewsData?.userReview && (
+            <p className="text-xs text-muted-foreground max-w-xs text-right">
+              Only customers with delivered orders can leave a review.
+            </p>
+          )}
+        </div>
+
+        {reviewsLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => <div key={i} className="border border-border p-5 h-28 animate-pulse bg-muted/30 rounded" />)}
+          </div>
+        ) : (
+          <>
+            {/* Stats bar */}
+            {reviewsData && reviewsData.stats.totalReviews > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 pb-10 border-b border-border">
+                {/* Average */}
+                <div className="flex flex-col items-center justify-center text-center">
+                  <span className="font-serif text-7xl font-bold leading-none">
+                    {reviewsData.stats.averageRating.toFixed(1)}
+                  </span>
+                  <StarRating value={Math.round(reviewsData.stats.averageRating)} readonly />
+                  <span className="text-sm text-muted-foreground mt-2">{reviewsData.stats.totalReviews} reviews</span>
+                </div>
+                {/* Distribution */}
+                <div className="md:col-span-2 space-y-2">
+                  {[5, 4, 3, 2, 1].map(star => {
+                    const count = reviewsData.stats.distribution[star.toString() as "1" | "2" | "3" | "4" | "5"] ?? 0;
+                    const pct = reviewsData.stats.totalReviews ? Math.round((count / reviewsData.stats.totalReviews) * 100) : 0;
+                    return (
+                      <div key={star} className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 w-12 shrink-0 text-xs text-muted-foreground">
+                          {star}<Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        </div>
+                        <div className="flex-1 bg-muted h-2 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground w-10 text-right">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* User's own review (if exists) */}
+            {reviewsData?.userReview && (
+              <div className="mb-6">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Your Review</p>
+                <ReviewCard
+                  review={reviewsData.userReview}
+                  currentUserId={user?.id}
+                  onEdit={() => openEditReview(reviewsData.userReview!)}
+                  onDelete={() => handleDeleteReview(reviewsData.userReview!.id)}
+                />
+              </div>
+            )}
+
+            {/* Sort + list */}
+            {reviewsData && reviewsData.stats.totalReviews > 0 && (
+              <>
+                <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+                  <span className="text-sm text-muted-foreground">{reviewsData.total} reviews</span>
+                  <select
+                    value={reviewSort}
+                    onChange={e => { setReviewSort(e.target.value); setReviewPage(1); }}
+                    className="border border-border px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="highest">Highest Rating</option>
+                    <option value="lowest">Lowest Rating</option>
+                  </select>
+                </div>
+
+                <div className="space-y-4">
+                  {reviewsData.reviews.filter(r => r.userId !== user?.id).map(review => (
+                    <ReviewCard
+                      key={review.id}
+                      review={review}
+                      currentUserId={user?.id}
+                      onEdit={() => openEditReview(review)}
+                      onDelete={() => handleDeleteReview(review.id)}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {reviewsData.total > reviewsData.limit && (
+                  <div className="flex justify-center gap-2 mt-8">
+                    <Button
+                      variant="outline" size="sm" disabled={reviewPage === 1} className="rounded-none"
+                      onClick={() => setReviewPage(p => p - 1)}
+                    >← Prev</Button>
+                    <span className="px-4 py-1.5 text-sm text-muted-foreground">
+                      Page {reviewPage} of {Math.ceil(reviewsData.total / reviewsData.limit)}
+                    </span>
+                    <Button
+                      variant="outline" size="sm" disabled={reviewPage >= Math.ceil(reviewsData.total / reviewsData.limit)} className="rounded-none"
+                      onClick={() => setReviewPage(p => p + 1)}
+                    >Next →</Button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Empty state */}
+            {reviewsData && reviewsData.stats.totalReviews === 0 && (
+              <div className="border border-dashed border-border p-12 text-center">
+                <Star className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="font-medium mb-1">No reviews yet</p>
+                <p className="text-sm text-muted-foreground">Be the first to share your experience with this product.</p>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Review Write/Edit Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-background border border-border w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="font-serif text-lg font-bold">{editingReview ? "Edit Your Review" : "Write a Review"}</h3>
+              <button onClick={() => setShowReviewModal(false)} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleReviewSubmit} className="p-6 space-y-5">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Rating *</label>
+                <StarRating
+                  value={reviewForm.rating}
+                  onChange={v => setReviewForm(f => ({ ...f, rating: v }))}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Title <span className="text-muted-foreground">(optional)</span></label>
+                <input
+                  type="text"
+                  maxLength={120}
+                  value={reviewForm.title}
+                  onChange={e => setReviewForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="Summarise your experience"
+                  className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Comment * <span className="text-muted-foreground text-xs">(min 10 chars)</span></label>
+                <textarea
+                  rows={4}
+                  maxLength={2000}
+                  value={reviewForm.comment}
+                  onChange={e => setReviewForm(f => ({ ...f, comment: e.target.value }))}
+                  placeholder="Tell others what you think about this product..."
+                  className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                />
+                <p className="text-xs text-muted-foreground text-right mt-1">{reviewForm.comment.length}/2000</p>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button type="button" variant="outline" className="flex-1 rounded-none" onClick={() => setShowReviewModal(false)}>Cancel</Button>
+                <Button type="submit" className="flex-1 rounded-none uppercase tracking-widest text-xs"
+                  disabled={createReviewMutation.isPending || updateReviewMutation.isPending}>
+                  {createReviewMutation.isPending || updateReviewMutation.isPending ? "Saving…" : editingReview ? "Update Review" : "Submit Review"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Shipping & Returns info tabs */}
       <div className="border border-border mb-20">

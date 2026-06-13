@@ -766,26 +766,131 @@ export const ListProductReviewsParams = zod.object({
   "id": zod.coerce.number()
 })
 
-export const ListProductReviewsResponseItem = zod.object({
+export const ListProductReviewsResponse = zod.object({
+  "stats": zod.object({
+  "averageRating": zod.number(),
+  "totalReviews": zod.number(),
+  "distribution": zod.object({
+  "1": zod.number(),
+  "2": zod.number(),
+  "3": zod.number(),
+  "4": zod.number(),
+  "5": zod.number()
+})
+}),
+  "reviews": zod.array(zod.object({
   "id": zod.number(),
   "productId": zod.number(),
   "userId": zod.number(),
+  "orderId": zod.number().nullish(),
   "userName": zod.string().optional(),
   "userAvatar": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "productImageUrl": zod.string().nullish(),
   "rating": zod.number(),
+  "title": zod.string().nullish(),
   "comment": zod.string().nullish(),
-  "createdAt": zod.string()
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "total": zod.number(),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "canReview": zod.boolean().optional(),
+  "userReview": zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "userId": zod.number(),
+  "orderId": zod.number().nullish(),
+  "userName": zod.string().optional(),
+  "userAvatar": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "productImageUrl": zod.string().nullish(),
+  "rating": zod.number(),
+  "title": zod.string().nullish(),
+  "comment": zod.string().nullish(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).optional()
 })
-export const ListProductReviewsResponse = zod.array(ListProductReviewsResponseItem)
 
 
 export const CreateReviewParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const createReviewBodyRatingMax = 5;
+
+export const createReviewBodyTitleMax = 120;
+
+export const createReviewBodyCommentMin = 10;
+export const createReviewBodyCommentMax = 2000;
+
+
+
 export const CreateReviewBody = zod.object({
+  "rating": zod.number().min(1).max(createReviewBodyRatingMax),
+  "title": zod.string().max(createReviewBodyTitleMax).optional(),
+  "comment": zod.string().min(createReviewBodyCommentMin).max(createReviewBodyCommentMax).optional(),
+  "orderId": zod.number().optional()
+})
+
+
+export const GetMyReviewsResponseItem = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "userId": zod.number(),
+  "orderId": zod.number().nullish(),
+  "userName": zod.string().optional(),
+  "userAvatar": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "productImageUrl": zod.string().nullish(),
   "rating": zod.number(),
-  "comment": zod.string().optional()
+  "title": zod.string().nullish(),
+  "comment": zod.string().nullish(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetMyReviewsResponse = zod.array(GetMyReviewsResponseItem)
+
+
+export const UpdateReviewParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateReviewBodyRatingMax = 5;
+
+export const updateReviewBodyTitleMax = 120;
+
+export const updateReviewBodyCommentMin = 10;
+export const updateReviewBodyCommentMax = 2000;
+
+
+
+export const UpdateReviewBody = zod.object({
+  "rating": zod.number().min(1).max(updateReviewBodyRatingMax).optional(),
+  "title": zod.string().max(updateReviewBodyTitleMax).optional(),
+  "comment": zod.string().min(updateReviewBodyCommentMin).max(updateReviewBodyCommentMax).optional()
+})
+
+export const UpdateReviewResponse = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "userId": zod.number(),
+  "orderId": zod.number().nullish(),
+  "userName": zod.string().optional(),
+  "userAvatar": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "productImageUrl": zod.string().nullish(),
+  "rating": zod.number(),
+  "title": zod.string().nullish(),
+  "comment": zod.string().nullish(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
 })
 
 
@@ -795,6 +900,37 @@ export const DeleteReviewParams = zod.object({
 
 export const DeleteReviewResponse = zod.object({
   "message": zod.string()
+})
+
+
+export const AdminListReviewsQueryParams = zod.object({
+  "page": zod.coerce.number().optional(),
+  "limit": zod.coerce.number().optional(),
+  "rating": zod.coerce.number().optional(),
+  "productId": zod.coerce.number().optional(),
+  "search": zod.coerce.string().optional()
+})
+
+export const AdminListReviewsResponse = zod.object({
+  "reviews": zod.array(zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "userId": zod.number(),
+  "orderId": zod.number().nullish(),
+  "userName": zod.string().optional(),
+  "userAvatar": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "productImageUrl": zod.string().nullish(),
+  "rating": zod.number(),
+  "title": zod.string().nullish(),
+  "comment": zod.string().nullish(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "total": zod.number(),
+  "page": zod.number(),
+  "limit": zod.number()
 })
 
 

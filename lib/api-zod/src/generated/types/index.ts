@@ -7,6 +7,8 @@
  */
 
 export * from './addressInput';
+export * from './adminListReviewsParams';
+export * from './adminReviewsResponse';
 export * from './analyticsSummary';
 export * from './auditLogEntry';
 export * from './auditLogList';
@@ -62,6 +64,7 @@ export * from './product';
 export * from './productImage';
 export * from './productInput';
 export * from './productListResponse';
+export * from './productReviewsResponse';
 export * from './productUpdate';
 export * from './productVariant';
 export * from './refreshInput';
@@ -69,6 +72,9 @@ export * from './refreshResult';
 export * from './registerInput';
 export * from './review';
 export * from './reviewInput';
+export * from './reviewStats';
+export * from './reviewStatsDistribution';
+export * from './reviewUpdateInput';
 export * from './salesDataPoint';
 export * from './securityOverview';
 export * from './securityOverviewTrendItem';
