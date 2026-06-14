@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useListBanners, useGetFeaturedProducts, useGetNewArrivals, useListCategories, useGetBestSellers } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Truck, RotateCcw, ShieldCheck, CreditCard, Star, ChevronLeft, ChevronRight } from "lucide-react";
@@ -20,6 +21,7 @@ type FaqItem = { id: number; questionEn: string; questionAr: string; answerEn: s
 
 export default function Home() {
   const { language, t } = useLanguage();
+  useSEO({ title: "Fashion for the Modern World", description: "Discover curated fashion collections at Velora. Shop new arrivals, featured pieces, and exclusive styles." });
   const { data: banners } = useListBanners();
   const { data: featured } = useGetFeaturedProducts();
   const { data: newArrivals } = useGetNewArrivals();
@@ -99,7 +101,7 @@ export default function Home() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
               <p className="text-xs uppercase tracking-[0.3em] font-medium mb-6 text-primary/60">{t("home.newCollection")} 2025</p>
-              <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 text-primary">LUXE</h1>
+              <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 text-primary">Velora</h1>
               <p className="text-lg text-primary/70 mb-10 max-w-md mx-auto">{t("home.curatedFashion")}</p>
               <Button size="lg" className="rounded-none px-10 py-6 text-base font-semibold tracking-widest uppercase" asChild>
                 <Link href="/products">{t("home.exploreCollection")}</Link>

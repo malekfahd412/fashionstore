@@ -365,6 +365,44 @@ router.post("/payments/manual", requireAuth, async (req, res): Promise<void> => 
   res.status(201).json(record);
 });
 
+// ── GET /payments/my — Customer payment history ───────────────────────────────
+router.get("/payments/my", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.user!.id;
+
+  const paymobPayments = await db
+    .select({
+      id: paymentsTable.id,
+      orderId: paymentsTable.orderId,
+      amountCents: paymentsTable.amountCents,
+      currency: paymentsTable.currency,
+      status: paymentsTable.status,
+      method: paymentsTable.method,
+      createdAt: paymentsTable.createdAt,
+    })
+    .from(paymentsTable)
+    .innerJoin(ordersTable, eq(paymentsTable.orderId, ordersTable.id))
+    .where(eq(ordersTable.userId, userId))
+    .orderBy(desc(paymentsTable.createdAt));
+
+  const manualPayments = await db
+    .select({
+      id: manualPaymentsTable.id,
+      orderId: manualPaymentsTable.orderId,
+      method: manualPaymentsTable.method,
+      status: manualPaymentsTable.status,
+      referenceNumber: manualPaymentsTable.referenceNumber,
+      adminNote: manualPaymentsTable.adminNote,
+      createdAt: manualPaymentsTable.createdAt,
+      orderTotal: ordersTable.totalPrice,
+    })
+    .from(manualPaymentsTable)
+    .innerJoin(ordersTable, eq(manualPaymentsTable.orderId, ordersTable.id))
+    .where(eq(ordersTable.userId, userId))
+    .orderBy(desc(manualPaymentsTable.createdAt));
+
+  res.json({ paymob: paymobPayments, manual: manualPayments });
+});
+
 // ── GET /admin/payments/manual ────────────────────────────────────────────
 router.get("/admin/payments/manual", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
   const status = req.query.status as string | undefined;

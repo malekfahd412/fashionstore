@@ -355,7 +355,7 @@ router.get("/orders/:id/invoice", requireAuth, async (req, res): Promise<void> =
   doc.pipe(res);
 
   // Header
-  doc.fontSize(28).font("Helvetica-Bold").text("LUXE", 50, 50);
+  doc.fontSize(28).font("Helvetica-Bold").text("Velora", 50, 50);
   doc.fontSize(10).font("Helvetica").fillColor("#666").text("Premium Fashion", 50, 85);
   doc.fillColor("#000").fontSize(20).font("Helvetica-Bold").text("INVOICE", 400, 50, { align: "right" });
   doc.fontSize(10).font("Helvetica").fillColor("#444");
@@ -423,7 +423,7 @@ router.get("/orders/:id/invoice", requireAuth, async (req, res): Promise<void> =
 
   // Footer
   doc.fontSize(9).font("Helvetica").fillColor("#aaa")
-    .text("Thank you for shopping with LUXE.", 50, 760, { align: "center", width: 495 });
+    .text("Thank you for shopping with Velora.", 50, 760, { align: "center", width: 495 });
 
   doc.end();
 });

@@ -1,0 +1,1111 @@
+PHASE 4 — VELORA ENTERPRISE POLISH & BUSINESS READINESS
+
+
+
+IMPORTANT:
+
+
+
+* Rename brand from LUXE to Velora everywhere.
+
+* DO NOT create fake content.
+
+* DO NOT create placeholder data.
+
+* DO NOT add mock reviews.
+
+* Focus on real functionality only.
+
+* Preserve existing database data.
+
+
+
+====================================================
+
+PART 1 — GLOBAL BRAND MIGRATION
+
+===============================
+
+
+
+Replace all visible references:
+
+
+
+LUXE
+
+LUXE Fashion Store
+
+LUXE Admin
+
+LUXE Store
+
+
+
+with:
+
+
+
+Velora
+
+Velora Store
+
+Velora Admin
+
+
+
+Audit:
+
+
+
+* Navbar
+
+* Footer
+
+* Email templates
+
+* Page titles
+
+* SEO metadata
+
+* OpenGraph tags
+
+* Manifest
+
+* Notifications
+
+* Admin panel
+
+* Dashboard
+
+* Checkout
+
+* Order emails
+
+
+
+No old branding should remain.
+
+
+
+====================================================
+
+PART 2 — CUSTOMER SUPPORT CENTER
+
+================================
+
+
+
+Build complete support system.
+
+
+
+Customer:
+
+
+
+* Open support ticket
+
+* Select category
+
+* Write message
+
+* Attach order reference
+
+* View ticket history
+
+* Reply to tickets
+
+
+
+Admin:
+
+
+
+* Ticket queue
+
+* Open / Pending / Resolved
+
+* Assign status
+
+* Internal notes
+
+* Reply to customer
+
+
+
+Notifications:
+
+
+
+* Customer notified on reply
+
+* Customer notified on status change
+
+
+
+====================================================
+
+PART 3 — ORDER EXPERIENCE UPGRADE
+
+=================================
+
+
+
+Upgrade order tracking.
+
+
+
+Add:
+
+
+
+* Estimated delivery date
+
+* Shipping progress percentage
+
+* Current stage description
+
+* Last update timestamp
+
+* Payment status section
+
+* Order activity log
+
+
+
+Customer should clearly understand where the order is.
+
+
+
+====================================================
+
+PART 4 — CUSTOMER COMMUNICATION HUB
+
+===================================
+
+
+
+Inside Customer Portal:
+
+
+
+Add:
+
+
+
+* My Orders
+
+* My Reviews
+
+* My Addresses
+
+* Notifications
+
+* Support Tickets
+
+* Saved Coupons
+
+* Payment History
+
+
+
+Everything should be searchable and paginated.
+
+
+
+====================================================
+
+PART 5 — NEWSLETTER SYSTEM
+
+==========================
+
+
+
+Verify newsletter end-to-end.
+
+
+
+Requirements:
+
+
+
+* Subscribe
+
+* Unsubscribe
+
+* Admin subscriber list
+
+* Export CSV
+
+* Duplicate protection
+
+* Validation
+
+
+
+No fake subscribers.
+
+
+
+====================================================
+
+PART 6 — CONTACT US SYSTEM
+
+==========================
+
+
+
+Verify:
+
+
+
+Contact form
+
+Admin inbox
+
+Email notifications
+
+Status tracking
+
+
+
+Admin can:
+
+
+
+* Mark as read
+
+* Archive
+
+* Reply
+
+
+
+====================================================
+
+PART 7 — SEO & DISCOVERABILITY
+
+==============================
+
+
+
+Implement:
+
+
+
+* Dynamic page titles
+
+* Dynamic meta descriptions
+
+* Canonical URLs
+
+* Product structured data
+
+* Breadcrumb structured data
+
+* OpenGraph metadata
+
+* Twitter metadata
+
+* robots.txt
+
+* sitemap.xml generation
+
+
+
+====================================================
+
+PART 8 — PERFORMANCE PASS
+
+=========================
+
+
+
+Audit:
+
+
+
+* React Query requests
+
+* Duplicate fetches
+
+* Large renders
+
+* Product listing performance
+
+* Dashboard performance
+
+
+
+Requirements:
+
+
+
+* Remove unnecessary requests
+
+* Add caching where appropriate
+
+* Optimize expensive renders
+
+* Eliminate N+1 patterns
+
+
+
+====================================================
+
+PART 9 — ACCESSIBILITY
+
+======================
+
+
+
+Audit entire storefront.
+
+
+
+Fix:
+
+
+
+* Missing labels
+
+* Missing alt tags
+
+* Keyboard navigation
+
+* Focus states
+
+* Contrast issues
+
+
+
+====================================================
+
+PART 10 — ADMIN EXPERIENCE
+
+==========================
+
+
+
+Improve admin workflows.
+
+
+
+Add:
+
+
+
+* Better success messages
+
+* Better error messages
+
+* Loading indicators
+
+* Empty states
+
+* Confirmation dialogs
+
+
+
+Every admin action should feel professional.
+
+
+
+====================================================
+
+PART 11 — DATA INTEGRITY AUDIT
+
+==============================
+
+
+
+Verify all critical flows:
+
+
+
+Products
+
+Categories
+
+Coupons
+
+Orders
+
+Reviews
+
+Payments
+
+Users
+
+Tickets
+
+Newsletter
+
+Settings
+
+
+
+Requirements:
+
+
+
+* No orphaned records
+
+* No broken references
+
+* No silent failures
+
+* Proper validation everywhere
+
+
+
+====================================================
+
+FINAL REPORT
+
+============
+
+
+
+Provide:
+
+
+
+1. Files changed.
+
+2. Database changes.
+
+3. API routes added.
+
+4. Remaining issues.
+
+5. Production readiness score.
+
+6. Any migrations required after moving to another Replit account.
+
+7. Any secrets required after moving to another Replit account.
+
+
+
+Do not add demo data.
+
+Do not add fake content.
+
+Do not create placeholder reviews.
+
+
+
+Goal:
+
+Make Velora feel like a real production e-commerce platform, not a demo project.
+
+
+
+PHASE 5 — VELORA ADVANCED COMMERCE ECOSYSTEM
+
+
+
+IMPORTANT
+
+
+
+This phase begins ONLY after all existing functionality is verified stable.
+
+
+
+Do NOT break existing flows.
+
+
+
+Run typecheck and verify critical customer journeys after every major change.
+
+
+
+====================================================
+
+PART 1 — LOYALTY & REWARDS SYSTEM
+
+=================================
+
+
+
+Build a real loyalty program.
+
+
+
+Customer earns points for:
+
+
+
+* Completed orders
+
+* Product reviews
+
+* First purchase
+
+* Milestone purchases
+
+
+
+Features:
+
+
+
+* Points balance
+
+* Rewards history
+
+* Points expiration support
+
+* Discount redemption
+
+* Reward dashboard
+
+
+
+Admin:
+
+
+
+* Configure earning rules
+
+* Configure redemption rules
+
+* Adjust balances manually
+
+* View loyalty analytics
+
+
+
+====================================================
+
+PART 2 — REFERRAL SYSTEM
+
+========================
+
+
+
+Customer receives a referral code.
+
+
+
+Flow:
+
+
+
+Customer A shares code
+
+
+
+Customer B registers and purchases
+
+
+
+Both receive rewards
+
+
+
+Requirements:
+
+
+
+* Unique referral codes
+
+* Referral tracking
+
+* Fraud prevention
+
+* Referral dashboard
+
+* Referral analytics
+
+
+
+Admin:
+
+
+
+* View referrals
+
+* Disable abuse
+
+* Configure rewards
+
+
+
+====================================================
+
+PART 3 — WHATSAPP NOTIFICATION SYSTEM
+
+=====================================
+
+
+
+Integrate WhatsApp notifications.
+
+
+
+Events:
+
+
+
+* Order placed
+
+* Payment approved
+
+* Order shipped
+
+* Order delivered
+
+* Password reset
+
+* Support ticket reply
+
+
+
+Admin settings:
+
+
+
+* Enable/disable notifications
+
+* WhatsApp credentials
+
+* Template management
+
+
+
+Must gracefully degrade if not configured.
+
+
+
+====================================================
+
+PART 4 — ADVANCED CUSTOMER PROFILE
+
+==================================
+
+
+
+Expand customer accounts.
+
+
+
+Add:
+
+
+
+* Reward history
+
+* Referral history
+
+* Purchase history analytics
+
+* Favorite categories
+
+* Recently viewed products
+
+* Saved payment methods (metadata only)
+
+* Communication preferences
+
+
+
+Everything must be customer-controlled.
+
+
+
+====================================================
+
+PART 5 — PERSONALIZED EXPERIENCE
+
+================================
+
+
+
+Implement recommendation engine.
+
+
+
+Show:
+
+
+
+* Recently viewed
+
+* Recommended for you
+
+* Similar products
+
+* Frequently bought together
+
+
+
+Rules:
+
+
+
+* Real data only
+
+* No fake recommendations
+
+* Must gracefully hide when insufficient data exists
+
+
+
+====================================================
+
+PART 6 — PWA & MOBILE EXPERIENCE
+
+================================
+
+
+
+Convert Velora into a Progressive Web App.
+
+
+
+Add:
+
+
+
+* Manifest
+
+* Install prompt
+
+* Offline fallback page
+
+* Mobile optimization
+
+* Touch-friendly controls
+
+
+
+Requirements:
+
+
+
+* Lighthouse friendly
+
+* Responsive on all screens
+
+
+
+====================================================
+
+PART 7 — INVENTORY INTELLIGENCE
+
+===============================
+
+
+
+Upgrade stock management.
+
+
+
+Features:
+
+
+
+* Low stock alerts
+
+* Out-of-stock alerts
+
+* Inventory history
+
+* Stock movement logs
+
+* Reorder thresholds
+
+
+
+Admin dashboard:
+
+
+
+* Inventory health panel
+
+* Low stock overview
+
+
+
+====================================================
+
+PART 8 — ADVANCED COUPON SYSTEM
+
+===============================
+
+
+
+Expand coupons.
+
+
+
+Add:
+
+
+
+* First order coupons
+
+* Category-specific coupons
+
+* Product-specific coupons
+
+* Minimum spend rules
+
+* Customer-specific coupons
+
+* Auto-apply coupons
+
+* Usage analytics
+
+
+
+====================================================
+
+PART 9 — BUSINESS ANALYTICS PRO
+
+===============================
+
+
+
+Create executive-level reporting.
+
+
+
+Admin analytics:
+
+
+
+* Revenue trends
+
+* Customer lifetime value
+
+* Repeat purchase rate
+
+* Conversion metrics
+
+* Top customer reports
+
+* Coupon performance
+
+* Loyalty performance
+
+* Referral performance
+
+
+
+Use real database data only.
+
+
+
+====================================================
+
+PART 10 — EMAIL AUTOMATION ENGINE
+
+=================================
+
+
+
+Create automation workflows.
+
+
+
+Triggers:
+
+
+
+* Welcome series
+
+* Abandoned cart reminder
+
+* Review request after delivery
+
+* Re-engagement campaigns
+
+* Loyalty milestones
+
+
+
+Requirements:
+
+
+
+* Opt-in support
+
+* Unsubscribe support
+
+* Delivery tracking
+
+* Failure handling
+
+
+
+====================================================
+
+PART 11 — SECURITY HARDENING
+
+============================
+
+
+
+Add:
+
+
+
+* Optional 2FA (email OTP)
+
+* Login activity history
+
+* Device management
+
+* Session management
+
+* Security notifications
+
+
+
+Customer can:
+
+
+
+* View active sessions
+
+* Revoke sessions
+
+* Review login history
+
+
+
+====================================================
+
+PART 12 — MARKETPLACE FOUNDATION
+
+================================
+
+
+
+Prepare future multi-vendor support.
+
+
+
+Without breaking current architecture:
+
+
+
+* Vendor performance metrics
+
+* Vendor payout tracking
+
+* Vendor quality scores
+
+* Vendor SLA monitoring
+
+
+
+Keep architecture extensible.
+
+
+
+====================================================
+
+PART 13 — PRODUCTION QUALITY GATE
+
+=================================
+
+
+
+Before completion verify:
+
+
+
+Register
+
+Login
+
+Google Login
+
+Forgot Password
+
+Products
+
+Reviews
+
+Wishlist
+
+Cart
+
+Checkout
+
+Payments
+
+Order Tracking
+
+Customer Dashboard
+
+Admin Panel
+
+Settings
+
+Support
+
+Newsletter
+
+
+
+All must function correctly.
+
+
+
+====================================================
+
+FINAL REPORT
+
+============
+
+
+
+Provide:
+
+
+
+1. Features implemented
+
+2. Files changed
+
+3. Database migrations
+
+4. New APIs
+
+5. Required secrets
+
+6. Manual setup steps
+
+7. Performance impact
+
+8. Security impact
+
+9. Production readiness score
+
+10. Recommended Phase 6 roadmap
+
+
+
+Brand must remain:
+
+
+
+Velora
+
+
+
+No fake data.
+
+No mock content.
+
+No placeholder reviews.
+
+No hardcoded analytics.
+
+Everything must be driven by real data and real user activity.

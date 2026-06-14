@@ -97,7 +97,7 @@ export function Navbar() {
             </button>
 
             <Link href="/" className="shrink-0">
-              <span className="font-serif text-2xl font-bold tracking-tight text-primary">LUXE</span>
+              <span className="font-serif text-2xl font-bold tracking-tight text-primary">Velora</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1 ml-4">
@@ -136,7 +136,7 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="hidden sm:flex items-center justify-center w-9 h-9 hover:bg-muted rounded-md transition-colors">
+                  <button aria-label="Account menu" className="hidden sm:flex items-center justify-center w-9 h-9 hover:bg-muted rounded-md transition-colors">
                     <User className="h-5 w-5" />
                   </button>
                 </DropdownMenuTrigger>

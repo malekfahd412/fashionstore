@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, contactMessagesTable, storeSettingsTable } from "@workspace/db";
 import { eq, desc, count } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
-import { sendContactConfirmation, sendContactAdminNotification } from "../lib/email";
+import { sendContactConfirmation, sendContactAdminNotification, sendContactReply } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -73,6 +73,26 @@ router.delete("/admin/contact-messages/:id", requireAuth, requireRole("admin"), 
   if (!id) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(contactMessagesTable).where(eq(contactMessagesTable.id, id));
   res.json({ message: "Message deleted" });
+});
+
+// ── Admin: reply to a contact message via email ──────────────────────────────
+router.post("/admin/contact-messages/:id/reply", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!id) { res.status(400).json({ error: "Invalid id" }); return; }
+  const { message } = req.body ?? {};
+  if (!message || typeof message !== "string" || message.trim().length < 1) {
+    res.status(400).json({ error: "Reply message is required" }); return;
+  }
+  const [msg] = await db.select().from(contactMessagesTable).where(eq(contactMessagesTable.id, id));
+  if (!msg) { res.status(404).json({ error: "Message not found" }); return; }
+
+  await db.update(contactMessagesTable).set({ status: "replied" }).where(eq(contactMessagesTable.id, id));
+
+  void (async () => {
+    try { await sendContactReply(msg.email, msg.name, message.trim()); } catch { /* non-critical */ }
+  })();
+
+  res.json({ message: "Reply sent" });
 });
 
 export default router;

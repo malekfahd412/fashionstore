@@ -49,7 +49,7 @@ function validateSettingsUpdate(updates: unknown): { valid: boolean; error?: str
 }
 
 const FULL_SETTINGS: SettingsMap = {
-  store_name: "LUXE",
+  store_name: "Velora",
   store_name_ar: "لوكس",
   store_logo: "https://cdn.example.com/logo.png",
   contact_email: "support@luxe.com",
@@ -61,7 +61,7 @@ const FULL_SETTINGS: SettingsMap = {
   social_twitter: "",
   social_tiktok: "",
   social_youtube: "",
-  seo_title: "LUXE — Premium Fashion",
+  seo_title: "Velora — Premium Fashion",
   seo_description: "Discover luxury fashion.",
   seo_keywords: "fashion, luxury",
   payment_cod_enabled: "true",
@@ -77,7 +77,7 @@ const FULL_SETTINGS: SettingsMap = {
   paymob_integration_id_card: "99999",
   paymob_integration_id_meeza: "88888",
   paymob_integration_id_vodafone: "77777",
-  email_from_name: "LUXE Store",
+  email_from_name: "Velora Store",
   email_from_address: "no-reply@luxe.com",
 };
 
@@ -86,7 +86,7 @@ describe("Settings — Public filter", () => {
   const pub = filterPublicSettings(FULL_SETTINGS);
 
   it("public response contains store_name", () => {
-    expect(pub.store_name).toBe("LUXE");
+    expect(pub.store_name).toBe("Velora");
   });
 
   it("public response does NOT contain Paymob iframe ID", () => {
@@ -127,7 +127,7 @@ describe("Settings — Update validation", () => {
   });
 
   it("rejects array body", () => {
-    expect(validateSettingsUpdate(["store_name", "LUXE"]).valid).toBe(false);
+    expect(validateSettingsUpdate(["store_name", "Velora"]).valid).toBe(false);
   });
 
   it("rejects empty object", () => {

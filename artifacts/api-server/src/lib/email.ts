@@ -1,7 +1,7 @@
 import { logger } from "./logger";
 
 const APP_URL = () => process.env.APP_URL ?? "https://luxestore.com";
-const FROM_NAME = () => process.env.RESEND_FROM_NAME ?? "LUXE Store";
+const FROM_NAME = () => process.env.RESEND_FROM_NAME ?? "Velora Store";
 const FROM_EMAIL = () => process.env.RESEND_FROM_EMAIL ?? "noreply@luxestore.com";
 const FROM = () => `${FROM_NAME()} <${FROM_EMAIL()}>`;
 
@@ -63,12 +63,12 @@ function wrap(body: string): string {
 <body style="margin:0;padding:0;background:#f5f5f5">
   <div style="${baseStyle}">
     <div style="${headerStyle}">
-      <h1 style="color:#d4af37;font-size:28px;letter-spacing:4px;margin:0;font-weight:400">LUXE</h1>
+      <h1 style="color:#d4af37;font-size:28px;letter-spacing:4px;margin:0;font-weight:400">Velora</h1>
     </div>
     <div style="${bodyStyle}">${body}</div>
     <div style="${footerStyle}">
-      <p style="margin:0">© ${new Date().getFullYear()} LUXE Fashion. All rights reserved.</p>
-      <p style="margin:8px 0 0">You received this email because you have an account with LUXE.</p>
+      <p style="margin:0">© ${new Date().getFullYear()} Velora. All rights reserved.</p>
+      <p style="margin:8px 0 0">You received this email because you have an account with Velora.</p>
     </div>
   </div>
 </body>
@@ -77,9 +77,9 @@ function wrap(body: string): string {
 
 export async function sendVerificationEmail(email: string, name: string, token: string): Promise<void> {
   const url = `${APP_URL()}/verify-email?token=${token}`;
-  await send(email, "Verify your LUXE account", wrap(`
+  await send(email, "Verify your Velora account", wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome, ${name}</h2>
-    <p style="line-height:1.7;color:#444">Thank you for joining LUXE. Please verify your email address to complete your registration.</p>
+    <p style="line-height:1.7;color:#444">Thank you for joining Velora. Please verify your email address to complete your registration.</p>
     <div style="text-align:center">
       <a href="${url}" style="${btnStyle}">VERIFY EMAIL</a>
     </div>
@@ -89,7 +89,7 @@ export async function sendVerificationEmail(email: string, name: string, token: 
 
 export async function sendPasswordResetEmail(email: string, name: string, token: string): Promise<void> {
   const url = `${APP_URL()}/reset-password?token=${token}`;
-  await send(email, "Reset your LUXE password", wrap(`
+  await send(email, "Reset your Velora password", wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Password Reset</h2>
     <p style="line-height:1.7;color:#444">Hi ${name}, we received a request to reset your password. Click the button below to set a new password.</p>
     <div style="text-align:center">
@@ -203,9 +203,9 @@ export async function sendNewLoginEmail(opts: {
   const locationRow = opts.location
     ? `<p style="margin:0 0 8px"><strong>Approximate Location:</strong> ${opts.location}</p>`
     : "";
-  await send(opts.email, "New sign-in to your LUXE account", wrap(`
+  await send(opts.email, "New sign-in to your Velora account", wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">New Sign-In Detected</h2>
-    <p style="line-height:1.7;color:#444">Hi ${opts.name}, we noticed a new sign-in to your LUXE account from a device we haven't seen before.</p>
+    <p style="line-height:1.7;color:#444">Hi ${opts.name}, we noticed a new sign-in to your Velora account from a device we haven't seen before.</p>
     <div style="background:#f9f9f9;padding:20px;margin:20px 0;border-left:3px solid #d4af37">
       <p style="margin:0 0 8px"><strong>Time:</strong> ${timeStr}</p>
       ${locationRow}
@@ -235,7 +235,7 @@ export async function sendForcePasswordResetEmail(opts: {
   const locationRow = opts.location
     ? `<p style="margin:0 0 8px"><strong>Approximate Location:</strong> ${opts.location}</p>`
     : "";
-  await send(opts.email, "⚠️ Your LUXE account password must be reset", wrap(`
+  await send(opts.email, "⚠️ Your Velora account password must be reset", wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px;color:#b91c1c">Security Alert: Forced Password Reset</h2>
     <p style="line-height:1.7;color:#444">Hi ${opts.name},</p>
     <p style="line-height:1.7;color:#444">Our security team detected a sign-in to your account that matches a known credential-stuffing attack. As a precaution, your password has been reset and all active sessions have been terminated.</p>
@@ -309,8 +309,8 @@ export async function sendPaymentFailedEmail(
 }
 
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
-  await send(email, `Welcome to LUXE, ${name}`, wrap(`
-    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to LUXE</h2>
+  await send(email, `Welcome to Velora, ${name}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to Velora</h2>
     <p style="line-height:1.7;color:#444">Hi ${name}, your account has been created successfully.</p>
     <p style="line-height:1.7;color:#444">Discover our curated collection of premium fashion and accessories.</p>
     <div style="text-align:center">
@@ -320,9 +320,9 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
 }
 
 export async function sendContactConfirmation(to: string, name: string, messageSnippet: string): Promise<void> {
-  await send(to, "We received your message — LUXE", wrap(`
+  await send(to, "We received your message — Velora", wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Message Received</h2>
-    <p style="line-height:1.7;color:#444">Hi ${name}, thank you for contacting LUXE.</p>
+    <p style="line-height:1.7;color:#444">Hi ${name}, thank you for contacting Velora.</p>
     <p style="line-height:1.7;color:#444">We've received your message and will get back to you within 1–2 business days.</p>
     <div style="background:#f9f9f9;padding:16px 20px;margin:20px 0;border-left:3px solid #d4af37;font-style:italic;color:#666">
       "${messageSnippet}"
@@ -349,11 +349,23 @@ export async function sendContactAdminNotification(adminEmail: string, from: { n
   `));
 }
 
+export async function sendContactReply(to: string, name: string, replyMessage: string): Promise<void> {
+  await send(to, `Re: Your message to ${FROM_NAME()}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Hi ${name},</h2>
+    <p style="line-height:1.7;color:#444">Thank you for reaching out to us. Here is our response to your inquiry:</p>
+    <div style="border-left:3px solid #065f46;padding:12px 16px;background:#f9f9f9;margin:16px 0;white-space:pre-wrap;font-size:14px;line-height:1.7;color:#444">${replyMessage}</div>
+    <p style="line-height:1.7;color:#444">If you have further questions, please don't hesitate to contact us again.</p>
+    <div style="text-align:center;margin-top:24px">
+      <a href="${APP_URL()}/contact" style="${btnStyle}">CONTACT US AGAIN</a>
+    </div>
+  `));
+}
+
 export async function sendNewsletterWelcome(to: string, unsubscribeToken: string): Promise<void> {
   const unsubUrl = `${APP_URL()}/newsletter/unsubscribe?token=${unsubscribeToken}`;
-  await send(to, "Welcome to LUXE — You're subscribed!", wrap(`
-    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to LUXE</h2>
-    <p style="line-height:1.7;color:#444">Thank you for subscribing to LUXE updates. You'll be the first to know about new arrivals, exclusive sales, and fashion inspiration.</p>
+  await send(to, "Welcome to Velora — You're subscribed!", wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Welcome to Velora</h2>
+    <p style="line-height:1.7;color:#444">Thank you for subscribing to Velora updates. You'll be the first to know about new arrivals, exclusive sales, and fashion inspiration.</p>
     <div style="text-align:center">
       <a href="${APP_URL()}/products" style="${btnStyle}">SHOP NEW ARRIVALS</a>
     </div>

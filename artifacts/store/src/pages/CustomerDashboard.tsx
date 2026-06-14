@@ -16,10 +16,11 @@ import { useGetMyReviews, useUpdateReview, useDeleteReview, getGetMyReviewsQuery
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import SecurityCenterTab from "@/components/SecurityCenterTab";
+import { useSEO } from "@/hooks/useSEO";
 import {
   MapPin, Plus, Pencil, Trash2, Star, Package, ShoppingBag,
   Heart, Bell, Shield, Settings, LayoutDashboard, RefreshCw,
-  TrendingUp, Clock, Check, PenLine, CheckCircle2, X, FileDown, Headphones, Send, MessageCircle,
+  TrendingUp, Clock, Check, PenLine, CheckCircle2, X, FileDown, Headphones, Send, MessageCircle, CreditCard,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -180,6 +181,7 @@ export default function CustomerDashboard() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
+  useSEO({ title: "My Account", description: "Manage your Velora orders, addresses, wishlist, and account settings." });
 
   const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const tabParam = searchParams.get("tab");
@@ -309,6 +311,7 @@ export default function CustomerDashboard() {
     { value: "my-reviews", label: t("dash.tab.myReviews"), icon: Star },
     { value: "support", label: t("dash.tab.support"), icon: Shield },
     { value: "notifications", label: t("dash.tab.notifications"), icon: Bell, badge: unreadCount },
+    { value: "payment-history", label: t("dash.tab.paymentHistory"), icon: CreditCard },
     { value: "security", label: t("dash.tab.security"), icon: Shield },
     { value: "profile", label: t("dash.tab.profile"), icon: Settings },
   ];
@@ -770,6 +773,11 @@ export default function CustomerDashboard() {
             })()}
           </TabsContent>
 
+          {/* ── PAYMENT HISTORY ───────────────────────────────────────────── */}
+          <TabsContent value="payment-history" className="m-0 space-y-6">
+            <PaymentHistoryTab />
+          </TabsContent>
+
           {/* ── SECURITY ──────────────────────────────────────────────────── */}
           <TabsContent value="security" className="m-0">
             <SecurityCenterTab showAlert={alertParam === "1"} />
@@ -996,6 +1004,138 @@ const STATUS_COLORS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   open: "Open", in_progress: "In Progress", waiting_customer: "Waiting", resolved: "Resolved", closed: "Closed",
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Payment History Tab
+// ─────────────────────────────────────────────────────────────────────────────
+interface PaymobEntry {
+  id: number;
+  orderId: number;
+  amountCents: number;
+  currency: string;
+  status: string;
+  method: string;
+  createdAt: string;
+}
+interface ManualEntry {
+  id: number;
+  orderId: number;
+  method: string;
+  status: string;
+  referenceNumber: string | null;
+  adminNote: string | null;
+  createdAt: string;
+  orderTotal: string;
+}
+
+function PaymentHistoryTab() {
+  const { t } = useTranslation();
+  const [paymob, setPaymob] = useState<PaymobEntry[]>([]);
+  const [manual, setManual] = useState<ManualEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const data = await apiFetch<{ paymob: PaymobEntry[]; manual: ManualEntry[] }>("/api/payments/my");
+        setPaymob(data.paymob ?? []);
+        setManual(data.manual ?? []);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const statusColor = (s: string) =>
+    s === "success" || s === "approved" ? "bg-green-100 text-green-700"
+    : s === "failed" ? "bg-red-100 text-red-700"
+    : s === "pending" ? "bg-yellow-100 text-yellow-700"
+    : "bg-muted text-muted-foreground";
+
+  const methodLabel = (m: string) =>
+    m === "vodafone_cash" ? "Vodafone Cash"
+    : m === "etisalat_cash" ? "Etisalat Cash"
+    : m === "instapay" ? "InstaPay"
+    : m === "card" ? "Card"
+    : m;
+
+  const isEmpty = !loading && paymob.length === 0 && manual.length === 0;
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-serif font-bold">{t("dash.paymentHistory")}</h2>
+
+      {loading ? (
+        <div className="p-8 text-center text-muted-foreground text-sm">{t("dash.loading")}</div>
+      ) : isEmpty ? (
+        <div className="border border-border p-12 text-center">
+          <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+          <h3 className="font-medium mb-1">{t("dash.noPayments")}</h3>
+          <p className="text-muted-foreground text-sm">{t("dash.noPaymentsDesc")}</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {paymob.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">{t("dash.paymentType.paymob")}</h3>
+              <div className="border border-border bg-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted text-muted-foreground text-xs uppercase">
+                    <tr>
+                      {["Order", "Method", "Amount", "Status", "Date"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {paymob.map(p => (
+                      <tr key={p.id}>
+                        <td className="px-4 py-3 font-medium">#{p.orderId}</td>
+                        <td className="px-4 py-3 text-muted-foreground capitalize">{methodLabel(p.method)}</td>
+                        <td className="px-4 py-3 font-medium">{(p.amountCents / 100).toFixed(2)} {p.currency}</td>
+                        <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs capitalize rounded ${statusColor(p.status)}`}>{p.status}</span></td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{format(new Date(p.createdAt), "MMM d, yyyy")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {manual.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">{t("dash.paymentType.manual")}</h3>
+              <div className="border border-border bg-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted text-muted-foreground text-xs uppercase">
+                    <tr>
+                      {["Order", "Method", "Amount", "Reference", "Status", "Date"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {manual.map(m => (
+                      <tr key={m.id}>
+                        <td className="px-4 py-3 font-medium">#{m.orderId}</td>
+                        <td className="px-4 py-3 text-muted-foreground capitalize">{methodLabel(m.method)}</td>
+                        <td className="px-4 py-3 font-medium">{Number(m.orderTotal).toFixed(2)} EGP</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{m.referenceNumber ?? "—"}</td>
+                        <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs capitalize rounded ${statusColor(m.status)}`}>{m.status}</span></td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{format(new Date(m.createdAt), "MMM d, yyyy")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SupportTab({ userId }: { userId: number }) {
   void userId;

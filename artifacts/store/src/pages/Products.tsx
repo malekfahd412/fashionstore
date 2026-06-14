@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useListProducts, useListCategories } from "@workspace/api-client-react";
+import { useSEO } from "@/hooks/useSEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +11,7 @@ import { useLocation } from "wouter";
 
 export default function Products() {
   const { language, t } = useLanguage();
+  useSEO({ title: "Shop", description: "Browse Velora's full collection of fashion for women and men." });
   const [location] = useLocation();
 
   const urlParams = new URLSearchParams(

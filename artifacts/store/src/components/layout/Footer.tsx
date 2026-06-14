@@ -43,7 +43,7 @@ export function Footer() {
     <footer className="bg-foreground text-background py-12 mt-auto">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
         <div className="lg:col-span-2">
-          <h3 className="font-serif text-2xl font-bold mb-4">LUXE</h3>
+          <h3 className="font-serif text-2xl font-bold mb-4">Velora</h3>
           <p className="text-background/70 text-sm mb-4">{t("footer.tagline")}</p>
           <div className="flex gap-3">
             {["IG", "FB", "TW", "TK"].map((s) => (
@@ -104,7 +104,7 @@ export function Footer() {
       </div>
 
       <div className="container mx-auto px-4 mt-10 pt-8 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-background/50">
-        <p>&copy; {new Date().getFullYear()} LUXE Fashion Marketplace. {t("footer.allRightsReserved")}</p>
+        <p>&copy; {new Date().getFullYear()} Velora. {t("footer.allRightsReserved")}</p>
         <div className="flex gap-4">
           <Link href="/privacy-policy" className="hover:text-background/80 transition-colors">{t("footer.privacy")}</Link>
           <Link href="/terms" className="hover:text-background/80 transition-colors">{t("footer.termsShort")}</Link>

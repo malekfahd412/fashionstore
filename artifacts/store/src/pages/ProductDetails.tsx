@@ -7,6 +7,7 @@ import {
 } from "@workspace/api-client-react";
 import type { ProductReviewsResponse } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -121,6 +122,10 @@ export default function ProductDetails() {
 
   const { data: product, isLoading } = useGetProduct(productId, {
     query: { enabled: !!productId, queryKey: getGetProductQueryKey(productId) },
+  });
+  useSEO({
+    title: product ? (language === "en" ? product.nameEn : product.nameAr) : undefined,
+    description: product?.descriptionEn?.slice(0, 155) || undefined,
   });
   const { data: relatedProducts } = useGetRelatedProducts(productId, {
     query: { enabled: !!productId, queryKey: getGetRelatedProductsQueryKey(productId) },

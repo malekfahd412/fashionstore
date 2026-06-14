@@ -10,7 +10,7 @@ export const storeSettingsTable = pgTable("store_settings", {
 export type StoreSetting = typeof storeSettingsTable.$inferSelect;
 
 export const DEFAULT_SETTINGS: Record<string, string> = {
-  store_name: "LUXE",
+  store_name: "Velora",
   store_name_ar: "لوكس",
   store_logo: "",
   contact_email: "",
@@ -22,7 +22,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   social_twitter: "",
   social_tiktok: "",
   social_youtube: "",
-  email_from_name: "LUXE Store",
+  email_from_name: "Velora Store",
   email_from_address: "",
   payment_cod_enabled: "true",
   payment_paymob_enabled: "false",
@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   paymob_integration_id_vodafone: "",
   shipping_free_threshold: "500",
   shipping_fee: "50",
-  seo_title: "LUXE — Premium Fashion",
+  seo_title: "Velora — Premium Fashion",
   seo_description: "Discover the latest in luxury fashion. Shop premium clothing, accessories, and more.",
   seo_keywords: "fashion, luxury, clothing, accessories",
   homepage_show_banners: "true",

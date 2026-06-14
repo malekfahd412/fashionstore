@@ -553,6 +553,9 @@ function AdminContactMessagesTab() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ContactMsg | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [replying, setReplying] = useState(false);
+  const [replySuccess, setReplySuccess] = useState(false);
 
   const load = async () => {
     try { const data = await apiFetch<{ messages: ContactMsg[]; total: number }>('/api/admin/contact-messages'); setMessages(data.messages); setTotal(data.total); } finally { setLoading(false); }
@@ -572,7 +575,23 @@ function AdminContactMessagesTab() {
     void load();
   };
 
-  const statusColor = (s: string) => s === 'new' ? 'bg-blue-100 text-blue-700' : s === 'replied' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground';
+  const sendReply = async () => {
+    if (!selected || !replyText.trim()) return;
+    setReplying(true);
+    try {
+      await apiFetch(`/api/admin/contact-messages/${selected.id}/reply`, { method: 'POST', body: JSON.stringify({ message: replyText.trim() }) } as RequestInit);
+      setReplyText('');
+      setReplySuccess(true);
+      setTimeout(() => setReplySuccess(false), 3000);
+      void load();
+    } finally {
+      setReplying(false);
+    }
+  };
+
+  const selectMsg = (msg: ContactMsg) => { setSelected(msg); setReplyText(''); setReplySuccess(false); };
+
+  const statusColor = (s: string) => s === 'new' ? 'bg-blue-100 text-blue-700' : s === 'replied' ? 'bg-green-100 text-green-700' : s === 'read' ? 'bg-yellow-100 text-yellow-700' : 'bg-muted text-muted-foreground';
 
   return (
     <div className="space-y-6">
@@ -581,19 +600,38 @@ function AdminContactMessagesTab() {
         <span className="text-sm text-muted-foreground">{total} total</span>
       </div>
       {selected && (
-        <div className="border border-border p-6 bg-card space-y-3">
+        <div className="border border-border p-6 bg-card space-y-4">
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-bold">{selected.name} &lt;{selected.email}&gt;</h3>
               {selected.subject && <p className="text-sm text-muted-foreground">{selected.subject}</p>}
+              <span className={`mt-1 inline-block px-2 py-0.5 text-xs capitalize ${statusColor(selected.status)}`}>{selected.status}</span>
             </div>
             <button onClick={() => setSelected(null)} className="text-sm text-muted-foreground hover:text-foreground">✕</button>
           </div>
-          <p className="text-sm leading-relaxed whitespace-pre-wrap border-t pt-3">{selected.message}</p>
-          <div className="flex gap-2 pt-2">
-            <button onClick={() => updateStatus(selected.id, 'read')} className="text-xs px-3 py-1.5 border border-border hover:bg-muted">Mark Read</button>
-            <button onClick={() => updateStatus(selected.id, 'replied')} className="text-xs px-3 py-1.5 bg-green-600 text-white hover:bg-green-700">Mark Replied</button>
-            <button onClick={() => del(selected.id)} className="text-xs px-3 py-1.5 border border-destructive text-destructive hover:bg-destructive/10 ml-auto">Delete</button>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap border border-border bg-muted/20 p-4">{selected.message}</p>
+          <div className="border-t pt-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reply via Email</p>
+            <textarea
+              value={replyText}
+              onChange={e => setReplyText(e.target.value)}
+              placeholder="Write your reply to the customer..."
+              rows={4}
+              className="w-full border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            {replySuccess && <p className="text-xs text-green-600 font-medium">Reply sent successfully!</p>}
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={sendReply}
+                disabled={replying || !replyText.trim()}
+                className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              >
+                {replying ? 'Sending…' : 'Send Reply'}
+              </button>
+              <button onClick={() => updateStatus(selected.id, 'read')} className="text-xs px-3 py-2 border border-border hover:bg-muted">Mark Read</button>
+              <button onClick={() => updateStatus(selected.id, 'replied')} className="text-xs px-3 py-2 border border-green-300 text-green-700 hover:bg-green-50">Mark Replied</button>
+              <button onClick={() => del(selected.id)} className="text-xs px-3 py-2 border border-destructive text-destructive hover:bg-destructive/10 ml-auto">Delete</button>
+            </div>
           </div>
         </div>
       )}
@@ -605,7 +643,7 @@ function AdminContactMessagesTab() {
             </thead>
             <tbody className="divide-y divide-border">
               {messages.map(msg => (
-                <tr key={msg.id} className="hover:bg-muted/20 cursor-pointer" onClick={() => setSelected(msg)}>
+                <tr key={msg.id} className="hover:bg-muted/20 cursor-pointer" onClick={() => selectMsg(msg)}>
                   <td className="px-4 py-3 font-medium">{msg.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{msg.email}</td>
                   <td className="px-4 py-3 max-w-[180px] truncate text-muted-foreground">{msg.subject || '—'}</td>

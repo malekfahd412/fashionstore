@@ -41,7 +41,7 @@ async function createRefreshToken(
   return raw;
 }
 
-// ── POST /auth/google — verify Google ID token and issue LUXE JWT ─────────────
+// ── POST /auth/google — verify Google ID token and issue Velora JWT ─────────────
 router.post("/auth/google", async (req, res): Promise<void> => {
   const { credential } = req.body as { credential?: string };
   if (!credential || typeof credential !== "string") {

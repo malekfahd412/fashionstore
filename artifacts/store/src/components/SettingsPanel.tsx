@@ -59,7 +59,7 @@ const SETTING_SECTIONS = [
     key: "email",
     label: "Email",
     fields: [
-      { key: "email_from_name", label: "From Name", type: "text", hint: "e.g. LUXE Store" },
+      { key: "email_from_name", label: "From Name", type: "text", hint: "e.g. Velora Store" },
       { key: "email_from_address", label: "From Email", type: "email", hint: "Must be verified in Resend" },
     ],
   },
