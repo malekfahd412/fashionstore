@@ -1,0 +1,112 @@
+LUXE Fashion Store — Full System Audit & Stabilization
+
+You are now switching from feature development mode to FULL SYSTEM AUDIT MODE.
+
+GOAL:
+Find and fix ALL existing issues across the entire codebase BEFORE adding any new features.
+
+====================================================
+PHASE 1 — FULL AUDIT
+====================
+
+Scan the entire system:
+
+Frontend:
+
+* React pages
+* API calls
+* TanStack Query hooks
+* Auth flows
+* Admin panel
+* Customer portal
+
+Backend:
+
+* Express routes
+* Middleware (auth, roles, CORS)
+* Payment flows
+* Orders system
+* Settings system
+
+Database:
+
+* Schema consistency
+* Missing tables or columns
+* Broken relations
+* Index issues
+
+Infrastructure:
+
+* Build system
+* TypeScript compilation
+* Runtime errors
+* Environment variables usage
+
+====================================================
+PHASE 2 — BUG REPORT (MANDATORY OUTPUT)
+=======================================
+
+Produce a structured report:
+
+1. Critical bugs (break app)
+2. High severity bugs (feature broken)
+3. Medium bugs (UX issues)
+4. Low issues (cleanup)
+
+Each issue must include:
+
+* File path
+* Root cause
+* Fix description
+* Risk level
+
+====================================================
+PHASE 3 — AUTO FIX
+==================
+
+Fix ALL critical and high severity issues immediately.
+
+Rules:
+
+* Do NOT add new features
+* Do NOT refactor unrelated code
+* Only fix root causes
+* Keep existing architecture intact
+* Maintain type safety
+
+====================================================
+PHASE 4 — SYSTEM CONSISTENCY CHECK
+==================================
+
+Verify:
+
+* Login / Register works
+* Refresh token flow works
+* Admin panel loads without errors
+* Settings API works end-to-end
+* Products CRUD works
+* Orders flow works
+* Checkout works
+* CORS is correct
+* No 401/500/502 errors in normal flows
+
+====================================================
+PHASE 5 — FINAL STABILITY SCORE
+===============================
+
+Return:
+
+* Stability score /100
+* List of remaining risks
+* Deployment readiness verdict
+
+====================================================
+HARD RULES
+==========
+
+* NO new features
+* NO UI redesigns
+* NO additional endpoints unless fixing broken ones
+* NO mock data
+* NO placeholders
+* MUST ensure production stability first

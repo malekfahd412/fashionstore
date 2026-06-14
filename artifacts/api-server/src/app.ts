@@ -110,6 +110,10 @@ export const corsConfig = {
 
 const app: Express = express();
 
+// Trust the first proxy (Replit's reverse proxy) so express-rate-limit can
+// read X-Forwarded-For accurately without throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set("trust proxy", 1);
+
 // ── Security headers ───────────────────────────────────────────────────────
 app.use(
   helmet({
