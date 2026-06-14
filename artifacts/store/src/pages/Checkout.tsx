@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useSearch } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useGetCart, useCreateOrder } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,23 @@ import { useToast } from "@/hooks/use-toast";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-type PaymobMethod = "card" | "meeza" | "vodafone";
-type PaymentMethod = "cash_on_delivery" | PaymobMethod;
+type ManualMethod = "vodafone_cash" | "etisalat_cash" | "instapay";
+type PaymobMethod = "card" | "meeza";
+type PaymentMethod = "cash_on_delivery" | ManualMethod | PaymobMethod;
+
+type ManualSettings = {
+  vodafone_cash_enabled: boolean;
+  vodafone_cash_number: string;
+  etisalat_cash_enabled: boolean;
+  etisalat_cash_number: string;
+  instapay_enabled: boolean;
+  instapay_address: string;
+  paymob_enabled: boolean;
+};
 
 type BillingErrors = Partial<Record<"firstName" | "lastName" | "address" | "city" | "phone", string>>;
+
+const MANUAL_METHODS: ManualMethod[] = ["vodafone_cash", "etisalat_cash", "instapay"];
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
@@ -22,12 +36,11 @@ export default function Checkout() {
   const { data: cart, isLoading } = useGetCart();
   const createOrderMutation = useCreateOrder();
 
-  const PAYMENT_OPTIONS: Array<{ id: PaymentMethod; label: string; description: string; paymob: boolean }> = [
-    { id: "cash_on_delivery", label: t("payment.cod.label"), description: t("payment.cod.desc"), paymob: false },
-    { id: "card", label: t("payment.card.label"), description: t("payment.card.desc"), paymob: true },
-    { id: "meeza", label: t("payment.meeza.label"), description: t("payment.meeza.desc"), paymob: true },
-    { id: "vodafone", label: t("payment.vodafone.label"), description: t("payment.vodafone.desc"), paymob: true },
-  ];
+  const { data: manualSettings } = useQuery<ManualSettings>({
+    queryKey: ["manual-payment-settings"],
+    queryFn: () => fetch(`${BASE}/api/payments/manual/settings`).then(r => r.json()) as Promise<ManualSettings>,
+    staleTime: 5 * 60_000,
+  });
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [processing, setProcessing] = useState(false);
@@ -36,6 +49,7 @@ export default function Checkout() {
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [couponData, setCouponData] = useState<{ discountType: string; discountValue: number } | null>(null);
+  const [referenceNumber, setReferenceNumber] = useState("");
 
   const [billing, setBilling] = useState({
     firstName: "", lastName: "", address: "", city: "Cairo", phone: "",
@@ -71,7 +85,16 @@ export default function Checkout() {
     return null;
   }
 
-  const isPaymob = paymentMethod !== "cash_on_delivery";
+  const isPaymob = paymentMethod === "card" || paymentMethod === "meeza";
+  const isManual = MANUAL_METHODS.includes(paymentMethod as ManualMethod);
+
+  function getManualAccountInfo(): string {
+    if (!manualSettings) return "";
+    if (paymentMethod === "vodafone_cash") return manualSettings.vodafone_cash_number;
+    if (paymentMethod === "etisalat_cash") return manualSettings.etisalat_cash_number;
+    if (paymentMethod === "instapay") return manualSettings.instapay_address;
+    return "";
+  }
 
   function validateBilling(): BillingErrors {
     const errors: BillingErrors = {};
@@ -151,6 +174,22 @@ export default function Checkout() {
     return data.checkoutUrl;
   }
 
+  async function submitManualPayment(orderId: number) {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch(`${BASE}/api/payments/manual`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ orderId, method: paymentMethod, referenceNumber: referenceNumber.trim() || null }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(err.error ?? "Failed to submit payment reference");
+    }
+  }
+
   const handleCheckout = async () => {
     const errors = validateBilling();
     if (Object.keys(errors).length > 0) {
@@ -183,6 +222,9 @@ export default function Checkout() {
         const checkoutUrl = await initiatePaymob(result.id);
         window.location.href = checkoutUrl;
       } else {
+        if (isManual) {
+          await submitManualPayment(result.id);
+        }
         toast({ title: t("checkout.successTitle"), description: t("checkout.successDesc") });
         setLocation(`/order/${result.id}/tracking`);
       }
@@ -222,6 +264,19 @@ export default function Checkout() {
       )}
     </div>
   );
+
+  const paymentOptions: Array<{ id: PaymentMethod; label: string; description: string; badge?: string; enabled: boolean }> = [
+    { id: "cash_on_delivery", label: t("payment.cod.label"), description: t("payment.cod.desc"), enabled: true },
+    ...(manualSettings?.vodafone_cash_enabled ? [{ id: "vodafone_cash" as PaymentMethod, label: t("payment.vodafone.label"), description: t("payment.vodafone.desc"), badge: "Manual", enabled: true }] : []),
+    ...(manualSettings?.etisalat_cash_enabled ? [{ id: "etisalat_cash" as PaymentMethod, label: t("payment.etisalat.label"), description: t("payment.etisalat.desc"), badge: "Manual", enabled: true }] : []),
+    ...(manualSettings?.instapay_enabled ? [{ id: "instapay" as PaymentMethod, label: t("payment.instapay.label"), description: t("payment.instapay.desc"), badge: "Manual", enabled: true }] : []),
+    ...(manualSettings?.paymob_enabled ? [
+      { id: "card" as PaymentMethod, label: t("payment.card.label"), description: t("payment.card.desc"), badge: "Paymob", enabled: true },
+      { id: "meeza" as PaymentMethod, label: t("payment.meeza.label"), description: t("payment.meeza.desc"), badge: "Paymob", enabled: true },
+    ] : []),
+  ];
+
+  const accountInfo = getManualAccountInfo();
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -270,24 +325,54 @@ export default function Checkout() {
 
           <section>
             <h2 className="text-xl font-bold mb-4 pb-2 border-b">{t("checkout.paymentMethod")}</h2>
-            <RadioGroup value={paymentMethod} onValueChange={v => setPaymentMethod(v as PaymentMethod)} className="space-y-3">
-              {PAYMENT_OPTIONS.map(opt => (
+            <RadioGroup value={paymentMethod} onValueChange={v => { setPaymentMethod(v as PaymentMethod); setReferenceNumber(""); }} className="space-y-3">
+              {paymentOptions.map(opt => (
                 <div
                   key={opt.id}
                   className={`flex items-start gap-3 border p-4 rounded cursor-pointer transition-colors ${paymentMethod === opt.id ? "border-primary bg-primary/5" : "hover:border-border/80"}`}
-                  onClick={() => setPaymentMethod(opt.id)}
+                  onClick={() => { setPaymentMethod(opt.id); setReferenceNumber(""); }}
                 >
                   <RadioGroupItem value={opt.id} id={opt.id} className="mt-0.5" />
                   <Label htmlFor={opt.id} className="cursor-pointer flex-1">
                     <span className="font-medium">{opt.label}</span>
                     <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
                   </Label>
-                  {opt.paymob && (
-                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium shrink-0">Paymob</span>
+                  {opt.badge && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${opt.badge === "Paymob" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
+                      {opt.badge}
+                    </span>
                   )}
                 </div>
               ))}
             </RadioGroup>
+
+            {isManual && accountInfo && (
+              <div className="mt-4 p-4 bg-muted border border-border rounded space-y-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">{t("checkout.manualAccountInfo")}</p>
+                  <p className="font-mono font-bold text-lg text-primary">{accountInfo}</p>
+                </div>
+                <div>
+                  <Label htmlFor="referenceNumber" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {t("checkout.manualReference")}
+                  </Label>
+                  <Input
+                    id="referenceNumber"
+                    value={referenceNumber}
+                    onChange={e => setReferenceNumber(e.target.value)}
+                    placeholder={t("checkout.manualReferencePlaceholder")}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1.5">{t("checkout.manualReferenceHint")}</p>
+                </div>
+              </div>
+            )}
+
+            {isManual && !accountInfo && manualSettings && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                Payment account not configured. Please contact support.
+              </div>
+            )}
 
             {isPaymob && (
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">

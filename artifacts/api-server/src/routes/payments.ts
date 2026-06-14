@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import crypto from "node:crypto";
-import { db, paymentsTable, ordersTable, usersTable, storeSettingsTable, notificationsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
-import { requireAuth } from "../middlewares/auth";
+import { db, paymentsTable, ordersTable, usersTable, storeSettingsTable, notificationsTable, manualPaymentsTable } from "@workspace/db";
+import { eq, desc } from "drizzle-orm";
+import { requireAuth, requireRole } from "../middlewares/auth";
 import { logger } from "../lib/logger";
 import { sendPaymentSuccessEmail, sendPaymentFailedEmail } from "../lib/email";
 
@@ -299,6 +299,132 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
 
   logger.info({ transactionId, success, paymobOrderId, amountCents, method }, "Paymob webhook processed");
   res.json({ received: true });
+});
+
+// ── GET /payments/manual/settings (public) ───────────────────────────────────
+router.get("/payments/manual/settings", async (_req, res): Promise<void> => {
+  const keys = [
+    "payment_vodafone_cash_enabled", "vodafone_cash_number",
+    "payment_etisalat_cash_enabled", "etisalat_cash_number",
+    "payment_instapay_enabled", "instapay_address",
+    "paymob_integration_id_card",
+  ];
+  const map: Record<string, string> = {};
+  for (const k of keys) {
+    const [row] = await db.select().from(storeSettingsTable).where(eq(storeSettingsTable.key, k));
+    map[k] = row?.value ?? "";
+  }
+  res.json({
+    vodafone_cash_enabled: map.payment_vodafone_cash_enabled === "true",
+    vodafone_cash_number: map.vodafone_cash_number,
+    etisalat_cash_enabled: map.payment_etisalat_cash_enabled === "true",
+    etisalat_cash_number: map.etisalat_cash_number,
+    instapay_enabled: map.payment_instapay_enabled === "true",
+    instapay_address: map.instapay_address,
+    paymob_enabled: !!(map.paymob_integration_id_card),
+  });
+});
+
+// ── POST /payments/manual ──────────────────────────────────────────────────
+router.post("/payments/manual", requireAuth, async (req, res): Promise<void> => {
+  const { orderId, method, referenceNumber } = req.body as {
+    orderId?: number;
+    method?: string;
+    referenceNumber?: string | null;
+  };
+
+  if (!orderId || !method) {
+    res.status(400).json({ error: "orderId and method are required" }); return;
+  }
+
+  const VALID_METHODS = ["vodafone_cash", "etisalat_cash", "instapay"];
+  if (!VALID_METHODS.includes(method)) {
+    res.status(400).json({ error: "Invalid manual payment method" }); return;
+  }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
+  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+  if (order.userId !== req.user!.id) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const [existing] = await db.select().from(manualPaymentsTable).where(eq(manualPaymentsTable.orderId, orderId));
+  if (existing) {
+    const [updated] = await db.update(manualPaymentsTable)
+      .set({ referenceNumber: referenceNumber ?? null, method, status: "pending" })
+      .where(eq(manualPaymentsTable.orderId, orderId))
+      .returning();
+    res.json(updated); return;
+  }
+
+  const [record] = await db.insert(manualPaymentsTable).values({
+    orderId,
+    method,
+    referenceNumber: referenceNumber ?? null,
+    status: "pending",
+  }).returning();
+
+  res.status(201).json(record);
+});
+
+// ── GET /admin/payments/manual ────────────────────────────────────────────
+router.get("/admin/payments/manual", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+  const status = req.query.status as string | undefined;
+
+  let query = db.select({
+    id: manualPaymentsTable.id,
+    orderId: manualPaymentsTable.orderId,
+    method: manualPaymentsTable.method,
+    referenceNumber: manualPaymentsTable.referenceNumber,
+    status: manualPaymentsTable.status,
+    adminNote: manualPaymentsTable.adminNote,
+    reviewedBy: manualPaymentsTable.reviewedBy,
+    reviewedAt: manualPaymentsTable.reviewedAt,
+    createdAt: manualPaymentsTable.createdAt,
+    orderTotal: ordersTable.totalPrice,
+    userName: usersTable.name,
+    userEmail: usersTable.email,
+  })
+  .from(manualPaymentsTable)
+  .leftJoin(ordersTable, eq(ordersTable.id, manualPaymentsTable.orderId))
+  .leftJoin(usersTable, eq(usersTable.id, ordersTable.userId))
+  .orderBy(desc(manualPaymentsTable.createdAt))
+  .$dynamic();
+
+  const payments = await query;
+  const filtered = status ? payments.filter(p => p.status === status) : payments;
+
+  res.json({ payments: filtered, total: filtered.length });
+});
+
+// ── PATCH /admin/payments/manual/:id ─────────────────────────────────────
+router.patch("/admin/payments/manual/:id", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+
+  const { status, adminNote } = req.body as { status?: "approved" | "rejected"; adminNote?: string | null };
+  if (!status || !["approved", "rejected"].includes(status)) {
+    res.status(400).json({ error: "status must be 'approved' or 'rejected'" }); return;
+  }
+
+  const [existing] = await db.select().from(manualPaymentsTable).where(eq(manualPaymentsTable.id, id));
+  if (!existing) { res.status(404).json({ error: "Manual payment not found" }); return; }
+
+  const [updated] = await db.update(manualPaymentsTable)
+    .set({
+      status,
+      adminNote: adminNote ?? null,
+      reviewedBy: req.user!.id,
+      reviewedAt: new Date(),
+    })
+    .where(eq(manualPaymentsTable.id, id))
+    .returning();
+
+  if (status === "approved") {
+    await db.update(ordersTable)
+      .set({ status: "processing" })
+      .where(eq(ordersTable.id, existing.orderId));
+  }
+
+  res.json(updated);
 });
 
 export default router;

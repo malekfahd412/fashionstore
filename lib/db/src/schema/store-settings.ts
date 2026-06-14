@@ -41,4 +41,10 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   homepage_show_best_sellers: "true",
   homepage_show_categories: "true",
   google_client_id: "",
+  payment_vodafone_cash_enabled: "false",
+  payment_etisalat_cash_enabled: "false",
+  payment_instapay_enabled: "false",
+  vodafone_cash_number: "",
+  etisalat_cash_number: "",
+  instapay_address: "",
 };

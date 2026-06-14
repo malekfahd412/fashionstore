@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
-  useGetVendorSummary, useListProducts, useListOrders, useGetSalesTimeline, useGetTopProducts, useCreateProduct,
+  useGetVendorSummary, useListProducts, useListOrders, useGetSalesTimeline, useGetTopProducts, useCreateProduct, useListCategories,
   getGetVendorSummaryQueryKey, getListProductsQueryKey, getListOrdersQueryKey, getGetSalesTimelineQueryKey, getGetTopProductsQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,14 @@ export default function VendorDashboard() {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
+  const [productForm, setProductForm] = useState({
+    nameEn: "", nameAr: "", descriptionEn: "", descriptionAr: "",
+    price: "", salePrice: "", categoryId: "", active: true,
+    images: [""], variants: [{ color: "", size: "", stockQuantity: "0" }],
+  });
+  const [productFormError, setProductFormError] = useState("");
 
+  const { data: categories } = useListCategories();
   const { data: summary } = useGetVendorSummary({ query: { enabled: !!user, queryKey: getGetVendorSummaryQueryKey() } });
   const { data: productsData } = useListProducts({ vendorId: user?.id }, { query: { enabled: !!user, queryKey: getListProductsQueryKey({ vendorId: user?.id }) } });
   const { data: ordersData } = useListOrders({ userId: user?.id }, { query: { enabled: !!user, queryKey: getListOrdersQueryKey({ userId: user?.id }) } });
@@ -57,16 +64,131 @@ export default function VendorDashboard() {
           <h1 className="font-serif text-3xl font-bold mb-1">Vendor Portal</h1>
           <p className="text-muted-foreground">{user.name}</p>
         </div>
-        <Dialog open={isCreateProductOpen} onOpenChange={setIsCreateProductOpen}>
+        <Dialog open={isCreateProductOpen} onOpenChange={(open) => {
+          setIsCreateProductOpen(open);
+          if (!open) {
+            setProductForm({ nameEn: "", nameAr: "", descriptionEn: "", descriptionAr: "", price: "", salePrice: "", categoryId: "", active: true, images: [""], variants: [{ color: "", size: "", stockQuantity: "0" }] });
+            setProductFormError("");
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>Add New Product</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Product</DialogTitle>
             </DialogHeader>
-            <div className="py-4 text-center text-muted-foreground">
-              Form implementation would go here
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Name (English) *</label>
+                  <input value={productForm.nameEn} onChange={e => setProductForm(f => ({ ...f, nameEn: e.target.value }))}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Name (Arabic) *</label>
+                  <input value={productForm.nameAr} onChange={e => setProductForm(f => ({ ...f, nameAr: e.target.value }))} dir="rtl"
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Description (EN)</label>
+                  <textarea value={productForm.descriptionEn} onChange={e => setProductForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Description (AR)</label>
+                  <textarea value={productForm.descriptionAr} onChange={e => setProductForm(f => ({ ...f, descriptionAr: e.target.value }))} rows={2} dir="rtl"
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Price (EGP) *</label>
+                  <input type="number" min="0" step="0.01" value={productForm.price} onChange={e => setProductForm(f => ({ ...f, price: e.target.value }))}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Sale Price (EGP)</label>
+                  <input type="number" min="0" step="0.01" value={productForm.salePrice} onChange={e => setProductForm(f => ({ ...f, salePrice: e.target.value }))} placeholder="Leave blank if no sale"
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Category *</label>
+                  <select value={productForm.categoryId} onChange={e => setProductForm(f => ({ ...f, categoryId: e.target.value }))}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option value="">Select category…</option>
+                    {categories?.map(c => <option key={c.id} value={c.id}>{c.nameEn}</option>)}
+                  </select>
+                </div>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="checkbox" checked={productForm.active} onChange={e => setProductForm(f => ({ ...f, active: e.target.checked }))} className="w-4 h-4" />
+                <span className="font-medium">Active (visible in store)</span>
+              </label>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Images (URLs)</label>
+                  <button type="button" onClick={() => setProductForm(f => ({ ...f, images: [...f.images, ""] }))} className="text-xs text-primary hover:underline">+ Add Image</button>
+                </div>
+                {productForm.images.map((url, idx) => (
+                  <div key={idx} className="flex gap-2 items-center mb-1.5">
+                    <input value={url} onChange={e => setProductForm(f => { const imgs = [...f.images]; imgs[idx] = e.target.value; return { ...f, images: imgs }; })} placeholder="https://…"
+                      className="flex-1 border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    {productForm.images.length > 1 && (
+                      <button type="button" onClick={() => setProductForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))} className="text-red-500 font-bold px-1 text-sm">✕</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Variants (Color / Size / Stock)</label>
+                  <button type="button" onClick={() => setProductForm(f => ({ ...f, variants: [...f.variants, { color: "", size: "", stockQuantity: "0" }] }))} className="text-xs text-primary hover:underline">+ Add Variant</button>
+                </div>
+                {productForm.variants.map((v, idx) => (
+                  <div key={idx} className="flex gap-2 items-center mb-1.5">
+                    <input value={v.color} onChange={e => setProductForm(f => { const vs = f.variants.map((x, i) => i === idx ? { ...x, color: e.target.value } : x); return { ...f, variants: vs }; })} placeholder="Color"
+                      className="flex-1 border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    <input value={v.size} onChange={e => setProductForm(f => { const vs = f.variants.map((x, i) => i === idx ? { ...x, size: e.target.value } : x); return { ...f, variants: vs }; })} placeholder="Size"
+                      className="flex-1 border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    <input type="number" min="0" value={v.stockQuantity} onChange={e => setProductForm(f => { const vs = f.variants.map((x, i) => i === idx ? { ...x, stockQuantity: e.target.value } : x); return { ...f, variants: vs }; })} placeholder="Stock"
+                      className="w-20 border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    {productForm.variants.length > 1 && (
+                      <button type="button" onClick={() => setProductForm(f => ({ ...f, variants: f.variants.filter((_, i) => i !== idx) }))} className="text-red-500 font-bold px-1 text-sm">✕</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {productFormError && <p className="text-sm text-destructive">{productFormError}</p>}
+              <div className="flex gap-3 justify-end pt-2 border-t">
+                <Button variant="outline" onClick={() => setIsCreateProductOpen(false)}>Cancel</Button>
+                <Button
+                  disabled={createProductMutation.isPending || !productForm.nameEn || !productForm.nameAr || !productForm.price || !productForm.categoryId}
+                  onClick={() => {
+                    setProductFormError("");
+                    createProductMutation.mutate({
+                      data: {
+                        nameEn: productForm.nameEn,
+                        nameAr: productForm.nameAr,
+                        descriptionEn: productForm.descriptionEn || null,
+                        descriptionAr: productForm.descriptionAr || null,
+                        price: String(productForm.price),
+                        salePrice: productForm.salePrice ? String(productForm.salePrice) : null,
+                        categoryId: Number(productForm.categoryId),
+                        active: productForm.active,
+                        images: productForm.images.filter(Boolean),
+                        variants: productForm.variants.filter(v => v.color || v.size).map(v => ({ color: v.color, size: v.size, stockQuantity: Number(v.stockQuantity) })),
+                      } as Parameters<typeof createProductMutation.mutate>[0]["data"],
+                    }, {
+                      onSuccess: () => {
+                        toast({ title: "Product created!" });
+                        setIsCreateProductOpen(false);
+                      },
+                      onError: (err: Error) => setProductFormError(err.message),
+                    });
+                  }}
+                >
+                  {createProductMutation.isPending ? "Creating…" : "Create Product"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

@@ -21,3 +21,4 @@ export * from "./newsletter-subscribers";
 export * from "./faqs";
 export * from "./contact-messages";
 export * from "./support-tickets";
+export * from "./manual-payments";

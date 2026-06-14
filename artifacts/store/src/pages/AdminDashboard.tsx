@@ -19,6 +19,7 @@ import AdminCategoriesTab from "@/components/admin/AdminCategoriesTab";
 import AdminCouponsTab from "@/components/admin/AdminCouponsTab";
 import AdminBannersTab from "@/components/admin/AdminBannersTab";
 import AdminProductsTab from "@/components/admin/AdminProductsTab";
+import AdminManualPaymentsTab from "@/components/admin/AdminManualPaymentsTab";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -68,6 +69,7 @@ const TABS = [
   { id: 'faq', label: 'FAQ' },
   { id: 'contact-messages', label: 'Messages' },
   { id: 'newsletter', label: 'Newsletter' },
+  { id: 'payments', label: 'Payments' },
   { id: 'support', label: 'Support' },
   { id: 'audit-logs', label: 'Audit Logs' },
   { id: 'security', label: 'Security' },
@@ -430,6 +432,10 @@ export default function AdminDashboard() {
 
         {/* ── NEWSLETTER ───────────────────────────────────────────── */}
         {activeTab === 'newsletter' && <AdminNewsletterTab />}
+
+        {/* ── MANUAL PAYMENTS ──────────────────────────────────────── */}
+        {activeTab === 'payments' && <AdminManualPaymentsTab />}
+
         {activeTab === 'support' && <AdminSupportTab />}
 
         {/* ── SECURITY ─────────────────────────────────────────────── */}

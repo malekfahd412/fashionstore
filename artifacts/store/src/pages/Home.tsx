@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useListBanners, useGetFeaturedProducts, useGetNewArrivals, useListCategories, useGetBestSellers } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
@@ -15,6 +16,8 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+type FaqItem = { id: number; questionEn: string; questionAr: string; answerEn: string; answerAr: string };
+
 export default function Home() {
   const { language, t } = useLanguage();
   const { data: banners } = useListBanners();
@@ -22,6 +25,11 @@ export default function Home() {
   const { data: newArrivals } = useGetNewArrivals();
   const { data: bestSellers } = useGetBestSellers({ query: { queryKey: [] } });
   const { data: categories } = useListCategories();
+  const { data: faqs = [] } = useQuery<FaqItem[]>({
+    queryKey: ["public-faqs"],
+    queryFn: () => fetch("/api/faq").then(r => r.json()) as Promise<FaqItem[]>,
+    staleTime: 5 * 60_000,
+  });
 
   const activeBanners = banners?.filter(b => b.active).sort((a, b) => a.sortOrder - b.sortOrder) || [];
   const [bannerIdx, setBannerIdx] = useState(0);
@@ -41,17 +49,6 @@ export default function Home() {
     { icon: CreditCard, title: t("home.trust.multiplePayment"), subtitle: t("home.trust.multiplePaymentDesc") },
   ];
 
-  const TESTIMONIALS = [
-    { name: t("home.t1.name"), rating: 5, text: t("home.t1.text"), location: t("home.t1.location") },
-    { name: t("home.t2.name"), rating: 5, text: t("home.t2.text"), location: t("home.t2.location") },
-    { name: t("home.t3.name"), rating: 5, text: t("home.t3.text"), location: t("home.t3.location") },
-  ];
-
-  const FAQS = [
-    { q: t("home.faqQ1"), a: t("home.faqA1") },
-    { q: t("home.faqQ2"), a: t("home.faqA2") },
-    { q: t("home.faqQ3"), a: t("home.faqA3") },
-  ];
 
   return (
     <div className="flex flex-col gap-16 pb-24">
@@ -275,38 +272,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── Customer Reviews ─────────────────────────────────────────────── */}
-      <section className="bg-primary text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <p className="text-xs uppercase tracking-[0.2em] opacity-60 mb-2">{t("home.whatCustomersSay")}</p>
-            <h2 className="font-serif text-3xl font-bold">{t("home.lovedByThousands")}</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((item) => (
-              <div key={item.name} className="bg-white/10 backdrop-blur-sm p-6 border border-white/20">
-                <StarRating rating={item.rating} />
-                <p className="mt-4 text-sm leading-relaxed opacity-90">"{item.text}"</p>
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
-                    {item.name[0]}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{item.name}</p>
-                    <p className="text-xs opacity-60">{item.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <div className="inline-flex items-center gap-2 bg-white/10 px-6 py-3 border border-white/20">
-              <StarRating rating={5} />
-              <span className="text-sm font-semibold">{t("home.reviewsSummary")}</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── Newsletter ───────────────────────────────────────────────────── */}
       <section className="container mx-auto px-4">
@@ -319,27 +284,33 @@ export default function Home() {
       </section>
 
       {/* ── FAQ Preview ──────────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4 max-w-2xl">
-        <div className="text-center mb-8">
-          <h2 className="font-serif text-2xl font-bold">{t("home.faq")}</h2>
-        </div>
-        <div className="space-y-3">
-          {FAQS.map(({ q, a }) => (
-            <details key={q} className="group border border-border">
-              <summary className="flex items-center justify-between px-5 py-4 cursor-pointer font-medium text-sm list-none select-none">
-                {q}
-                <span className="ms-4 shrink-0 text-muted-foreground group-open:rotate-45 transition-transform">+</span>
-              </summary>
-              <div className="px-5 pb-4 text-sm text-muted-foreground border-t border-border pt-3">{a}</div>
-            </details>
-          ))}
-        </div>
-        <div className="text-center mt-6">
-          <Link href="/faq" className="text-sm text-primary underline underline-offset-4 hover:opacity-80">
-            {t("home.viewAllFaqs")}
-          </Link>
-        </div>
-      </section>
+      {faqs.length > 0 && (
+        <section className="container mx-auto px-4 max-w-2xl">
+          <div className="text-center mb-8">
+            <h2 className="font-serif text-2xl font-bold">{t("home.faq")}</h2>
+          </div>
+          <div className="space-y-3">
+            {faqs.slice(0, 3).map((faq) => {
+              const q = language === "ar" ? faq.questionAr || faq.questionEn : faq.questionEn;
+              const a = language === "ar" ? faq.answerAr || faq.answerEn : faq.answerEn;
+              return (
+                <details key={faq.id} className="group border border-border">
+                  <summary className="flex items-center justify-between px-5 py-4 cursor-pointer font-medium text-sm list-none select-none">
+                    {q}
+                    <span className="ms-4 shrink-0 text-muted-foreground group-open:rotate-45 transition-transform">+</span>
+                  </summary>
+                  <div className="px-5 pb-4 text-sm text-muted-foreground border-t border-border pt-3">{a}</div>
+                </details>
+              );
+            })}
+          </div>
+          <div className="text-center mt-6">
+            <Link href="/faq" className="text-sm text-primary underline underline-offset-4 hover:opacity-80">
+              {t("home.viewAllFaqs")}
+            </Link>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

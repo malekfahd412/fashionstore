@@ -1,0 +1,306 @@
+LUXE Fashion Store — Emergency Stabilization & Production Cleanup
+
+IMPORTANT:
+
+Do NOT add random new features before fixing the existing system.
+
+Current priority is:
+
+1. Find every bug
+2. Fix every bug
+3. Remove fake/demo content
+4. Verify every user flow
+5. Ensure all existing features actually work
+
+====================================================
+PHASE A — FULL SITE AUDIT
+=========================
+
+Perform a complete end-to-end audit.
+
+Test every flow:
+
+PUBLIC
+
+* Homepage
+* Categories
+* Product listing
+* Product details
+* Search
+* Filters
+* Wishlist
+* Cart
+* Checkout
+* Newsletter
+* FAQ
+* Contact Us
+
+AUTH
+
+* Register
+* Login
+* Logout
+* Forgot password
+* Reset password
+* Google login
+* Session refresh
+
+CUSTOMER
+
+* Dashboard
+* Orders
+* Tracking
+* Reviews
+* Wishlist
+* Addresses
+* Notifications
+* Security
+* Support
+
+VENDOR
+
+* Products
+* Orders
+* Analytics
+
+ADMIN
+
+* Analytics
+* Users
+* Products
+* Orders
+* Categories
+* Coupons
+* Banners
+* Reviews
+* FAQ
+* Newsletter
+* Support
+* Security
+* Settings
+
+====================================================
+PHASE B — REMOVE ALL FAKE DATA
+==============================
+
+I DO NOT WANT ANY FAKE DATA.
+
+Remove:
+
+* Fake testimonials
+* Fake reviews
+* Fake ratings
+* Fake customers
+* Fake statistics
+* Fake order counts
+* Fake sales counters
+* Placeholder business metrics
+* Placeholder analytics
+
+Rules:
+
+If real data does not exist:
+
+Show:
+
+* Empty state
+* No reviews yet
+* No orders yet
+* No analytics yet
+
+Never fabricate data.
+
+====================================================
+PHASE C — FIX REVIEWS SYSTEM
+============================
+
+The review system exists but I cannot properly see/use it.
+
+Audit and fix:
+
+* Review creation
+* Review visibility
+* Review listing
+* Rating calculations
+* Product page integration
+* Customer dashboard integration
+* Admin review moderation
+
+Verify:
+
+Customer who purchased + delivered order:
+
+Can create review.
+
+Other users:
+
+Cannot create review.
+
+Ensure reviews actually appear on product pages.
+
+====================================================
+PHASE D — FIX ADMIN PANEL
+=========================
+
+Admin panel currently has broken modules.
+
+Audit every tab.
+
+Fix:
+
+* Settings
+* FAQ
+* Newsletter
+* Support
+* Reviews
+* Coupons
+* Categories
+* Products
+* Orders
+* Banners
+
+Remove any broken UI.
+
+Remove any dead buttons.
+
+Remove any placeholder modules.
+
+Every action must work.
+
+====================================================
+PHASE E — UI CLEANUP
+====================
+
+There is text appearing like:
+
+dashboard.tab
+settings.tab
+orders.tab
+etc.
+
+This is unacceptable.
+
+Find every broken translation key.
+
+Replace with proper labels.
+
+Examples:
+
+dashboard.tab -> Dashboard
+orders.tab -> Orders
+settings.tab -> Settings
+
+Audit ALL translation keys.
+
+No raw translation keys may appear anywhere.
+
+Improve typography.
+
+Improve readability.
+
+Improve tab labels.
+
+Improve spacing.
+
+====================================================
+PHASE F — PAYMENT METHODS
+=========================
+
+Add manual Egyptian payment methods.
+
+Supported methods:
+
+1. Vodafone Cash
+2. Etisalat Cash
+3. InstaPay
+
+Admin Settings:
+
+Add fields:
+
+* Vodafone Cash Number
+* Etisalat Cash Number
+* InstaPay Address
+
+Checkout:
+
+Customer selects:
+
+* Vodafone Cash
+* Etisalat Cash
+* InstaPay
+* Cash On Delivery
+* Paymob (if configured)
+
+For manual methods:
+
+Show payment instructions.
+
+Customer uploads payment reference.
+
+Order becomes:
+
+Awaiting Payment Verification
+
+Admin Panel:
+
+Payments section:
+
+* View submitted references
+* Approve payment
+* Reject payment
+
+When approved:
+
+Order status updates automatically.
+
+====================================================
+PHASE G — REGRESSION TESTING
+============================
+
+After every fix:
+
+Run:
+
+* typecheck
+* build
+* audit affected pages
+
+Verify:
+
+No new bugs introduced.
+
+====================================================
+FINAL REPORT
+============
+
+At the end provide:
+
+1. Every bug found
+2. Every bug fixed
+3. Every file changed
+4. Any remaining issues
+5. Production readiness score
+6. EXACT manual steps required after moving the project to another Replit account
+
+VERY IMPORTANT:
+
+Include a dedicated section:
+
+"MANUAL STEPS REQUIRED AFTER PROJECT TRANSFER"
+
+List:
+
+* Secrets that must be recreated
+* Environment variables
+* OAuth setup
+* Cloudinary setup
+* Resend setup
+* Paymob setup
+* Google Login setup
+* Database requirements
+* Commands to run
+
+Assume the project will be copied to a completely different Replit account.
+
+Do not stop until the entire system is audited, repaired, verified, and documented.
