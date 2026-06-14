@@ -1,0 +1,263 @@
+MISSION: Full Stability & Production Hardening Pass
+
+DO NOT ADD ANY NEW FEATURES.
+
+Your only job is to make the entire LUXE store stable, production-ready, and free from fake/demo content.
+
+====================================================
+PART 1 — REMOVE ALL FAKE / PLACEHOLDER CONTENT
+==============================================
+
+Search the entire codebase for:
+
+* mock
+* demo
+* sample
+* placeholder
+* coming soon
+* lorem
+* fake
+* test data
+* hardcoded reviews
+* hardcoded ratings
+* hardcoded statistics
+* hardcoded counters
+* hardcoded testimonials
+
+Requirements:
+
+1. Remove all fake testimonials.
+2. Remove all fake reviews.
+3. Remove all fake sales numbers.
+4. Remove all fake rating averages.
+5. Remove all fake customer counts.
+6. Remove all fake order counters.
+7. Remove any "coming soon" blocks.
+8. Replace missing data with proper empty states.
+
+No customer should ever see fabricated data.
+
+====================================================
+PART 2 — ADMIN PANEL FULL AUDIT
+===============================
+
+Audit every admin module:
+
+* Overview
+* Analytics
+* Users
+* Vendors
+* Products
+* Orders
+* Categories
+* Coupons
+* Banners
+* Payments
+* Reviews
+* Security
+* Audit Logs
+* Settings
+
+For EACH module verify:
+
+1. Loads successfully.
+2. No Failed to Load errors.
+3. No 401 errors for valid admin.
+4. No 500 errors.
+5. No React Query failures.
+6. No console errors.
+7. No broken buttons.
+8. No broken forms.
+9. No broken save actions.
+10. No broken delete actions.
+
+Fix everything found.
+
+====================================================
+PART 3 — SETTINGS PANEL REPAIR
+==============================
+
+The Settings page is currently unreliable.
+
+Verify:
+
+GET /api/settings/admin
+PATCH /api/settings
+
+Check:
+
+* auth token usage
+* admin permissions
+* query hooks
+* mutations
+* store_settings records
+* cache invalidation
+* form state
+
+Requirements:
+
+1. Settings must load every time.
+2. Settings must save every time.
+3. Success toast must appear.
+4. Saved values must persist after refresh.
+5. No "Failed to load settings" errors.
+
+====================================================
+PART 4 — LOGIN / REGISTER / AUTH AUDIT
+======================================
+
+Verify:
+
+Register
+Login
+Logout
+Refresh Token
+Forgot Password
+Reset Password
+Google Login
+
+Requirements:
+
+1. No 401 loops.
+2. No token corruption.
+3. No broken redirects.
+4. No invalid localStorage keys.
+5. No refresh token issues.
+6. Forgot Password page must exist.
+7. Forgot Password route must work.
+8. Reset Password route must work.
+
+====================================================
+PART 5 — CUSTOMER JOURNEY AUDIT
+===============================
+
+Test the complete flow:
+
+Visitor
+→ Register
+→ Login
+→ Browse Products
+→ Search
+→ Filter
+→ Wishlist
+→ Cart
+→ Coupon
+→ Checkout
+→ Payment
+→ Order Creation
+→ Order Tracking
+→ Customer Dashboard
+
+Fix every issue found.
+
+====================================================
+PART 6 — REVIEWS SYSTEM AUDIT
+=============================
+
+The reviews system was reportedly added.
+
+Verify:
+
+1. Review section actually appears.
+2. Review API works.
+3. Customer can create review.
+4. Customer can edit review.
+5. Customer can delete review.
+6. Reviews appear on product page.
+7. Review stats render correctly.
+8. No hidden UI bugs.
+
+If review UI is missing, build and connect it.
+
+====================================================
+PART 7 — NAVIGATION & UI CLEANUP
+================================
+
+Remove all ugly translation keys appearing in UI.
+
+Examples:
+
+dashboard.tabs.orders
+dashboard.tabs.settings
+etc.
+
+No raw i18n keys should ever be visible.
+
+Requirements:
+
+1. Show proper labels only.
+2. Improve typography.
+3. Improve spacing.
+4. Improve button consistency.
+5. Improve mobile layouts.
+6. Fix overflow issues.
+7. Fix broken responsiveness.
+
+====================================================
+PART 8 — FOOTER
+===============
+
+Audit footer completely.
+
+Requirements:
+
+1. Contact Us section.
+2. FAQ link.
+3. Newsletter.
+4. Social links.
+5. Payment methods.
+6. Copyright.
+7. Working navigation links.
+
+====================================================
+PART 9 — PAYMENT AUDIT
+======================
+
+Verify:
+
+Paymob
+Vodafone Cash
+Etisalat Cash
+InstaPay
+
+Requirements:
+
+1. Admin settings control all account details.
+2. Checkout displays correct information.
+3. Manual payment references save correctly.
+4. Orders update correctly after approval.
+5. Payment status updates correctly.
+
+====================================================
+PART 10 — BUG HUNT
+==================
+
+Search entire codebase for:
+
+* TODO
+* FIXME
+* HACK
+* TEMP
+* WORKAROUND
+
+Review every occurrence.
+
+Fix production-impacting issues.
+
+====================================================
+FINAL REPORT
+============
+
+After all fixes:
+
+Provide:
+
+1. Exact files changed.
+2. Exact bugs fixed.
+3. Remaining known issues.
+4. Production readiness score /100.
+5. Any secrets, env vars, migrations, or manual steps that must be repeated after moving this project to another Replit account.
+
+Do NOT add new features.
+
+Focus ONLY on stability, bug fixing, and production readiness.

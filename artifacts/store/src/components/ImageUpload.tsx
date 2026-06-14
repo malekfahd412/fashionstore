@@ -42,7 +42,7 @@ export default function ImageUpload({
     if (allImages.length >= maxImages) {
       toast({ title: `Maximum ${maxImages} images allowed`, variant: "destructive" }); return;
     }
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth_token");
     const form = new FormData();
     form.append("image", file);
     form.append("folder", folder);
@@ -81,7 +81,7 @@ export default function ImageUpload({
   async function removeUploaded(idx: number) {
     const img = uploaded[idx];
     if (img?.publicId) {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("auth_token");
       await fetch(`${BASE}/api/uploads/image/0`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
