@@ -37,7 +37,6 @@ export function Navbar() {
     }
   }, [searchOpen]);
 
-  // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false); setSearchOpen(false); }, [location]);
 
   const handleLogout = () => {
@@ -118,16 +117,14 @@ export function Navbar() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1">
-            {/* Search toggle */}
             <button
               className="flex items-center justify-center w-9 h-9 hover:bg-muted rounded-md transition-colors"
               onClick={() => setSearchOpen(v => !v)}
-              aria-label="Search"
+              aria-label={t("nav.search")}
             >
               {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
             </button>
 
-            {/* Language toggle */}
             <button
               className="hidden sm:flex items-center justify-center w-9 h-9 hover:bg-muted rounded-md transition-colors"
               onClick={() => setLanguage(language === "en" ? "ar" : "en")}
@@ -136,7 +133,6 @@ export function Navbar() {
               <Globe className="h-5 w-5" />
             </button>
 
-            {/* User menu / Auth */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -151,15 +147,15 @@ export function Navbar() {
                   </div>
                   <DropdownMenuItem asChild>
                     <Link href={getDashboardLink()} className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
+                      <User className="me-2 h-4 w-4" />
                       {t("nav.dashboard")}
                     </Link>
                   </DropdownMenuItem>
                   {user.role === "customer" && (
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard/customer?tab=wishlist" className="cursor-pointer">
-                        <Heart className="mr-2 h-4 w-4" />
-                        Wishlist
+                        <Heart className="me-2 h-4 w-4" />
+                        {t("nav.wishlist")}
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -168,7 +164,7 @@ export function Navbar() {
                     onClick={handleLogout}
                     className="text-destructive focus:text-destructive cursor-pointer"
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <LogOut className="me-2 h-4 w-4" />
                     {t("btn.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -184,11 +180,10 @@ export function Navbar() {
               </div>
             )}
 
-            {/* Cart */}
             <button
               className="relative flex items-center justify-center w-9 h-9 hover:bg-muted rounded-md transition-colors"
               onClick={() => setLocation("/cart")}
-              aria-label="Cart"
+              aria-label={t("nav.cart")}
             >
               <ShoppingBag className="h-5 w-5" />
               {cartItemCount > 0 && (
@@ -208,20 +203,20 @@ export function Navbar() {
         >
           <form onSubmit={handleSearch} className="container mx-auto px-4 py-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
                 ref={searchRef}
                 type="search"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search for products, categories…"
-                className="w-full bg-muted border-0 rounded-md py-2.5 pl-9 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                placeholder={t("nav.searchPlaceholder")}
+                className="w-full bg-muted border-0 rounded-md py-2.5 ps-9 pe-20 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded hover:bg-primary/90 transition-colors"
+                className="absolute end-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded hover:bg-primary/90 transition-colors"
               >
-                Search
+                {t("nav.searchBtn")}
               </button>
             </div>
           </form>
@@ -253,19 +248,19 @@ export function Navbar() {
                 {user ? (
                   <>
                     <p className="text-xs text-muted-foreground px-0.5 mb-2">
-                      Signed in as <span className="font-medium text-foreground">{user.name}</span>
+                      {t("nav.signedInAs")} <span className="font-medium text-foreground">{user.name}</span>
                     </p>
                     <Button variant="outline" className="w-full justify-start" asChild>
                       <Link href={getDashboardLink()} onClick={() => setMobileOpen(false)}>
-                        <User className="mr-2 h-4 w-4" />
+                        <User className="me-2 h-4 w-4" />
                         {t("nav.dashboard")}
                       </Link>
                     </Button>
                     {user.role === "customer" && (
                       <Button variant="outline" className="w-full justify-start" asChild>
                         <Link href="/dashboard/customer?tab=wishlist" onClick={() => setMobileOpen(false)}>
-                          <Heart className="mr-2 h-4 w-4" />
-                          Wishlist
+                          <Heart className="me-2 h-4 w-4" />
+                          {t("nav.wishlist")}
                         </Link>
                       </Button>
                     )}
@@ -274,7 +269,7 @@ export function Navbar() {
                       className="w-full justify-start text-destructive hover:text-destructive"
                       onClick={handleLogout}
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
+                      <LogOut className="me-2 h-4 w-4" />
                       {t("btn.logout")}
                     </Button>
                   </>

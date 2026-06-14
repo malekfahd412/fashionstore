@@ -9,7 +9,7 @@ import ProductCard, { ProductCardSkeleton } from "@/components/ProductCard";
 import { useLocation } from "wouter";
 
 export default function Products() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [location] = useLocation();
 
   const urlParams = new URLSearchParams(
@@ -23,7 +23,6 @@ export default function Products() {
   const [categoryId, setCategoryId] = useState<string>(initialCategory);
   const [sortBy, setSortBy] = useState("newest");
   const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedSearch(searchInput); setPage(1); }, 350);
@@ -44,7 +43,6 @@ export default function Products() {
 
   const clearFilters = () => { setSearchInput(""); setCategoryId("all"); setSortBy("newest"); setPage(1); };
 
-  // Sync URL search param to state (e.g., from navbar search)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const s = params.get("search");
@@ -53,18 +51,18 @@ export default function Products() {
     if (c !== null && c !== categoryId) setCategoryId(c);
   }, [location]);
 
+  const productCountLabel = !isLoading && productsData
+    ? productsData.total === 0
+      ? t("products.noProductsFound")
+      : `${productsData.total} ${productsData.total !== 1 ? t("products.count_other") : t("products.count_one")}`
+    : " ";
+
   return (
     <div className="container mx-auto px-4 py-10">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="font-serif text-4xl md:text-5xl font-bold mb-2">Shop Collection</h1>
-        <p className="text-muted-foreground text-sm">
-          {!isLoading && productsData
-            ? productsData.total === 0
-              ? "No products found"
-              : `${productsData.total} product${productsData.total !== 1 ? "s" : ""}`
-            : " "}
-        </p>
+        <h1 className="font-serif text-4xl md:text-5xl font-bold mb-2">{t("products.title")}</h1>
+        <p className="text-muted-foreground text-sm">{productCountLabel}</p>
       </div>
 
       {/* Filter bar */}
@@ -72,7 +70,7 @@ export default function Products() {
         <div className="flex-1 min-w-[200px] max-w-xs">
           <Input
             type="search"
-            placeholder="Search products…"
+            placeholder={t("products.searchPlaceholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="h-10"
@@ -81,10 +79,10 @@ export default function Products() {
 
         <Select value={categoryId} onValueChange={v => { setCategoryId(v); setPage(1); }}>
           <SelectTrigger className="w-[180px] h-10">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder={t("products.allCategories")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{t("products.allCategories")}</SelectItem>
             {categories?.map(c => (
               <SelectItem key={c.id} value={c.id.toString()}>
                 {language === "en" ? c.nameEn : c.nameAr}
@@ -95,13 +93,13 @@ export default function Products() {
 
         <Select value={sortBy} onValueChange={v => { setSortBy(v); setPage(1); }}>
           <SelectTrigger className="w-[180px] h-10">
-            <SelectValue placeholder="Sort By" />
+            <SelectValue placeholder={t("products.sortBy")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="price_asc">Price: Low → High</SelectItem>
-            <SelectItem value="price_desc">Price: High → Low</SelectItem>
-            <SelectItem value="rating">Top Rated</SelectItem>
+            <SelectItem value="newest">{t("products.newestFirst")}</SelectItem>
+            <SelectItem value="price_asc">{t("products.priceLowHigh")}</SelectItem>
+            <SelectItem value="price_desc">{t("products.priceHighLow")}</SelectItem>
+            <SelectItem value="rating">{t("products.topRated")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -111,7 +109,7 @@ export default function Products() {
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border px-3 py-2 rounded-md transition-colors"
           >
             <X className="w-3.5 h-3.5" />
-            Clear filters
+            {t("products.clearFilters")}
           </button>
         )}
       </div>
@@ -121,13 +119,16 @@ export default function Products() {
         <div className="flex flex-wrap gap-2 mb-6">
           {searchInput && (
             <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
-              Search: "{searchInput}"
+              {t("products.search")}: "{searchInput}"
               <button onClick={() => setSearchInput("")}><X className="w-3 h-3" /></button>
             </span>
           )}
           {categoryId !== "all" && (
             <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
-              {categories?.find(c => c.id.toString() === categoryId)?.nameEn ?? "Category"}
+              {(() => {
+                const cat = categories?.find(c => c.id.toString() === categoryId);
+                return cat ? (language === "en" ? cat.nameEn : cat.nameAr) : t("products.allCategories");
+              })()}
               <button onClick={() => setCategoryId("all")}><X className="w-3 h-3" /></button>
             </span>
           )}
@@ -142,11 +143,11 @@ export default function Products() {
       ) : productsData?.products.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border">
           <SlidersHorizontal className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No products found</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("products.noProductsFound")}</h3>
           <p className="text-muted-foreground text-sm mb-6">
-            {hasActiveFilters ? "Try adjusting your search or filters." : "No products available yet."}
+            {hasActiveFilters ? t("products.tryAdjusting") : t("products.noProductsYet")}
           </p>
-          {hasActiveFilters && <Button onClick={clearFilters}>Clear Filters</Button>}
+          {hasActiveFilters && <Button onClick={clearFilters}>{t("btn.clearFilters")}</Button>}
         </div>
       ) : (
         <>
@@ -173,13 +174,13 @@ export default function Products() {
           {totalPages > 1 && (
             <div className="mt-12 flex justify-center items-center gap-3">
               <Button variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-                ← Previous
+                {t("common.previous")}
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {page} of {totalPages}
+                {t("common.page")} {page} {t("common.of")} {totalPages}
               </span>
               <Button variant="outline" onClick={() => setPage(p => p + 1)} disabled={page >= totalPages}>
-                Next →
+                {t("common.next")}
               </Button>
             </div>
           )}

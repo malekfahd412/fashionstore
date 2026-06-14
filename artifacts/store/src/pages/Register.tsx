@@ -46,12 +46,12 @@ export default function Register() {
     registerMutation.mutate({ data: submitData }, {
       onSuccess: (result) => {
         setAuthData(result.user, result.token, result.refreshToken);
-        toast({ title: "Welcome to LUXE!", description: "Your account has been created." });
+        toast({ title: t("auth.registerSuccess"), description: t("auth.registerSuccessDesc") });
         setLocation("/");
       },
       onError: (error: unknown) => {
         const msg = error instanceof Error ? error.message : "An error occurred";
-        toast({ title: "Registration failed", description: msg, variant: "destructive" });
+        toast({ title: t("auth.registerFailed"), description: msg, variant: "destructive" });
       }
     });
   };
@@ -60,21 +60,19 @@ export default function Register() {
     <div className="container mx-auto px-4 py-16 max-w-md">
       <div className="text-center mb-8">
         <h1 className="font-serif text-4xl font-bold mb-2">{t("nav.register")}</h1>
-        <p className="text-muted-foreground">Join the LUXE community</p>
+        <p className="text-muted-foreground">{t("auth.joinCommunity")}</p>
       </div>
 
-      {/* Google Sign-Up */}
       <div className="mb-6">
         <GoogleButton onSuccess={() => setLocation("/")} label="signup_with" />
       </div>
 
-      {/* Divider */}
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-3 text-muted-foreground">Or register with email</span>
+          <span className="bg-background px-3 text-muted-foreground">{t("auth.orRegisterWithEmail")}</span>
         </div>
       </div>
 
@@ -85,9 +83,9 @@ export default function Register() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>{t("auth.fullName")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your full name" autoComplete="name" {...field} />
+                  <Input placeholder={t("auth.fullNamePlaceholder")} autoComplete="name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -98,9 +96,9 @@ export default function Register() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("auth.email")}</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="Enter your email" autoComplete="email" {...field} />
+                  <Input type="email" placeholder={t("auth.emailPlaceholder")} autoComplete="email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -111,12 +109,12 @@ export default function Register() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("auth.password")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="Create a password (min. 6 characters)"
+                      placeholder={t("auth.newPasswordPlaceholder")}
                       autoComplete="new-password"
                       className="pr-10"
                       {...field}
@@ -141,11 +139,11 @@ export default function Register() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>{t("auth.confirmPassword")}</FormLabel>
                 <FormControl>
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Re-enter your password"
+                    placeholder={t("auth.confirmPasswordPlaceholder")}
                     autoComplete="new-password"
                     {...field}
                   />
@@ -159,21 +157,21 @@ export default function Register() {
             name="role"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Account Type</FormLabel>
+                <FormLabel>{t("auth.accountType")}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select account type" />
+                      <SelectValue placeholder={t("auth.accountTypePlaceholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="customer">
-                      <span className="font-medium">Customer</span>
-                      <span className="text-xs text-muted-foreground ml-2">— Browse &amp; shop</span>
+                      <span className="font-medium">{t("auth.customer")}</span>
+                      <span className="text-xs text-muted-foreground ms-2">{t("auth.customerDesc")}</span>
                     </SelectItem>
                     <SelectItem value="vendor">
-                      <span className="font-medium">Vendor</span>
-                      <span className="text-xs text-muted-foreground ml-2">— Sell on LUXE</span>
+                      <span className="font-medium">{t("auth.vendor")}</span>
+                      <span className="text-xs text-muted-foreground ms-2">{t("auth.vendorDesc")}</span>
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -183,13 +181,13 @@ export default function Register() {
           />
 
           <Button type="submit" className="w-full h-12 text-lg" disabled={registerMutation.isPending}>
-            {registerMutation.isPending ? "Creating account..." : t("nav.register")}
+            {registerMutation.isPending ? t("auth.creatingAccount") : t("nav.register")}
           </Button>
         </form>
       </Form>
 
       <div className="mt-8 text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("auth.alreadyHaveAccount")}{" "}
         <Link href="/login" className="text-primary hover:underline font-medium">
           {t("nav.login")}
         </Link>

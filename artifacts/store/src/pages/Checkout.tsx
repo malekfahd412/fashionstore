@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useGetCart, useCreateOrder } from "@workspace/api-client-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,20 +13,21 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 type PaymobMethod = "card" | "meeza" | "vodafone";
 type PaymentMethod = "cash_on_delivery" | PaymobMethod;
 
-const PAYMENT_OPTIONS: Array<{ id: PaymentMethod; label: string; description: string; paymob: boolean }> = [
-  { id: "cash_on_delivery", label: "Cash on Delivery", description: "Pay when your order arrives", paymob: false },
-  { id: "card", label: "Credit / Debit Card", description: "Visa, Mastercard via Paymob", paymob: true },
-  { id: "meeza", label: "Meeza Card", description: "Egyptian national debit card via Paymob", paymob: true },
-  { id: "vodafone", label: "Vodafone Cash", description: "Pay with your Vodafone Cash wallet", paymob: true },
-];
-
 type BillingErrors = Partial<Record<"firstName" | "lastName" | "address" | "city" | "phone", string>>;
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const { data: cart, isLoading } = useGetCart();
   const createOrderMutation = useCreateOrder();
+
+  const PAYMENT_OPTIONS: Array<{ id: PaymentMethod; label: string; description: string; paymob: boolean }> = [
+    { id: "cash_on_delivery", label: t("payment.cod.label"), description: t("payment.cod.desc"), paymob: false },
+    { id: "card", label: t("payment.card.label"), description: t("payment.card.desc"), paymob: true },
+    { id: "meeza", label: t("payment.meeza.label"), description: t("payment.meeza.desc"), paymob: true },
+    { id: "vodafone", label: t("payment.vodafone.label"), description: t("payment.vodafone.desc"), paymob: true },
+  ];
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [processing, setProcessing] = useState(false);
@@ -63,7 +65,7 @@ export default function Checkout() {
     }).catch(() => setCouponError("Failed to validate coupon"));
   }, [search]);
 
-  if (isLoading) return <div className="p-16 text-center">Loading...</div>;
+  if (isLoading) return <div className="p-16 text-center">{t("common.loading")}</div>;
   if (!cart || !cart.items?.length) {
     setLocation("/cart");
     return null;
@@ -73,11 +75,11 @@ export default function Checkout() {
 
   function validateBilling(): BillingErrors {
     const errors: BillingErrors = {};
-    if (!billing.firstName.trim()) errors.firstName = "First name is required";
-    if (!billing.lastName.trim()) errors.lastName = "Last name is required";
-    if (!billing.address.trim()) errors.address = "Address is required";
-    if (!billing.city.trim()) errors.city = "City is required";
-    if (!billing.phone.trim()) errors.phone = "Phone number is required";
+    if (!billing.firstName.trim()) errors.firstName = `${t("checkout.firstName")} is required`;
+    if (!billing.lastName.trim()) errors.lastName = `${t("checkout.lastName")} is required`;
+    if (!billing.address.trim()) errors.address = `${t("checkout.address")} is required`;
+    if (!billing.city.trim()) errors.city = `${t("checkout.city")} is required`;
+    if (!billing.phone.trim()) errors.phone = `${t("checkout.phone")} is required`;
     return errors;
   }
 
@@ -102,7 +104,7 @@ export default function Checkout() {
       setCouponData(data);
       setCouponApplied(true);
       setCouponCode(code);
-      toast({ title: "Coupon applied!", description: `Discount: ${data.discountType === "percentage" ? `${data.discountValue}%` : `$${data.discountValue}`}` });
+      toast({ title: "Coupon applied!", description: `Discount: ${data.discountType === "percentage" ? `${data.discountValue}%` : `${data.discountValue} EGP`}` });
     } catch {
       setCouponError("Failed to validate coupon");
     }
@@ -153,7 +155,7 @@ export default function Checkout() {
     const errors = validateBilling();
     if (Object.keys(errors).length > 0) {
       setBillingErrors(errors);
-      toast({ title: "Please fill in all required fields", variant: "destructive" });
+      toast({ title: t("checkout.fillRequired"), variant: "destructive" });
       return;
     }
     setBillingErrors({});
@@ -181,12 +183,12 @@ export default function Checkout() {
         const checkoutUrl = await initiatePaymob(result.id);
         window.location.href = checkoutUrl;
       } else {
-        toast({ title: "Order placed successfully!", description: "We'll notify you once it ships." });
+        toast({ title: t("checkout.successTitle"), description: t("checkout.successDesc") });
         setLocation(`/order/${result.id}/tracking`);
       }
     } catch (err: unknown) {
       const msg = (err as Error)?.message ?? "Checkout failed";
-      toast({ title: "Checkout failed", description: msg, variant: "destructive" });
+      toast({ title: t("checkout.failTitle"), description: msg, variant: "destructive" });
       setProcessing(false);
     }
   };
@@ -223,25 +225,25 @@ export default function Checkout() {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
-      <h1 className="font-serif text-4xl font-bold mb-10">Checkout</h1>
+      <h1 className="font-serif text-4xl font-bold mb-10">{t("checkout.title")}</h1>
 
       <div className="grid md:grid-cols-2 gap-12">
         <div className="space-y-8">
           <section>
-            <h2 className="text-xl font-bold mb-4 pb-2 border-b">Shipping Information</h2>
+            <h2 className="text-xl font-bold mb-4 pb-2 border-b">{t("checkout.shippingInfo")}</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <Field label="First Name" field="firstName" placeholder="John" />
-                <Field label="Last Name" field="lastName" placeholder="Doe" />
+                <Field label={t("checkout.firstName")} field="firstName" placeholder={language === "ar" ? "محمد" : "John"} />
+                <Field label={t("checkout.lastName")} field="lastName" placeholder={language === "ar" ? "أحمد" : "Doe"} />
               </div>
-              <Field label="Address" field="address" placeholder="123 Fashion St" />
-              <Field label="City" field="city" placeholder="Cairo" />
-              <Field label="Phone" field="phone" placeholder="+20 100 000 0000" type="tel" />
+              <Field label={t("checkout.address")} field="address" placeholder={language === "ar" ? "١٢٣ شارع الأزياء" : "123 Fashion St"} />
+              <Field label={t("checkout.city")} field="city" placeholder={language === "ar" ? "القاهرة" : "Cairo"} />
+              <Field label={t("checkout.phone")} field="phone" placeholder="+20 100 000 0000" type="tel" />
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-4 pb-2 border-b">Coupon Code</h2>
+            <h2 className="text-xl font-bold mb-4 pb-2 border-b">{t("checkout.couponCode")}</h2>
             <div className="flex gap-2">
               <Input
                 value={couponCode}
@@ -250,24 +252,24 @@ export default function Checkout() {
                   if (couponApplied) { setCouponApplied(false); setCouponData(null); }
                   setCouponError("");
                 }}
-                placeholder="Enter coupon code"
+                placeholder={t("checkout.enterCoupon")}
                 className={couponError ? "border-destructive" : couponApplied ? "border-green-500" : ""}
                 disabled={processing}
               />
               <Button type="button" variant="outline" onClick={handleValidateCoupon} disabled={!couponCode.trim() || processing}>
-                Apply
+                {t("btn.apply")}
               </Button>
             </div>
             {couponError && <p className="text-xs text-destructive mt-1">{couponError}</p>}
             {couponApplied && couponData && (
               <p className="text-xs text-green-600 mt-1 font-medium">
-                ✓ Coupon applied — {couponData.discountType === "percentage" ? `${couponData.discountValue}% off` : `$${couponData.discountValue} off`}
+                {t("checkout.couponApplied")} {couponData.discountType === "percentage" ? `${couponData.discountValue}%` : `${couponData.discountValue} EGP`} {t("checkout.off")}
               </p>
             )}
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-4 pb-2 border-b">Payment Method</h2>
+            <h2 className="text-xl font-bold mb-4 pb-2 border-b">{t("checkout.paymentMethod")}</h2>
             <RadioGroup value={paymentMethod} onValueChange={v => setPaymentMethod(v as PaymentMethod)} className="space-y-3">
               {PAYMENT_OPTIONS.map(opt => (
                 <div
@@ -289,7 +291,7 @@ export default function Checkout() {
 
             {isPaymob && (
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                You'll be redirected to Paymob's secure checkout to complete payment. Your order will be confirmed after successful payment.
+                {t("checkout.paymobRedirect")}
               </div>
             )}
           </section>
@@ -297,7 +299,7 @@ export default function Checkout() {
 
         <div>
           <div className="bg-muted p-6 sticky top-24">
-            <h2 className="text-xl font-bold mb-4 pb-2 border-b">Order Summary</h2>
+            <h2 className="text-xl font-bold mb-4 pb-2 border-b">{t("checkout.orderSummary")}</h2>
             <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
               {cart.items.map(item => (
                 <div key={item.variantId} className="flex gap-4 text-sm">
@@ -305,9 +307,9 @@ export default function Checkout() {
                     {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium line-clamp-1">{item.nameEn}</p>
-                    <p className="text-muted-foreground text-xs">{item.color} · {item.size} · Qty: {item.quantity}</p>
-                    <p className="font-bold">${((item.salePrice || item.price) * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium line-clamp-1">{language === "en" ? item.nameEn : item.nameAr}</p>
+                    <p className="text-muted-foreground text-xs">{item.color} · {item.size} · {t("checkout.qty")}: {item.quantity}</p>
+                    <p className="font-bold">{((item.salePrice || item.price) * item.quantity).toFixed(2)} EGP</p>
                   </div>
                 </div>
               ))}
@@ -315,22 +317,22 @@ export default function Checkout() {
 
             <div className="space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${cart.subtotal.toFixed(2)}</span>
+                <span>{t("common.subtotal")}</span>
+                <span>{cart.subtotal.toFixed(2)} EGP</span>
               </div>
               {couponApplied && discount > 0 && (
                 <div className="flex justify-between text-green-600 font-medium">
-                  <span>Discount ({couponCode})</span>
-                  <span>−${discount.toFixed(2)}</span>
+                  <span>{t("checkout.discountLabel")} ({couponCode})</span>
+                  <span>−{discount.toFixed(2)} EGP</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Shipping</span>
-                <span className="text-green-600 font-medium">Free</span>
+                <span>{t("common.shipping")}</span>
+                <span className="text-green-600 font-medium">{t("common.free")}</span>
               </div>
               <div className="flex justify-between font-bold text-lg border-t mt-2 pt-2">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{t("common.total")}</span>
+                <span>{total.toFixed(2)} EGP</span>
               </div>
             </div>
 
@@ -342,13 +344,13 @@ export default function Checkout() {
               {processing ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  {isPaymob ? "Redirecting to Paymob..." : "Processing..."}
+                  {isPaymob ? t("btn.redirectingToPaymob") : t("checkout.processing")}
                 </span>
-              ) : isPaymob ? "Pay with Paymob →" : "Place Order"}
+              ) : isPaymob ? t("btn.payWithPaymob") : t("btn.placeOrder")}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center mt-3">
-              By placing your order you agree to our terms and conditions.
+              {t("checkout.terms")}
             </p>
           </div>
         </div>

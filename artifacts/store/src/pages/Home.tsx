@@ -5,19 +5,6 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Truck, RotateCcw, ShieldCheck, CreditCard, Star, ChevronLeft, ChevronRight } from "lucide-react";
 
-const TRUST_ITEMS = [
-  { icon: Truck, title: "Free Shipping", subtitle: "On orders over 500 EGP" },
-  { icon: RotateCcw, title: "Easy Returns", subtitle: "30-day return policy" },
-  { icon: ShieldCheck, title: "Secure Payment", subtitle: "100% protected checkout" },
-  { icon: CreditCard, title: "Multiple Payment", subtitle: "Card, Meeza & Cash" },
-];
-
-const TESTIMONIALS = [
-  { name: "Sara A.", rating: 5, text: "Absolutely love the quality. The fabric is so soft and the fit is perfect. Will definitely order again!", location: "Cairo" },
-  { name: "Mona K.", rating: 5, text: "Fast delivery and beautiful packaging. LUXE feels like a truly premium brand experience.", location: "Alexandria" },
-  { name: "Layla M.", rating: 5, text: "The best online fashion store in Egypt. Stylish, high quality and great customer service.", location: "Giza" },
-];
-
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex gap-0.5">
@@ -29,7 +16,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export default function Home() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { data: banners } = useListBanners();
   const { data: featured } = useGetFeaturedProducts();
   const { data: newArrivals } = useGetNewArrivals();
@@ -41,11 +28,30 @@ export default function Home() {
 
   useEffect(() => {
     if (activeBanners.length <= 1) return;
-    const t = setInterval(() => setBannerIdx(i => (i + 1) % activeBanners.length), 5000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setBannerIdx(i => (i + 1) % activeBanners.length), 5000);
+    return () => clearInterval(timer);
   }, [activeBanners.length]);
 
   const currentBanner = activeBanners[bannerIdx];
+
+  const TRUST_ITEMS = [
+    { icon: Truck, title: t("home.trust.freeShipping"), subtitle: t("home.trust.freeShippingDesc") },
+    { icon: RotateCcw, title: t("home.trust.easyReturns"), subtitle: t("home.trust.easyReturnsDesc") },
+    { icon: ShieldCheck, title: t("home.trust.securePayment"), subtitle: t("home.trust.securePaymentDesc") },
+    { icon: CreditCard, title: t("home.trust.multiplePayment"), subtitle: t("home.trust.multiplePaymentDesc") },
+  ];
+
+  const TESTIMONIALS = [
+    { name: t("home.t1.name"), rating: 5, text: t("home.t1.text"), location: t("home.t1.location") },
+    { name: t("home.t2.name"), rating: 5, text: t("home.t2.text"), location: t("home.t2.location") },
+    { name: t("home.t3.name"), rating: 5, text: t("home.t3.text"), location: t("home.t3.location") },
+  ];
+
+  const FAQS = [
+    { q: t("home.faqQ1"), a: t("home.faqA1") },
+    { q: t("home.faqQ2"), a: t("home.faqA2") },
+    { q: t("home.faqQ3"), a: t("home.faqA3") },
+  ];
 
   return (
     <div className="flex flex-col gap-16 pb-24">
@@ -60,7 +66,7 @@ export default function Home() {
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60" />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4">
-              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-4 opacity-80">New Collection</p>
+              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-4 opacity-80">{t("home.newCollection")}</p>
               <h1 className="font-serif text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg leading-tight">
                 {language === "en" ? currentBanner.titleEn : currentBanner.titleAr}
               </h1>
@@ -69,11 +75,10 @@ export default function Home() {
               </p>
               {currentBanner.linkUrl && (
                 <Button size="lg" className="bg-white text-black hover:bg-white/90 rounded-none px-10 py-6 text-base font-semibold tracking-widest uppercase" asChild>
-                  <Link href={currentBanner.linkUrl}>Shop Now</Link>
+                  <Link href={currentBanner.linkUrl}>{t("home.shopNow")}</Link>
                 </Button>
               )}
             </div>
-            {/* Banner nav dots */}
             {activeBanners.length > 1 && (
               <>
                 <button onClick={() => setBannerIdx(i => (i - 1 + activeBanners.length) % activeBanners.length)}
@@ -96,11 +101,11 @@ export default function Home() {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
-              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-6 text-primary/60">New Collection 2025</p>
+              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-6 text-primary/60">{t("home.newCollection")} 2025</p>
               <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 text-primary">LUXE</h1>
-              <p className="text-lg text-primary/70 mb-10 max-w-md mx-auto">Curated Fashion for the Modern Minimalist</p>
+              <p className="text-lg text-primary/70 mb-10 max-w-md mx-auto">{t("home.curatedFashion")}</p>
               <Button size="lg" className="rounded-none px-10 py-6 text-base font-semibold tracking-widest uppercase" asChild>
-                <Link href="/products">Explore Collection</Link>
+                <Link href="/products">{t("home.exploreCollection")}</Link>
               </Button>
             </div>
           </div>
@@ -126,11 +131,11 @@ export default function Home() {
       <section className="container mx-auto px-4">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">Browse</p>
-            <h2 className="font-serif text-3xl font-bold">Shop by Category</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">{t("home.browse")}</p>
+            <h2 className="font-serif text-3xl font-bold">{t("home.shopByCategory")}</h2>
           </div>
           <Link href="/categories" className="text-sm font-medium underline underline-offset-4 hover:text-primary">
-            View All
+            {t("home.viewAll")}
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
@@ -140,7 +145,7 @@ export default function Home() {
                 {category.imageUrl ? (
                   <img src={category.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No Image</div>
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">{t("product.noImage")}</div>
                 )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
               </div>
@@ -156,11 +161,11 @@ export default function Home() {
       <section className="container mx-auto px-4">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">Fresh In</p>
-            <h2 className="font-serif text-3xl font-bold">New Arrivals</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">{t("home.freshIn")}</p>
+            <h2 className="font-serif text-3xl font-bold">{t("home.newArrivals")}</h2>
           </div>
           <Link href="/products?sort=newest" className="text-sm font-medium underline underline-offset-4 hover:text-primary">
-            View All
+            {t("home.viewAll")}
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8">
@@ -171,10 +176,10 @@ export default function Home() {
                   <img src={product.images[0].imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : null}
                 {product.salePrice && (
-                  <div className="absolute top-2 left-2 bg-destructive text-white text-xs px-2 py-1 font-bold">SALE</div>
+                  <div className="absolute top-2 left-2 bg-destructive text-white text-xs px-2 py-1 font-bold">{t("home.saleBadge")}</div>
                 )}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3">
-                  <p className="text-white text-xs font-medium text-center uppercase tracking-wide">Quick View</p>
+                  <p className="text-white text-xs font-medium text-center uppercase tracking-wide">{t("home.quickView")}</p>
                 </div>
               </div>
               <div className="space-y-1">
@@ -197,18 +202,18 @@ export default function Home() {
         </div>
         <div className="mt-12 text-center">
           <Button variant="outline" className="rounded-none border-primary text-primary px-10 py-5 uppercase tracking-widest text-sm font-semibold" asChild>
-            <Link href="/products">View All Products</Link>
+            <Link href="/products">{t("home.viewAllProducts")}</Link>
           </Button>
         </div>
       </section>
 
-      {/* ── Featured / Best Sellers ──────────────────────────────────────── */}
+      {/* ── Best Sellers ──────────────────────────────────────────────────── */}
       {(bestSellers?.length ?? 0) > 0 && (
         <section className="bg-secondary/50 py-16">
           <div className="container mx-auto px-4">
             <div className="text-center mb-10">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Most Loved</p>
-              <h2 className="font-serif text-3xl font-bold">Best Sellers</h2>
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{t("home.mostLoved")}</p>
+              <h2 className="font-serif text-3xl font-bold">{t("home.bestSellers")}</h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8">
               {bestSellers?.slice(0, 4).map(product => (
@@ -218,7 +223,7 @@ export default function Home() {
                       <img src={product.images[0].imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : null}
                     <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 font-bold uppercase tracking-wide">
-                      Best Seller
+                      {t("home.bestSellerBadge")}
                     </div>
                   </div>
                   <h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
@@ -240,8 +245,8 @@ export default function Home() {
       {(featured?.length ?? 0) > 0 && (
         <section className="container mx-auto px-4">
           <div className="text-center mb-10">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Curated for You</p>
-            <h2 className="font-serif text-3xl font-bold">Featured Collection</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{t("home.curatedForYou")}</p>
+            <h2 className="font-serif text-3xl font-bold">{t("home.featuredCollection")}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-8">
             {featured?.slice(0, 6).map(product => (
@@ -258,7 +263,7 @@ export default function Home() {
                   {product.salePrice ? (
                     <>
                       <span className="text-destructive">{Number(product.salePrice).toLocaleString()} EGP</span>
-                      <span className="line-through text-muted-foreground ml-2 font-normal">{Number(product.price).toLocaleString()} EGP</span>
+                      <span className="line-through text-muted-foreground ms-2 font-normal">{Number(product.price).toLocaleString()} EGP</span>
                     </>
                   ) : (
                     `${Number(product.price).toLocaleString()} EGP`
@@ -274,21 +279,21 @@ export default function Home() {
       <section className="bg-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
-            <p className="text-xs uppercase tracking-[0.2em] opacity-60 mb-2">What Our Customers Say</p>
-            <h2 className="font-serif text-3xl font-bold">Loved by Thousands</h2>
+            <p className="text-xs uppercase tracking-[0.2em] opacity-60 mb-2">{t("home.whatCustomersSay")}</p>
+            <h2 className="font-serif text-3xl font-bold">{t("home.lovedByThousands")}</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="bg-white/10 backdrop-blur-sm p-6 border border-white/20">
-                <StarRating rating={t.rating} />
-                <p className="mt-4 text-sm leading-relaxed opacity-90">"{t.text}"</p>
+            {TESTIMONIALS.map((item) => (
+              <div key={item.name} className="bg-white/10 backdrop-blur-sm p-6 border border-white/20">
+                <StarRating rating={item.rating} />
+                <p className="mt-4 text-sm leading-relaxed opacity-90">"{item.text}"</p>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
-                    {t.name[0]}
+                    {item.name[0]}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    <p className="text-xs opacity-60">{t.location}</p>
+                    <p className="text-sm font-semibold">{item.name}</p>
+                    <p className="text-xs opacity-60">{item.location}</p>
                   </div>
                 </div>
               </div>
@@ -297,7 +302,7 @@ export default function Home() {
           <div className="text-center mt-8">
             <div className="inline-flex items-center gap-2 bg-white/10 px-6 py-3 border border-white/20">
               <StarRating rating={5} />
-              <span className="text-sm font-semibold">4.9/5 from 2,400+ reviews</span>
+              <span className="text-sm font-semibold">{t("home.reviewsSummary")}</span>
             </div>
           </div>
         </div>
@@ -306,9 +311,9 @@ export default function Home() {
       {/* ── Newsletter ───────────────────────────────────────────────────── */}
       <section className="container mx-auto px-4">
         <div className="border border-border bg-secondary/30 p-10 md:p-16 text-center max-w-2xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">Stay in the Loop</p>
-          <h2 className="font-serif text-3xl font-bold mb-3">Join the LUXE Community</h2>
-          <p className="text-muted-foreground mb-8 text-sm">Get early access to new arrivals, exclusive offers, and style inspiration delivered to your inbox.</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">{t("home.stayInLoop")}</p>
+          <h2 className="font-serif text-3xl font-bold mb-3">{t("home.joinCommunity")}</h2>
+          <p className="text-muted-foreground mb-8 text-sm">{t("home.newsletterDesc")}</p>
           <NewsletterForm />
         </div>
       </section>
@@ -316,18 +321,14 @@ export default function Home() {
       {/* ── FAQ Preview ──────────────────────────────────────────────────── */}
       <section className="container mx-auto px-4 max-w-2xl">
         <div className="text-center mb-8">
-          <h2 className="font-serif text-2xl font-bold">Frequently Asked Questions</h2>
+          <h2 className="font-serif text-2xl font-bold">{t("home.faq")}</h2>
         </div>
         <div className="space-y-3">
-          {[
-            { q: "How long does shipping take?", a: "Standard delivery takes 3-5 business days within Egypt. Express options are available at checkout." },
-            { q: "What is your return policy?", a: "We offer a 30-day return policy on all unworn items with original tags attached." },
-            { q: "Do you accept Cash on Delivery?", a: "Yes! We accept Cash on Delivery (COD) across Egypt, as well as card payments via Paymob." },
-          ].map(({ q, a }) => (
+          {FAQS.map(({ q, a }) => (
             <details key={q} className="group border border-border">
               <summary className="flex items-center justify-between px-5 py-4 cursor-pointer font-medium text-sm list-none select-none">
                 {q}
-                <span className="ml-4 shrink-0 text-muted-foreground group-open:rotate-45 transition-transform">+</span>
+                <span className="ms-4 shrink-0 text-muted-foreground group-open:rotate-45 transition-transform">+</span>
               </summary>
               <div className="px-5 pb-4 text-sm text-muted-foreground border-t border-border pt-3">{a}</div>
             </details>
@@ -335,7 +336,7 @@ export default function Home() {
         </div>
         <div className="text-center mt-6">
           <Link href="/faq" className="text-sm text-primary underline underline-offset-4 hover:opacity-80">
-            View all FAQs →
+            {t("home.viewAllFaqs")}
           </Link>
         </div>
       </section>
@@ -344,6 +345,7 @@ export default function Home() {
 }
 
 function NewsletterForm() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -369,7 +371,7 @@ function NewsletterForm() {
   }
 
   if (status === "success") {
-    return <p className="text-primary font-semibold">🎉 You're on the list! Welcome to LUXE.</p>;
+    return <p className="text-primary font-semibold">{t("home.subscribed")}</p>;
   }
 
   return (
@@ -378,12 +380,12 @@ function NewsletterForm() {
         type="email"
         value={email}
         onChange={e => setEmail(e.target.value)}
-        placeholder="Enter your email"
+        placeholder={t("home.enterEmail")}
         required
         className="flex-1 border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
       />
       <Button type="submit" disabled={status === "loading"} className="rounded-none px-6 shrink-0">
-        {status === "loading" ? "..." : "Subscribe"}
+        {status === "loading" ? t("btn.subscribing") : t("btn.subscribe")}
       </Button>
     </form>
   );

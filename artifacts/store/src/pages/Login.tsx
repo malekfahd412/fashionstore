@@ -42,12 +42,12 @@ export default function Login() {
     loginMutation.mutate({ data: { ...data, rememberDevice } }, {
       onSuccess: (result) => {
         setAuthData(result.user, result.token, result.refreshToken);
-        toast({ title: "Welcome back!", description: `Signed in as ${result.user.name}` });
+        toast({ title: t("auth.loginSuccess"), description: `${t("auth.loginSuccessDesc")} ${result.user.name}` });
         setLocation(redirectTo);
       },
       onError: (error: unknown) => {
-        const msg = error instanceof Error ? error.message : "Invalid email or password";
-        toast({ title: "Login failed", description: msg, variant: "destructive" });
+        const msg = error instanceof Error ? error.message : t("auth.loginError");
+        toast({ title: t("auth.loginFailed"), description: msg, variant: "destructive" });
       }
     });
   };
@@ -56,21 +56,19 @@ export default function Login() {
     <div className="container mx-auto px-4 py-16 max-w-md">
       <div className="text-center mb-8">
         <h1 className="font-serif text-4xl font-bold mb-2">{t("nav.login")}</h1>
-        <p className="text-muted-foreground">Welcome back to LUXE</p>
+        <p className="text-muted-foreground">{t("auth.welcomeBack")}</p>
       </div>
 
-      {/* Google Sign-In */}
       <div className="mb-6">
         <GoogleButton onSuccess={() => setLocation(redirectTo)} label="signin_with" />
       </div>
 
-      {/* Divider */}
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-3 text-muted-foreground">Or continue with email</span>
+          <span className="bg-background px-3 text-muted-foreground">{t("auth.orWithEmail")}</span>
         </div>
       </div>
 
@@ -81,9 +79,9 @@ export default function Login() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("auth.email")}</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="Enter your email" autoComplete="email" {...field} />
+                  <Input type="email" placeholder={t("auth.emailPlaceholder")} autoComplete="email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -95,19 +93,19 @@ export default function Login() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between mb-1">
-                  <FormLabel className="mb-0">Password</FormLabel>
+                  <FormLabel className="mb-0">{t("auth.password")}</FormLabel>
                   <Link
                     href="/forgot-password"
                     className="text-xs text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Forgot password?
+                    {t("auth.forgotPassword")}
                   </Link>
                 </div>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder={t("auth.passwordPlaceholder")}
                       autoComplete="current-password"
                       className="pr-10"
                       {...field}
@@ -141,23 +139,22 @@ export default function Login() {
                 className="text-sm font-medium cursor-pointer flex items-center gap-1.5"
               >
                 <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                Remember this device
+                {t("auth.rememberDevice")}
               </label>
               <p className="text-xs text-muted-foreground">
-                Skip new-device security alerts when signing in from this browser.
-                Uncheck on shared or public computers.
+                {t("auth.rememberDeviceDesc")}
               </p>
             </div>
           </div>
 
           <Button type="submit" className="w-full h-12 text-lg" disabled={loginMutation.isPending}>
-            {loginMutation.isPending ? "Signing in..." : t("nav.login")}
+            {loginMutation.isPending ? t("auth.signingIn") : t("nav.login")}
           </Button>
         </form>
       </Form>
 
       <div className="mt-8 text-center text-sm text-muted-foreground">
-        Don't have an account?{" "}
+        {t("auth.dontHaveAccount")}{" "}
         <Link href="/register" className="text-primary hover:underline font-medium">
           {t("nav.register")}
         </Link>

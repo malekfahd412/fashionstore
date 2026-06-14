@@ -45,7 +45,7 @@ export function ProductCardSkeleton() {
 }
 
 export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imageUrl, variants, averageRating, reviewCount }: ProductCardProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const guestCart = useGuestCart();
@@ -68,16 +68,16 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
     e.preventDefault();
     e.stopPropagation();
     if (!user) {
-      toast({ title: "Sign in to save items", description: "Create an account to start your wishlist" });
+      toast({ title: t("product.signInToSave") });
       return;
     }
     if (isWishlisted) {
       removeWishlistMutation.mutate({ productId: id }, {
-        onSuccess: () => toast({ title: "Removed from wishlist" }),
+        onSuccess: () => toast({ title: t("product.removedFromWishlist") }),
       });
     } else {
       addWishlistMutation.mutate({ productId: id }, {
-        onSuccess: () => toast({ title: "Saved to wishlist" }),
+        onSuccess: () => toast({ title: t("product.savedToWishlist") }),
       });
     }
   };
@@ -91,7 +91,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
     const v = variants![0];
     if (user) {
       addToCartMutation.mutate({ data: { variantId: v.id, quantity: 1 } }, {
-        onSuccess: () => toast({ title: "Added to cart" }),
+        onSuccess: () => toast({ title: t("product.addedToCart") }),
       });
     } else {
       guestCart.addItem({
@@ -107,7 +107,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
         stockQuantity: v.stockQuantity,
         quantity: 1,
       });
-      toast({ title: "Added to cart" });
+      toast({ title: t("product.addedToCart") });
     }
   };
 
@@ -135,7 +135,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">{t("product.noImage")}</div>
         )}
 
         {/* Sale badge */}
@@ -151,7 +151,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
           className={`absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-white shadow-sm transition-all duration-200 ${
             isHovered || isWishlisted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
           }`}
-          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          aria-label={isWishlisted ? t("product.removedFromWishlist") : t("product.savedToWishlist")}
         >
           <Heart
             className={`w-4 h-4 transition-colors ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`}
@@ -170,7 +170,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
               className="w-full bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest py-3 flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
-              Quick Add
+              {t("btn.quickAdd")}
             </button>
           </div>
         )}
