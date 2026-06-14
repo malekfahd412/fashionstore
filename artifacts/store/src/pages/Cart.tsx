@@ -64,14 +64,14 @@ export default function Cart() {
       });
       if (!res.ok) {
         const err = await res.json() as { error?: string };
-        setCouponError(err.error ?? "Invalid coupon");
+        setCouponError(err.error ?? t("cart.invalidCoupon"));
         return;
       }
       const data = await res.json() as { discountType: "percentage" | "fixed"; discountValue: number };
       setCoupon({ ...data, code });
-      toast({ title: "Coupon applied!", description: `${data.discountType === "percentage" ? `${data.discountValue}% off` : `${data.discountValue} EGP off`}` });
+      toast({ title: t("cart.couponAppliedTitle"), description: `${data.discountType === "percentage" ? `${data.discountValue}% off` : `${data.discountValue} EGP off`}` });
     } catch {
-      setCouponError("Failed to validate coupon. Please try again.");
+      setCouponError(t("cart.couponValidateError"));
     } finally {
       setCouponLoading(false);
     }

@@ -75,11 +75,11 @@ export default function Checkout() {
 
   function validateBilling(): BillingErrors {
     const errors: BillingErrors = {};
-    if (!billing.firstName.trim()) errors.firstName = `${t("checkout.firstName")} is required`;
-    if (!billing.lastName.trim()) errors.lastName = `${t("checkout.lastName")} is required`;
-    if (!billing.address.trim()) errors.address = `${t("checkout.address")} is required`;
-    if (!billing.city.trim()) errors.city = `${t("checkout.city")} is required`;
-    if (!billing.phone.trim()) errors.phone = `${t("checkout.phone")} is required`;
+    if (!billing.firstName.trim()) errors.firstName = `${t("checkout.firstName")} ${t("checkout.isRequired")}`;
+    if (!billing.lastName.trim()) errors.lastName = `${t("checkout.lastName")} ${t("checkout.isRequired")}`;
+    if (!billing.address.trim()) errors.address = `${t("checkout.address")} ${t("checkout.isRequired")}`;
+    if (!billing.city.trim()) errors.city = `${t("checkout.city")} ${t("checkout.isRequired")}`;
+    if (!billing.phone.trim()) errors.phone = `${t("checkout.phone")} ${t("checkout.isRequired")}`;
     return errors;
   }
 

@@ -68,7 +68,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }: {
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">{review.userName ?? "Anonymous"}</span>
+            <span className="font-medium text-sm">{review.userName ?? t("product.anonymous")}</span>
             {review.verifiedPurchase && (
               <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                 <CheckCircle2 className="w-3 h-3" /> {t("reviews.verifiedPurchase")}

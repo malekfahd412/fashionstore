@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage, useTranslation } from "@/contexts/LanguageContext";
 import {
   useListOrders, useGetWishlist, useRemoveFromWishlist, useUpdateUser,
   useListNotifications, useMarkNotificationRead, useCreateOrder,
@@ -58,14 +58,15 @@ const EMPTY_ADDRESS: AddressFormData = {
 const STATUS_STEPS = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
 
 function PaymentStatusBadge({ paymentStatus, orderStatus }: { paymentStatus?: string | null; orderStatus: string }) {
+  const { t } = useTranslation();
   if (paymentStatus === "cod") {
     return orderStatus === "delivered"
-      ? <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">COD Paid</span>
-      : <span className="text-xs text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Pay on Delivery</span>;
+      ? <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">{t("dash.codPaid")}</span>
+      : <span className="text-xs text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">{t("dash.payOnDelivery")}</span>;
   }
-  if (paymentStatus === "paid") return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Paid</span>;
-  if (paymentStatus === "failed") return <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">Payment Failed</span>;
-  return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">Pending</span>;
+  if (paymentStatus === "paid") return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">{t("dash.paid")}</span>;
+  if (paymentStatus === "failed") return <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">{t("dash.paymentFailed")}</span>;
+  return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">{t("dash.paymentPending")}</span>;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -89,11 +90,12 @@ function StatusBadge({ status }: { status: string }) {
 function AddressCard({ addr, onEdit, onDelete, onSetDefault, isLoading }: {
   addr: UserAddress; onEdit: () => void; onDelete: () => void; onSetDefault: () => void; isLoading: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className={`border p-5 relative ${addr.isDefault ? "border-primary" : "border-border"}`}>
       {addr.isDefault && (
         <span className="absolute top-3 right-3 flex items-center gap-1 text-xs font-semibold text-primary">
-          <Star className="w-3 h-3 fill-primary" /> Default
+          <Star className="w-3 h-3 fill-primary" /> {t("dash.addr.default")}
         </span>
       )}
       <div className="flex items-start gap-3 mb-3">
@@ -108,14 +110,14 @@ function AddressCard({ addr, onEdit, onDelete, onSetDefault, isLoading }: {
       <div className="flex gap-2 mt-3">
         {!addr.isDefault && (
           <button onClick={onSetDefault} disabled={isLoading} className="text-xs text-primary hover:underline disabled:opacity-50">
-            Set as default
+            {t("dash.addr.setAsDefault")}
           </button>
         )}
         <button onClick={onEdit} disabled={isLoading} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50 ml-auto">
-          <Pencil className="w-3 h-3" /> Edit
+          <Pencil className="w-3 h-3" /> {t("dash.addr.edit")}
         </button>
         <button onClick={onDelete} disabled={isLoading} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 disabled:opacity-50">
-          <Trash2 className="w-3 h-3" /> Delete
+          <Trash2 className="w-3 h-3" /> {t("dash.addr.delete")}
         </button>
       </div>
     </div>
@@ -125,6 +127,7 @@ function AddressCard({ addr, onEdit, onDelete, onSetDefault, isLoading }: {
 function AddressForm({ initial, onSave, onCancel, isSaving }: {
   initial: AddressFormData; onSave: (data: AddressFormData) => void; onCancel: () => void; isSaving: boolean;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<AddressFormData>(initial);
   const set = (k: keyof AddressFormData, v: string | boolean) => setForm(f => ({ ...f, [k]: v }));
 
@@ -132,39 +135,39 @@ function AddressForm({ initial, onSave, onCancel, isSaving }: {
     <div className="border border-border p-5 space-y-4 bg-muted/20">
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 space-y-1">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Label</label>
-          <Input value={form.label} onChange={e => set("label", e.target.value)} placeholder="Home / Work / Other" />
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("dash.addr.label")}</label>
+          <Input value={form.label} onChange={e => set("label", e.target.value)} placeholder={t("dash.addr.labelPlaceholder")} />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">First Name *</label>
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("dash.addr.firstName")}</label>
           <Input value={form.firstName} onChange={e => set("firstName", e.target.value)} placeholder="John" />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Last Name *</label>
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("dash.addr.lastName")}</label>
           <Input value={form.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Doe" />
         </div>
         <div className="col-span-2 space-y-1">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Address *</label>
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("dash.addr.address")}</label>
           <Input value={form.address} onChange={e => set("address", e.target.value)} placeholder="123 Fashion St" />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">City *</label>
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("dash.addr.city")}</label>
           <Input value={form.city} onChange={e => set("city", e.target.value)} placeholder="Cairo" />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone *</label>
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("dash.addr.phone")}</label>
           <Input value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="+20 100 000 0000" />
         </div>
       </div>
       <label className="flex items-center gap-2 text-sm cursor-pointer">
         <input type="checkbox" checked={form.isDefault} onChange={e => set("isDefault", e.target.checked)} className="w-4 h-4" />
-        Set as default address
+        {t("dash.addr.setDefault")}
       </label>
       <div className="flex gap-2">
         <Button size="sm" onClick={() => onSave(form)} disabled={isSaving || !form.firstName || !form.lastName || !form.address || !form.city || !form.phone}>
-          {isSaving ? "Saving..." : "Save Address"}
+          {isSaving ? t("dash.addr.saving") : t("dash.addr.save")}
         </Button>
-        <Button size="sm" variant="outline" onClick={onCancel} disabled={isSaving}>Cancel</Button>
+        <Button size="sm" variant="outline" onClick={onCancel} disabled={isSaving}>{t("dash.cancel")}</Button>
       </div>
     </div>
   );
@@ -174,6 +177,7 @@ export default function CustomerDashboard() {
   const { user, login } = useAuth();
   const [, setLocation] = useLocation();
   const { language } = useLanguage();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -219,23 +223,23 @@ export default function CustomerDashboard() {
 
   const createAddressMutation = useMutation({
     mutationFn: (data: AddressFormData) => apiFetch<UserAddress>("/api/addresses", { method: "POST", body: JSON.stringify(data) }),
-    onSuccess: () => { refetchAddresses(); setShowAddressForm(false); toast({ title: "Address saved" }); },
-    onError: (e) => toast({ title: "Failed to save address", description: (e as Error).message, variant: "destructive" }),
+    onSuccess: () => { refetchAddresses(); setShowAddressForm(false); toast({ title: t("dash.addr.saved") }); },
+    onError: (e) => toast({ title: t("dash.addr.saveFailed"), description: (e as Error).message, variant: "destructive" }),
   });
   const updateAddressMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<AddressFormData> }) =>
       apiFetch<UserAddress>(`/api/addresses/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-    onSuccess: () => { refetchAddresses(); setEditingAddress(null); toast({ title: "Address updated" }); },
-    onError: (e) => toast({ title: "Failed to update", description: (e as Error).message, variant: "destructive" }),
+    onSuccess: () => { refetchAddresses(); setEditingAddress(null); toast({ title: t("dash.addr.updated") }); },
+    onError: (e) => toast({ title: t("dash.addr.updateFailed"), description: (e as Error).message, variant: "destructive" }),
   });
   const deleteAddressMutation = useMutation({
     mutationFn: (id: number) => apiFetch(`/api/addresses/${id}`, { method: "DELETE" }),
-    onSuccess: () => { refetchAddresses(); toast({ title: "Address deleted" }); },
+    onSuccess: () => { refetchAddresses(); toast({ title: t("dash.addr.deleted") }); },
   });
   const updateEmailPrefsMutation = useMutation({
     mutationFn: (data: Partial<{ orderUpdates: boolean; promotions: boolean; securityAlerts: boolean }>) =>
       apiFetch(`/api/users/${user!.id}/email-preferences`, { method: "PATCH", body: JSON.stringify(data) }),
-    onSuccess: () => { refetchEmailPrefs(); toast({ title: "Email preferences saved" }); },
+    onSuccess: () => { refetchEmailPrefs(); toast({ title: t("dash.emailPrefsSaved") }); },
   });
   const updateUserMutation = useUpdateUser();
   const removeFromWishlistMutation = useRemoveFromWishlist();
@@ -265,13 +269,13 @@ export default function CustomerDashboard() {
     updateUserMutation.mutate({ id: user.id, data: { name } }, {
       onSuccess: (updatedUser) => {
         login(updatedUser, localStorage.getItem("auth_token") || "", localStorage.getItem("auth_refresh_token") || "");
-        toast({ title: "Profile updated" });
+        toast({ title: t("dash.profileUpdated") });
       }
     });
   };
 
   const handleRemoveWishlist = (productId: number) => {
-    removeFromWishlistMutation.mutate({ productId }, { onSuccess: () => { toast({ title: "Removed from wishlist" }); refetchWishlist(); } });
+    removeFromWishlistMutation.mutate({ productId }, { onSuccess: () => { toast({ title: t("dash.removedWishlist") }); refetchWishlist(); } });
   };
 
   const handleMarkRead = (id: number) => {
@@ -285,11 +289,11 @@ export default function CustomerDashboard() {
       { data: { items, paymentMethod: "cash_on_delivery" } },
       {
         onSuccess: (newOrder) => {
-          toast({ title: "Order placed!", description: `Order #${newOrder.id} created.` });
+          toast({ title: t("dash.orderPlacedTitle"), description: t("dash.orderPlacedDesc").replace("{id}", String(newOrder.id)) });
           qc.invalidateQueries({ queryKey: getListOrdersQueryKey({ userId: user.id }) });
           setLocation(`/track-order/${newOrder.id}`);
         },
-        onError: (e) => toast({ title: "Reorder failed", description: (e as Error).message, variant: "destructive" }),
+        onError: (e) => toast({ title: t("dash.reorderFailed"), description: (e as Error).message, variant: "destructive" }),
       }
     );
   };
@@ -297,23 +301,23 @@ export default function CustomerDashboard() {
   const tabStyle = "justify-start px-4 py-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-primary text-sm font-medium gap-2";
 
   const NAV_TABS = [
-    { value: "overview", label: "Overview", icon: LayoutDashboard },
-    { value: "orders", label: "My Orders", icon: ShoppingBag },
-    { value: "tracking", label: "Track Orders", icon: Package },
-    { value: "addresses", label: "Addresses", icon: MapPin },
-    { value: "wishlist", label: "Wishlist", icon: Heart },
-    { value: "my-reviews", label: "My Reviews", icon: Star },
-    { value: "support", label: "Support", icon: Shield },
-    { value: "notifications", label: "Notifications", icon: Bell, badge: unreadCount },
-    { value: "security", label: "Security", icon: Shield },
-    { value: "profile", label: "Account Settings", icon: Settings },
+    { value: "overview", label: t("dash.tab.overview"), icon: LayoutDashboard },
+    { value: "orders", label: t("dash.tab.orders"), icon: ShoppingBag },
+    { value: "tracking", label: t("dash.tab.tracking"), icon: Package },
+    { value: "addresses", label: t("dash.tab.addresses"), icon: MapPin },
+    { value: "wishlist", label: t("dash.tab.wishlist"), icon: Heart },
+    { value: "my-reviews", label: t("dash.tab.myReviews"), icon: Star },
+    { value: "support", label: t("dash.tab.support"), icon: Shield },
+    { value: "notifications", label: t("dash.tab.notifications"), icon: Bell, badge: unreadCount },
+    { value: "security", label: t("dash.tab.security"), icon: Shield },
+    { value: "profile", label: t("dash.tab.profile"), icon: Settings },
   ];
 
   return (
     <div className="container mx-auto px-4 py-10">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl md:text-4xl font-bold mb-1">My Account</h1>
-        <p className="text-muted-foreground text-sm">Welcome back, {user.name}</p>
+        <h1 className="font-serif text-3xl md:text-4xl font-bold mb-1">{t("dash.myAccount")}</h1>
+        <p className="text-muted-foreground text-sm">{t("dash.welcomeBack")}, {user.name}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col md:flex-row gap-8">
@@ -336,15 +340,15 @@ export default function CustomerDashboard() {
 
           {/* ── OVERVIEW ─────────────────────────────────────────────────── */}
           <TabsContent value="overview" className="m-0 space-y-8">
-            <h2 className="text-2xl font-serif font-bold">Overview</h2>
+            <h2 className="text-2xl font-serif font-bold">{t("dash.overview")}</h2>
 
             {/* Stats grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total Orders", value: allOrders.length, icon: ShoppingBag, color: "text-blue-600 bg-blue-50" },
-                { label: "Active Orders", value: activeOrders.length, icon: Clock, color: "text-orange-600 bg-orange-50" },
-                { label: "Wishlist Items", value: wishlist?.length ?? 0, icon: Heart, color: "text-pink-600 bg-pink-50" },
-                { label: "Reward Points", value: "—", icon: TrendingUp, color: "text-emerald-600 bg-emerald-50" },
+                { label: t("dash.totalOrders"), value: allOrders.length, icon: ShoppingBag, color: "text-blue-600 bg-blue-50" },
+                { label: t("dash.activeOrders"), value: activeOrders.length, icon: Clock, color: "text-orange-600 bg-orange-50" },
+                { label: t("dash.wishlistItems"), value: wishlist?.length ?? 0, icon: Heart, color: "text-pink-600 bg-pink-50" },
+                { label: t("dash.rewardPoints"), value: "—", icon: TrendingUp, color: "text-emerald-600 bg-emerald-50" },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="border border-border p-4 space-y-3">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
@@ -361,16 +365,16 @@ export default function CustomerDashboard() {
             {/* Recent orders */}
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Recent Orders</h3>
+                <h3 className="font-semibold">{t("dash.recentOrders")}</h3>
                 <button onClick={() => setActiveTab("orders")} className="text-xs text-primary hover:underline">
-                  View all →
+                  {t("dash.viewAll")}
                 </button>
               </div>
               {!allOrders.length ? (
                 <div className="border border-border p-8 text-center">
                   <ShoppingBag className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground text-sm mb-4">No orders yet</p>
-                  <Button size="sm" variant="outline" asChild><Link href="/products">Start Shopping</Link></Button>
+                  <p className="text-muted-foreground text-sm mb-4">{t("dash.noOrders")}</p>
+                  <Button size="sm" variant="outline" asChild><Link href="/products">{t("dash.startShopping")}</Link></Button>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -386,7 +390,7 @@ export default function CustomerDashboard() {
                         </p>
                       </div>
                       <Button size="sm" variant="outline" asChild>
-                        <Link href={`/track-order/${order.id}`}>Track</Link>
+                        <Link href={`/track-order/${order.id}`}>{t("dash.trackBtn")}</Link>
                       </Button>
                     </div>
                   ))}
@@ -398,9 +402,9 @@ export default function CustomerDashboard() {
             {activeOrders.length > 0 && (
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold">Active Shipments</h3>
+                  <h3 className="font-semibold">{t("dash.activeShipments")}</h3>
                   <button onClick={() => setActiveTab("tracking")} className="text-xs text-primary hover:underline">
-                    View all →
+                    {t("dash.viewAll")}
                   </button>
                 </div>
                 <div className="space-y-3">
@@ -415,14 +419,14 @@ export default function CustomerDashboard() {
                             <StatusBadge status={order.status} />
                           </div>
                           <Button size="sm" variant="outline" asChild>
-                            <Link href={`/track-order/${order.id}`}>Track →</Link>
+                            <Link href={`/track-order/${order.id}`}>{t("dash.trackProgress")}</Link>
                           </Button>
                         </div>
                         <div>
                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                             <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1 capitalize">{order.status.replace(/_/g, " ")} — {progress}% complete</p>
+                          <p className="text-xs text-muted-foreground mt-1 capitalize">{order.status.replace(/_/g, " ")} — {progress}{t("dash.complete")}</p>
                         </div>
                       </div>
                     );
@@ -435,24 +439,24 @@ export default function CustomerDashboard() {
           {/* ── MY ORDERS ────────────────────────────────────────────────── */}
           <TabsContent value="orders" className="m-0 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h2 className="text-2xl font-serif font-bold">My Orders</h2>
-              <p className="text-sm text-muted-foreground">{allOrders.length} order{allOrders.length !== 1 ? "s" : ""} total</p>
+              <h2 className="text-2xl font-serif font-bold">{t("dash.myOrders")}</h2>
+              <p className="text-sm text-muted-foreground">{allOrders.length} {allOrders.length !== 1 ? t("dash.items") : t("dash.item")} {t("dash.ordersTotal")}</p>
             </div>
 
             {/* Search + Filter */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Input
-                placeholder="Search by order number…"
+                placeholder={t("dash.searchOrders")}
                 value={orderSearch}
                 onChange={e => setOrderSearch(e.target.value)}
                 className="sm:max-w-xs"
               />
               <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
                 <SelectTrigger className="sm:w-48">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t("dash.filterByStatus")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="all">{t("dash.allStatuses")}</SelectItem>
                   {["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"].map(s => (
                     <SelectItem key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
                   ))}
@@ -464,10 +468,10 @@ export default function CustomerDashboard() {
               <div className="bg-muted/30 p-8 text-center border border-border">
                 <ShoppingBag className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground mb-4">
-                  {allOrders.length === 0 ? "No orders yet." : "No orders match your filters."}
+                  {allOrders.length === 0 ? t("dash.noOrdersYet") : t("dash.noOrdersMatch")}
                 </p>
                 {allOrders.length === 0 && (
-                  <Button variant="outline" asChild><Link href="/products">Start Shopping</Link></Button>
+                  <Button variant="outline" asChild><Link href="/products">{t("dash.startShopping")}</Link></Button>
                 )}
               </div>
             ) : (
@@ -485,10 +489,10 @@ export default function CustomerDashboard() {
                           />
                         </div>
                         <p className="text-sm text-muted-foreground mb-0.5">
-                          Placed {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                          {t("dash.placed")} {format(new Date(order.createdAt), "MMM dd, yyyy")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? "s" : ""} · {order.paymentMethod.replace(/_/g, " ")}
+                          {order.items?.length || 0} {(order.items?.length || 0) !== 1 ? t("dash.items") : t("dash.item")} · {order.paymentMethod.replace(/_/g, " ")}
                         </p>
 
                         {/* Item thumbnails */}
@@ -518,7 +522,7 @@ export default function CustomerDashboard() {
                         <p className="text-xl font-bold">{Number(order.totalPrice).toLocaleString()} EGP</p>
                         <div className="flex gap-2 flex-wrap justify-end">
                           <Button variant="outline" size="sm" asChild>
-                            <Link href={`/track-order/${order.id}`}>Track</Link>
+                            <Link href={`/track-order/${order.id}`}>{t("dash.trackBtn")}</Link>
                           </Button>
                           <Button
                             variant="outline"
@@ -537,7 +541,7 @@ export default function CustomerDashboard() {
                             }}
                           >
                             <FileDown className="w-3 h-3" />
-                            Invoice
+                            {t("dash.invoice")}
                           </Button>
                           {["delivered", "cancelled"].includes(order.status) && (
                             <Button
@@ -548,7 +552,7 @@ export default function CustomerDashboard() {
                               className="gap-1.5"
                             >
                               <RefreshCw className="w-3 h-3" />
-                              Reorder
+                              {t("dash.reorder")}
                             </Button>
                           )}
                         </div>
@@ -562,12 +566,12 @@ export default function CustomerDashboard() {
 
           {/* ── TRACK ORDERS ─────────────────────────────────────────────── */}
           <TabsContent value="tracking" className="m-0 space-y-6">
-            <h2 className="text-2xl font-serif font-bold">Track Orders</h2>
+            <h2 className="text-2xl font-serif font-bold">{t("dash.trackOrders")}</h2>
             {!activeOrders.length ? (
               <div className="bg-muted/30 p-8 text-center border border-border">
                 <Check className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground mb-4">No active orders — all caught up!</p>
-                <Button variant="outline" asChild><Link href="/products">Shop Again</Link></Button>
+                <p className="text-muted-foreground mb-4">{t("dash.noActiveOrders")}</p>
+                <Button variant="outline" asChild><Link href="/products">{t("dash.shopAgain")}</Link></Button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -582,20 +586,20 @@ export default function CustomerDashboard() {
                           <StatusBadge status={order.status} />
                         </div>
                         <Button size="sm" variant="outline" asChild>
-                          <Link href={`/track-order/${order.id}`}>Full Details →</Link>
+                          <Link href={`/track-order/${order.id}`}>{t("dash.fullDetails")}</Link>
                         </Button>
                       </div>
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Order Placed</span>
+                          <span>{t("dash.orderPlacedLabel")}</span>
                           <span>{progress}%</span>
-                          <span>Delivered</span>
+                          <span>{t("dash.deliveredLabel")}</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
                         </div>
                         <p className="text-xs text-muted-foreground capitalize">
-                          {order.status.replace(/_/g, " ")} · {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? "s" : ""} · {Number(order.totalPrice).toLocaleString()} EGP
+                          {order.status.replace(/_/g, " ")} · {order.items?.length || 0} {(order.items?.length || 0) !== 1 ? t("dash.items") : t("dash.item")} · {Number(order.totalPrice).toLocaleString()} EGP
                         </p>
                       </div>
                     </div>
@@ -608,10 +612,10 @@ export default function CustomerDashboard() {
           {/* ── ADDRESSES ────────────────────────────────────────────────── */}
           <TabsContent value="addresses" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-serif font-bold">Saved Addresses</h2>
+              <h2 className="text-2xl font-serif font-bold">{t("dash.savedAddresses")}</h2>
               {!showAddressForm && !editingAddress && (
                 <Button size="sm" variant="outline" onClick={() => setShowAddressForm(true)} className="gap-1.5">
-                  <Plus className="w-3.5 h-3.5" /> Add Address
+                  <Plus className="w-3.5 h-3.5" /> {t("dash.addAddress")}
                 </Button>
               )}
             </div>
@@ -621,9 +625,9 @@ export default function CustomerDashboard() {
             {!addresses?.length && !showAddressForm ? (
               <div className="bg-muted/30 p-8 text-center border border-border">
                 <MapPin className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground mb-4">No saved addresses yet. Add one to speed up checkout.</p>
+                <p className="text-muted-foreground mb-4">{t("dash.noAddresses")}</p>
                 <Button size="sm" variant="outline" onClick={() => setShowAddressForm(true)}>
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Add First Address
+                  <Plus className="w-3.5 h-3.5 mr-1" /> {t("dash.addFirstAddress")}
                 </Button>
               </div>
             ) : (
@@ -649,14 +653,14 @@ export default function CustomerDashboard() {
           {/* ── WISHLIST ──────────────────────────────────────────────────── */}
           <TabsContent value="wishlist" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-serif font-bold">My Wishlist</h2>
-              {wishlist?.length ? <p className="text-sm text-muted-foreground">{wishlist.length} item{wishlist.length !== 1 ? "s" : ""}</p> : null}
+              <h2 className="text-2xl font-serif font-bold">{t("dash.myWishlist")}</h2>
+              {wishlist?.length ? <p className="text-sm text-muted-foreground">{wishlist.length} {wishlist.length !== 1 ? t("dash.items") : t("dash.item")}</p> : null}
             </div>
             {!wishlist?.length ? (
               <div className="bg-muted/30 p-8 text-center border border-border">
                 <Heart className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground mb-4">Your wishlist is empty.</p>
-                <Button variant="outline" asChild><Link href="/products">Discover Products</Link></Button>
+                <p className="text-muted-foreground mb-4">{t("dash.wishlistEmpty")}</p>
+                <Button variant="outline" asChild><Link href="/products">{t("dash.discoverProducts")}</Link></Button>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
@@ -676,7 +680,7 @@ export default function CustomerDashboard() {
                       </div>
                       <div className="flex gap-2 mt-auto">
                         <Button size="sm" variant="outline" className="flex-1" asChild>
-                          <Link href={`/products/${item.productId}`}>View</Link>
+                          <Link href={`/products/${item.productId}`}>{t("dash.view")}</Link>
                         </Button>
                         <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleRemoveWishlist(item.productId)}>
                           <Trash2 className="w-4 h-4" />
@@ -702,15 +706,15 @@ export default function CustomerDashboard() {
           {/* ── NOTIFICATIONS ─────────────────────────────────────────────── */}
           <TabsContent value="notifications" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-serif font-bold">Notifications</h2>
+              <h2 className="text-2xl font-serif font-bold">{t("dash.notifications")}</h2>
               {unreadCount > 0 && (
-                <span className="text-xs text-muted-foreground">{unreadCount} unread</span>
+                <span className="text-xs text-muted-foreground">{unreadCount} {t("dash.unread")}</span>
               )}
             </div>
             {!notifications?.length ? (
               <div className="bg-muted/30 p-8 text-center border border-border">
                 <Bell className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">No notifications yet.</p>
+                <p className="text-muted-foreground">{t("dash.noNotifications")}</p>
               </div>
             ) : (() => {
               const orderGroups = new Map<string, typeof notifications>();
@@ -753,7 +757,7 @@ export default function CustomerDashboard() {
                             </div>
                             {!notif.isRead && (
                               <Button variant="ghost" size="sm" className="shrink-0" onClick={() => handleMarkRead(notif.id)}>
-                                Mark read
+                                {t("dash.markRead")}
                               </Button>
                             )}
                           </div>
@@ -774,33 +778,33 @@ export default function CustomerDashboard() {
           {/* ── PROFILE / ACCOUNT SETTINGS ────────────────────────────────── */}
           <TabsContent value="profile" className="m-0 space-y-10 max-w-md">
             <div className="space-y-6">
-              <h2 className="text-2xl font-serif font-bold">Account Settings</h2>
+              <h2 className="text-2xl font-serif font-bold">{t("dash.accountSettings")}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Full Name</label>
+                  <label className="text-sm font-medium mb-1.5 block">{t("dash.fullName")}</label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Email Address</label>
+                  <label className="text-sm font-medium mb-1.5 block">{t("dash.emailAddress")}</label>
                   <Input value={user.email} disabled className="bg-muted" />
-                  <p className="text-xs text-muted-foreground mt-1">Email cannot be changed here</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("dash.emailNote")}</p>
                 </div>
                 <Button onClick={handleUpdateProfile} disabled={updateUserMutation.isPending || name === user.name}>
-                  {updateUserMutation.isPending ? "Saving…" : "Save Changes"}
+                  {updateUserMutation.isPending ? t("dash.saving") : t("dash.saveChanges")}
                 </Button>
               </div>
             </div>
 
             <div className="border-t border-border pt-8 space-y-4">
               <div>
-                <h3 className="text-lg font-semibold">Email Notifications</h3>
-                <p className="text-sm text-muted-foreground mt-1">Choose which emails you'd like to receive.</p>
+                <h3 className="text-lg font-semibold">{t("dash.emailNotifications")}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{t("dash.emailNotificationsDesc")}</p>
               </div>
               <div className="space-y-4">
                 {([
-                  { key: "orderUpdates" as const, label: "Order Updates", desc: "Shipping, delivery, and status change emails" },
-                  { key: "promotions" as const, label: "Promotions & Offers", desc: "Sales, new arrivals, and exclusive deals" },
-                  { key: "securityAlerts" as const, label: "Security Alerts", desc: "New device logins and account warnings" },
+                  { key: "orderUpdates" as const, label: t("dash.emailPref.orderUpdates"), desc: t("dash.emailPref.orderUpdatesDesc") },
+                  { key: "promotions" as const, label: t("dash.emailPref.promotions"), desc: t("dash.emailPref.promotionsDesc") },
+                  { key: "securityAlerts" as const, label: t("dash.emailPref.securityAlerts"), desc: t("dash.emailPref.securityAlertsDesc") },
                 ] as const).map(({ key, label, desc }) => (
                   <label key={key} className="flex items-start gap-3 cursor-pointer">
                     <input
@@ -837,6 +841,7 @@ function StarDisplay({ value }: { value: number }) {
 }
 
 function MyReviewsTab({ userId }: { userId: number }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
   const { data: reviews, isLoading } = useGetMyReviews({
@@ -861,7 +866,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
       { id: editTarget.id, data: { rating: editForm.rating, title: editForm.title || undefined, comment: editForm.comment || undefined } },
       {
         onSuccess: () => {
-          toast({ title: "Review updated" });
+          toast({ title: t("dash.reviewUpdated") });
           setEditTarget(null);
           qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
         },
@@ -872,7 +877,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
   const handleDelete = (id: number) => {
     deleteMutation.mutate({ id }, {
       onSuccess: () => {
-        toast({ title: "Review deleted" });
+        toast({ title: t("dash.reviewDeleted") });
         qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
       },
     });
@@ -882,7 +887,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-serif font-bold">My Reviews</h2>
+      <h2 className="text-2xl font-serif font-bold">{t("dash.myReviews")}</h2>
 
       {isLoading ? (
         <div className="space-y-4">
@@ -891,8 +896,8 @@ function MyReviewsTab({ userId }: { userId: number }) {
       ) : !reviews?.length ? (
         <div className="bg-muted/30 p-8 text-center border border-border">
           <Star className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground mb-2">You haven't written any reviews yet.</p>
-          <p className="text-xs text-muted-foreground">After your order is delivered, you can review purchased products from the product page.</p>
+          <p className="text-muted-foreground mb-2">{t("dash.noReviews")}</p>
+          <p className="text-xs text-muted-foreground">{t("dash.noReviewsHint")}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -906,7 +911,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
                     </Link>
                     {review.verifiedPurchase && (
                       <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        <CheckCircle2 className="w-3 h-3" /> Verified Purchase
+                        <CheckCircle2 className="w-3 h-3" /> {t("reviews.verifiedPurchase")}
                       </span>
                     )}
                   </div>
@@ -915,7 +920,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" className="rounded-none h-8 px-3" onClick={() => openEdit(review)}>
-                    <PenLine className="w-3.5 h-3.5 mr-1" /> Edit
+                    <PenLine className="w-3.5 h-3.5 mr-1" /> {t("dash.addr.edit")}
                   </Button>
                   <Button size="sm" variant="ghost" className="h-8 px-3 text-destructive hover:text-destructive rounded-none"
                     onClick={() => handleDelete(review.id)} disabled={deleteMutation.isPending}>
@@ -935,12 +940,12 @@ function MyReviewsTab({ userId }: { userId: number }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-background border border-border w-full max-w-lg shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="font-serif text-lg font-bold">Edit Review</h3>
+              <h3 className="font-serif text-lg font-bold">{t("dash.editReview")}</h3>
               <button onClick={() => setEditTarget(null)} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-5">
               <div>
-                <label className="text-sm font-medium mb-2 block">Rating</label>
+                <label className="text-sm font-medium mb-2 block">{t("reviews.rating")}</label>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map(i => (
                     <button key={i} type="button"
@@ -952,21 +957,21 @@ function MyReviewsTab({ userId }: { userId: number }) {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Title</label>
+                <label className="text-sm font-medium mb-2 block">{t("reviews.title")}</label>
                 <input type="text" maxLength={120} value={editForm.title}
                   onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
                   className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Comment</label>
+                <label className="text-sm font-medium mb-2 block">{t("reviews.comment")}</label>
                 <textarea rows={4} maxLength={2000} value={editForm.comment}
                   onChange={e => setEditForm(f => ({ ...f, comment: e.target.value }))}
                   className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
               </div>
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1 rounded-none" onClick={() => setEditTarget(null)}>Cancel</Button>
+                <Button type="button" variant="outline" className="flex-1 rounded-none" onClick={() => setEditTarget(null)}>{t("dash.cancel")}</Button>
                 <Button type="submit" className="flex-1 rounded-none" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? "Saving…" : "Update Review"}
+                  {updateMutation.isPending ? t("dash.saving") : t("dash.updateReview")}
                 </Button>
               </div>
             </form>
@@ -994,6 +999,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 function SupportTab({ userId }: { userId: number }) {
   void userId;
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selected, setSelected] = useState<SupportTicket | null>(null);
@@ -1037,13 +1043,13 @@ function SupportTab({ userId }: { userId: number }) {
       setReply("");
       await loadTicket(selected);
     } catch {
-      toast({ title: "Failed to send reply", variant: "destructive" });
+      toast({ title: t("dash.replyFailed"), variant: "destructive" });
     } finally { setReplyPending(false); }
   };
 
   const createTicket = async () => {
     if (!newForm.subject || !newForm.message) {
-      toast({ title: "Subject and message are required", variant: "destructive" }); return;
+      toast({ title: t("dash.ticketRequired"), variant: "destructive" }); return;
     }
     const token = localStorage.getItem("auth_token");
     setCreating(true);
@@ -1054,11 +1060,11 @@ function SupportTab({ userId }: { userId: number }) {
         body: JSON.stringify(newForm),
       });
       if (!res.ok) throw new Error();
-      toast({ title: "Ticket opened successfully" });
+      toast({ title: t("dash.ticketOpened") });
       setShowNew(false); setNewForm({ subject: "", category: "general", message: "" });
       await load();
     } catch {
-      toast({ title: "Failed to open ticket", variant: "destructive" });
+      toast({ title: t("dash.ticketFailed"), variant: "destructive" });
     } finally { setCreating(false); }
   };
 
@@ -1069,14 +1075,14 @@ function SupportTab({ userId }: { userId: number }) {
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <button onClick={() => { setSelected(null); setMessages([]); void load(); }} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-            ← Back
+            ← {t("dash.back")}
           </button>
           <span className="text-xs text-muted-foreground">Ticket #{selected.id}</span>
           <span className={`px-2 py-0.5 text-xs capitalize rounded ${STATUS_COLORS[selected.status] ?? ""}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
         </div>
         <div className="border border-border p-4">
           <h3 className="font-bold">{selected.subject}</h3>
-          <p className="text-xs text-muted-foreground mt-1">Opened {format(new Date(selected.createdAt), "MMM d, yyyy")}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("dash.ticketOpened2")} {format(new Date(selected.createdAt), "MMM d, yyyy")}</p>
         </div>
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {messages.map(msg => (
@@ -1096,7 +1102,7 @@ function SupportTab({ userId }: { userId: number }) {
             <textarea
               value={reply}
               onChange={e => setReply(e.target.value)}
-              placeholder="Type your reply..."
+              placeholder={t("dash.replyPlaceholder")}
               rows={3}
               className="flex-1 border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
             />
@@ -1116,49 +1122,49 @@ function SupportTab({ userId }: { userId: number }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-serif font-bold">Support</h2>
+        <h2 className="text-2xl font-serif font-bold">{t("dash.support")}</h2>
         <button onClick={() => setShowNew(!showNew)} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
-          + New Ticket
+          + {t("dash.newTicket")}
         </button>
       </div>
 
       {showNew && (
         <div className="border border-border p-5 bg-card space-y-3">
-          <h3 className="font-bold text-sm">Open Support Ticket</h3>
+          <h3 className="font-bold text-sm">{t("dash.openTicket")}</h3>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium block mb-1">Category</label>
+              <label className="text-xs font-medium block mb-1">{t("dash.ticketCategory")}</label>
               <select value={newForm.category} onChange={e => setNewForm(f => ({ ...f, category: e.target.value }))} className="w-full border border-input bg-background px-3 py-2 text-sm">
                 {["general", "order", "payment", "shipping", "returns", "account", "other"].map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium block mb-1">Subject *</label>
-              <input value={newForm.subject} onChange={e => setNewForm(f => ({ ...f, subject: e.target.value }))} placeholder="Brief summary of your issue" className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none" />
+              <label className="text-xs font-medium block mb-1">{t("dash.ticketSubject")}</label>
+              <input value={newForm.subject} onChange={e => setNewForm(f => ({ ...f, subject: e.target.value }))} placeholder={t("dash.ticketSubjectPlaceholder")} className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none" />
             </div>
           </div>
           <div>
-            <label className="text-xs font-medium block mb-1">Message *</label>
-            <textarea value={newForm.message} onChange={e => setNewForm(f => ({ ...f, message: e.target.value }))} placeholder="Describe your issue in detail..." rows={4} className="w-full border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none" />
+            <label className="text-xs font-medium block mb-1">{t("dash.ticketMessage")}</label>
+            <textarea value={newForm.message} onChange={e => setNewForm(f => ({ ...f, message: e.target.value }))} placeholder={t("dash.ticketMessagePlaceholder")} rows={4} className="w-full border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none" />
           </div>
           <div className="flex gap-2">
             <button onClick={createTicket} disabled={creating} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
-              {creating ? "Opening..." : "Open Ticket"}
+              {creating ? t("dash.opening") : t("dash.openTicketBtn")}
             </button>
-            <button onClick={() => setShowNew(false)} className="px-4 py-2 border border-border text-sm hover:bg-muted">Cancel</button>
+            <button onClick={() => setShowNew(false)} className="px-4 py-2 border border-border text-sm hover:bg-muted">{t("dash.cancel")}</button>
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="p-8 text-center text-muted-foreground text-sm">Loading...</div>
+        <div className="p-8 text-center text-muted-foreground text-sm">{t("dash.loading")}</div>
       ) : !tickets.length ? (
         <div className="border border-border p-12 text-center">
           <MessageCircle className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <h3 className="font-medium mb-1">No support tickets yet</h3>
-          <p className="text-muted-foreground text-sm mb-4">Open a ticket if you need help with an order, payment, or anything else.</p>
+          <h3 className="font-medium mb-1">{t("dash.noTickets")}</h3>
+          <p className="text-muted-foreground text-sm mb-4">{t("dash.noTicketsDesc")}</p>
           <button onClick={() => setShowNew(true)} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
-            Open Your First Ticket
+            {t("dash.openFirstTicket")}
           </button>
         </div>
       ) : (

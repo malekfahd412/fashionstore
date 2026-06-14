@@ -3,11 +3,13 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/contexts/LanguageContext";
 import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,7 +19,7 @@ export default function ForgotPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError("Please enter your email address");
+      setError(t("forgot.emailRequired"));
       return;
     }
     setError("");
@@ -35,7 +37,7 @@ export default function ForgotPassword() {
       setSent(true);
     } catch (err: unknown) {
       const msg = (err as Error)?.message ?? "Failed to send reset email";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+      toast({ title: t("forgot.errorTitle"), description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -51,24 +53,24 @@ export default function ForgotPassword() {
             </div>
           </div>
           <div>
-            <h1 className="font-serif text-3xl font-bold mb-3">Check your email</h1>
+            <h1 className="font-serif text-3xl font-bold mb-3">{t("forgot.sentTitle")}</h1>
             <p className="text-muted-foreground leading-relaxed">
-              We've sent a password reset link to <strong>{email}</strong>. Please check your inbox and follow the instructions.
+              {t("forgot.sentDesc")} <strong>{email}</strong>. {t("forgot.sentInstructions")}
             </p>
           </div>
           <p className="text-sm text-muted-foreground">
-            Didn't receive it? Check your spam folder or{" "}
+            {t("forgot.didntReceive")}{" "}
             <button
               className="text-primary underline underline-offset-2 hover:text-primary/80"
               onClick={() => setSent(false)}
             >
-              try again
+              {t("forgot.tryAgain")}
             </button>
             .
           </p>
           <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Back to Login
+            {t("forgot.backToLogin")}
           </Link>
         </div>
       </div>
@@ -80,23 +82,21 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md">
         <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
           <ArrowLeft className="w-4 h-4" />
-          Back to Login
+          {t("forgot.backToLogin")}
         </Link>
 
         <div className="mb-8">
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-5">
             <Mail className="w-6 h-6 text-muted-foreground" />
           </div>
-          <h1 className="font-serif text-3xl font-bold mb-2">Forgot Password?</h1>
-          <p className="text-muted-foreground">
-            Enter your email address and we'll send you a link to reset your password.
-          </p>
+          <h1 className="font-serif text-3xl font-bold mb-2">{t("forgot.title")}</h1>
+          <p className="text-muted-foreground">{t("forgot.subtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
-              Email Address
+              {t("forgot.emailLabel")}
             </label>
             <Input
               id="email"
@@ -123,18 +123,18 @@ export default function ForgotPassword() {
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                Sending...
+                {t("forgot.sending")}
               </span>
             ) : (
-              "Send Reset Link"
+              t("forgot.sendLink")
             )}
           </Button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Remember your password?{" "}
+          {t("forgot.remember")}{" "}
           <Link href="/login" className="text-primary underline underline-offset-2 hover:text-primary/80">
-            Sign in
+            {t("forgot.signIn")}
           </Link>
         </p>
       </div>

@@ -7,6 +7,7 @@ import {
   Truck, MapPin, Home, ArrowLeft, ShoppingBag, Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -22,6 +23,7 @@ async function apiFetch<T>(path: string): Promise<T> {
 type OrderItem = {
   productVariantId: number;
   nameEn: string;
+  nameAr?: string | null;
   quantity: number;
   price: number;
   imageUrl: string | null;
@@ -47,16 +49,6 @@ type Order = {
   paymentStatus: string | null;
   items: OrderItem[];
 };
-
-const STEPS = [
-  { key: "new", label: "Order Placed", description: "Your order has been received and confirmed.", icon: ShoppingBag, tsField: "createdAt" as const },
-  { key: "paid", label: "Payment Confirmed", description: "Payment verified — your order is being prepared.", icon: CreditCard, tsField: "paidAt" as const },
-  { key: "processing", label: "Processing", description: "Our team is reviewing and preparing your items.", icon: BoxIcon, tsField: "processingAt" as const },
-  { key: "packed", label: "Packed", description: "Items picked, packed and quality-checked.", icon: Package, tsField: "packedAt" as const },
-  { key: "shipped", label: "Shipped", description: "Order dispatched to the courier.", icon: Truck, tsField: "shippedAt" as const },
-  { key: "out_for_delivery", label: "Out for Delivery", description: "Your package is with the courier — arriving today!", icon: MapPin, tsField: "outForDeliveryAt" as const },
-  { key: "delivered", label: "Delivered", description: "Package delivered. Enjoy your purchase!", icon: Home, tsField: "deliveredAt" as const },
-];
 
 const STATUS_ORDER = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
 
@@ -96,18 +88,20 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function PaymentBadge({ order }: { order: Order }) {
+  const { t } = useTranslation();
   const ps = order.paymentStatus;
   if (ps === "cod") {
     return order.status === "delivered"
-      ? <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">COD Paid</span>
-      : <span className="text-xs font-medium text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Pay on Delivery</span>;
+      ? <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">{t("track.codPaid")}</span>
+      : <span className="text-xs font-medium text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">{t("track.payOnDelivery")}</span>;
   }
-  if (ps === "paid") return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Paid</span>;
-  if (ps === "failed") return <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">Failed</span>;
-  return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">Pending</span>;
+  if (ps === "paid") return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">{t("track.paid")}</span>;
+  if (ps === "failed") return <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">{t("track.paymentFailed")}</span>;
+  return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">{t("track.paymentPending")}</span>;
 }
 
 function OrderView({ order }: { order: Order }) {
+  const { t, language } = useTranslation();
   const isCancelled = order.status === "cancelled";
   const progress = getProgress(order.status);
   const estDelivery = (() => {
@@ -116,6 +110,16 @@ function OrderView({ order }: { order: Order }) {
     return format(addDays(base, order.shippedAt ? 3 : 7), "EEEE, MMMM d");
   })();
 
+  const STEPS = [
+    { key: "new", label: t("track.step.placed.label"), description: t("track.step.placed.desc"), icon: ShoppingBag, tsField: "createdAt" as const },
+    { key: "paid", label: t("track.step.paid.label"), description: t("track.step.paid.desc"), icon: CreditCard, tsField: "paidAt" as const },
+    { key: "processing", label: t("track.step.processing.label"), description: t("track.step.processing.desc"), icon: BoxIcon, tsField: "processingAt" as const },
+    { key: "packed", label: t("track.step.packed.label"), description: t("track.step.packed.desc"), icon: Package, tsField: "packedAt" as const },
+    { key: "shipped", label: t("track.step.shipped.label"), description: t("track.step.shipped.desc"), icon: Truck, tsField: "shippedAt" as const },
+    { key: "out_for_delivery", label: t("track.step.outForDelivery.label"), description: t("track.step.outForDelivery.desc"), icon: MapPin, tsField: "outForDeliveryAt" as const },
+    { key: "delivered", label: t("track.step.delivered.label"), description: t("track.step.delivered.desc"), icon: Home, tsField: "deliveredAt" as const },
+  ];
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -123,7 +127,7 @@ function OrderView({ order }: { order: Order }) {
         <div>
           <h1 className="font-serif text-3xl font-bold mb-1">Order #{order.id}</h1>
           <p className="text-sm text-muted-foreground">
-            Placed {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+            {t("track.placed")} {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -136,7 +140,7 @@ function OrderView({ order }: { order: Order }) {
       {estDelivery && (
         <div className="flex items-center gap-3 border border-primary/20 bg-primary/5 px-5 py-3">
           <Clock className="w-4 h-4 text-primary shrink-0" />
-          <p className="text-sm"><span className="font-semibold">Estimated delivery:</span> {estDelivery}</p>
+          <p className="text-sm"><span className="font-semibold">{t("track.estimatedDelivery")}</span> {estDelivery}</p>
         </div>
       )}
 
@@ -144,7 +148,7 @@ function OrderView({ order }: { order: Order }) {
       {order.trackingNote && (
         <div className="flex items-start gap-3 border border-border bg-muted/30 px-5 py-3">
           <Truck className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-          <p className="text-sm"><span className="font-semibold">Tracking info:</span> {order.trackingNote}</p>
+          <p className="text-sm"><span className="font-semibold">{t("track.trackingInfo")}</span> {order.trackingNote}</p>
         </div>
       )}
 
@@ -152,9 +156,9 @@ function OrderView({ order }: { order: Order }) {
       {!isCancelled && (
         <div>
           <div className="flex justify-between text-xs text-muted-foreground mb-2">
-            <span>Order Placed</span>
-            <span>{progress}% Complete</span>
-            <span>Delivered</span>
+            <span>{t("track.orderPlaced")}</span>
+            <span>{progress}{t("track.complete")}</span>
+            <span>{t("track.delivered")}</span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
@@ -183,8 +187,8 @@ function OrderView({ order }: { order: Order }) {
       {/* Cancelled state */}
       {isCancelled && (
         <div className="border border-destructive/30 bg-destructive/5 p-6 text-center space-y-2">
-          <p className="font-semibold text-destructive">Order Cancelled</p>
-          <p className="text-sm text-muted-foreground">Contact support if you have questions.</p>
+          <p className="font-semibold text-destructive">{t("track.cancelled")}</p>
+          <p className="text-sm text-muted-foreground">{t("track.cancelledDesc")}</p>
         </div>
       )}
 
@@ -221,7 +225,7 @@ function OrderView({ order }: { order: Order }) {
                         </span>
                       ) : state === "active" ? (
                         <span className="inline-flex items-center gap-1 text-xs text-primary">
-                          <Clock className="w-3 h-3" /> In progress
+                          <Clock className="w-3 h-3" /> {t("track.inProgress")}
                         </span>
                       ) : null}
                     </div>
@@ -239,7 +243,7 @@ function OrderView({ order }: { order: Order }) {
       {/* Order items */}
       <div className="border border-border">
         <div className="px-5 py-3 border-b border-border bg-muted/30">
-          <h2 className="text-sm font-semibold uppercase tracking-wide">Order Items</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide">{t("track.orderItems")}</h2>
         </div>
         <div className="divide-y divide-border">
           {order.items.map((item) => (
@@ -252,7 +256,9 @@ function OrderView({ order }: { order: Order }) {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.nameEn}</p>
+                <p className="text-sm font-medium truncate">
+                  {language === "ar" && item.nameAr ? item.nameAr : item.nameEn}
+                </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {[item.color, item.size].filter(Boolean).join(" · ")} × {item.quantity}
                 </p>
@@ -266,12 +272,12 @@ function OrderView({ order }: { order: Order }) {
         <div className="px-5 py-4 border-t border-border bg-muted/20 space-y-2 text-sm">
           {order.discount > 0 && (
             <div className="flex justify-between text-muted-foreground">
-              <span>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</span>
+              <span>{t("track.discount")}{order.couponCode ? ` (${order.couponCode})` : ""}</span>
               <span className="text-green-600">−{Number(order.discount).toLocaleString()} EGP</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-base pt-1 border-t border-border">
-            <span>Total</span>
+            <span>{t("track.total")}</span>
             <span>{Number(order.totalPrice).toLocaleString()} EGP</span>
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -284,10 +290,10 @@ function OrderView({ order }: { order: Order }) {
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
         <Button variant="outline" asChild>
-          <Link href="/dashboard/customer">← My Orders</Link>
+          <Link href="/dashboard/customer">{t("track.backToOrders")}</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/products">Continue Shopping</Link>
+          <Link href="/products">{t("track.continueShop")}</Link>
         </Button>
       </div>
     </div>
@@ -295,6 +301,7 @@ function OrderView({ order }: { order: Order }) {
 }
 
 function GuestSearch() {
+  const { t } = useTranslation();
   const [orderId, setOrderId] = useState("");
   const [, setLocation] = useLocation();
 
@@ -303,16 +310,14 @@ function GuestSearch() {
       <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
         <Package className="w-8 h-8 text-primary" />
       </div>
-      <h2 className="font-serif text-2xl font-bold mb-2">Track Your Order</h2>
-      <p className="text-muted-foreground mb-8 text-sm">
-        Sign in to view full order details, or enter your order number below.
-      </p>
+      <h2 className="font-serif text-2xl font-bold mb-2">{t("track.title")}</h2>
+      <p className="text-muted-foreground mb-8 text-sm">{t("track.subtitle")}</p>
       <div className="flex gap-2">
         <input
           type="number"
           value={orderId}
           onChange={e => setOrderId(e.target.value)}
-          placeholder="Order number (e.g. 1042)"
+          placeholder={t("track.placeholder")}
           className="flex-1 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
         <Button
@@ -324,10 +329,10 @@ function GuestSearch() {
       </div>
       <div className="mt-6 flex gap-3 justify-center">
         <Button variant="outline" asChild>
-          <Link href="/login">Sign In</Link>
+          <Link href="/login">{t("track.signIn")}</Link>
         </Button>
         <Button asChild>
-          <Link href="/products">Shop Now</Link>
+          <Link href="/products">{t("track.shopNow")}</Link>
         </Button>
       </div>
     </div>
@@ -335,6 +340,7 @@ function GuestSearch() {
 }
 
 export default function TrackOrder() {
+  const { t } = useTranslation();
   const { orderId } = useParams<{ orderId: string }>();
   const token = localStorage.getItem("auth_token");
 
@@ -354,7 +360,7 @@ export default function TrackOrder() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
+          {t("track.backToDashboard")}
         </Link>
       )}
 
@@ -372,12 +378,10 @@ export default function TrackOrder() {
       {token && error && (
         <div className="text-center space-y-4 py-16">
           <Package className="w-12 h-12 text-muted-foreground mx-auto" />
-          <h1 className="text-2xl font-bold font-serif">Order not found</h1>
-          <p className="text-muted-foreground text-sm">
-            This order doesn't exist or you don't have permission to view it.
-          </p>
+          <h1 className="text-2xl font-bold font-serif">{t("track.notFound")}</h1>
+          <p className="text-muted-foreground text-sm">{t("track.notFoundDesc")}</p>
           <Button asChild variant="outline">
-            <Link href="/dashboard/customer">← My Orders</Link>
+            <Link href="/dashboard/customer">{t("track.backToOrders")}</Link>
           </Button>
         </div>
       )}
