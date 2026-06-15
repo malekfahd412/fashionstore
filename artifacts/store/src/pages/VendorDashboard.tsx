@@ -166,17 +166,17 @@ export default function VendorDashboard() {
                     setProductFormError("");
                     createProductMutation.mutate({
                       data: {
-                        nameEn: productForm.nameEn,
-                        nameAr: productForm.nameAr,
-                        descriptionEn: productForm.descriptionEn || null,
-                        descriptionAr: productForm.descriptionAr || null,
-                        price: String(productForm.price),
-                        salePrice: productForm.salePrice ? String(productForm.salePrice) : null,
-                        categoryId: Number(productForm.categoryId),
-                        active: productForm.active,
-                        images: productForm.images.filter(Boolean),
-                        variants: productForm.variants.filter(v => v.color || v.size).map(v => ({ color: v.color, size: v.size, stockQuantity: Number(v.stockQuantity) })),
-                      } as Parameters<typeof createProductMutation.mutate>[0]["data"],
+                          nameEn: productForm.nameEn,
+                          nameAr: productForm.nameAr,
+                          descriptionEn: productForm.descriptionEn || null,
+                          descriptionAr: productForm.descriptionAr || null,
+                          price: String(productForm.price),
+                          salePrice: productForm.salePrice ? String(productForm.salePrice) : null,
+                          categoryId: Number(productForm.categoryId),
+                          active: productForm.active,
+                          images: productForm.images.filter(Boolean),
+                          variants: productForm.variants.filter(v => v.color || v.size).map(v => ({ color: v.color, size: v.size, stockQuantity: Number(v.stockQuantity) })),
+                      } as unknown as Parameters<typeof createProductMutation.mutate>[0]["data"],
                     }, {
                       onSuccess: () => {
                         toast({ title: "Product created!" });
