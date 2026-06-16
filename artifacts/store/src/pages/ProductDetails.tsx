@@ -191,6 +191,17 @@ export default function ProductDetails() {
     }
   }, [product]);
 
+  // Track recently viewed (non-blocking, only for logged-in users)
+  useEffect(() => {
+    if (user && productId) {
+      const token = localStorage.getItem("auth_token");
+      fetch(`${BASE}/api/recently-viewed/${productId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
+  }, [user, productId]);
+
   const handleImageSelect = (url: string, idx: number) => {
     setActiveImage(url);
     setActiveImageIdx(idx);

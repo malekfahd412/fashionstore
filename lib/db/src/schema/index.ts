@@ -22,3 +22,6 @@ export * from "./faqs";
 export * from "./contact-messages";
 export * from "./support-tickets";
 export * from "./manual-payments";
+export * from "./abandoned-cart-reminders";
+export * from "./recently-viewed";
+export * from "./saved-coupons";

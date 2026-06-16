@@ -25,6 +25,9 @@ import faqsRouter from "./faqs";
 import contactRouter from "./contact";
 import googleAuthRouter from "./google-auth";
 import supportRouter from "./support";
+import abandonedCartsRouter from "./abandoned-carts";
+import recentlyViewedRouter from "./recently-viewed";
+import savedCouponsRouter from "./saved-coupons";
 
 const router: IRouter = Router();
 
@@ -54,5 +57,8 @@ router.use(faqsRouter);
 router.use(contactRouter);
 router.use(googleAuthRouter);
 router.use(supportRouter);
+router.use(abandonedCartsRouter);
+router.use(recentlyViewedRouter);
+router.use(savedCouponsRouter);
 
 export default router;

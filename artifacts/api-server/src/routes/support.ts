@@ -1,13 +1,29 @@
 import { Router, type IRouter } from "express";
-import { db, supportTicketsTable, ticketMessagesTable, usersTable } from "@workspace/db";
-import { eq, desc, and, count, inArray } from "drizzle-orm";
+import {
+  db,
+  supportTicketsTable,
+  ticketMessagesTable,
+  usersTable,
+  userAddressesTable,
+} from "@workspace/db";
+import { eq, desc, and, count, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
+import { sendSupportReplyWhatsApp } from "../lib/whatsapp";
 
 const router: IRouter = Router();
 
-const VALID_STATUSES = ["open", "in_progress", "waiting_customer", "resolved", "closed"];
+const VALID_STATUSES = ["open", "in_progress", "waiting_customer", "waiting_admin", "resolved", "closed"];
 const VALID_PRIORITIES = ["low", "normal", "high", "urgent"];
 const VALID_CATEGORIES = ["general", "order", "payment", "shipping", "returns", "account", "other"];
+
+async function getUserPhone(userId: number): Promise<string | null> {
+  const [addr] = await db
+    .select({ phone: userAddressesTable.phone })
+    .from(userAddressesTable)
+    .where(eq(userAddressesTable.userId, userId))
+    .limit(1);
+  return addr?.phone ?? null;
+}
 
 // ── Customer: list my tickets ────────────────────────────────────────────────
 router.get("/support/tickets", requireAuth, async (req, res): Promise<void> => {
@@ -23,7 +39,7 @@ router.get("/support/tickets", requireAuth, async (req, res): Promise<void> => {
 // ── Customer: open new ticket ────────────────────────────────────────────────
 router.post("/support/tickets", requireAuth, async (req, res): Promise<void> => {
   const userId = req.user!.id;
-  const { subject, category = "general", message } = req.body ?? {};
+  const { subject, category = "general", message, orderId } = req.body ?? {};
   if (!subject || typeof subject !== "string" || subject.trim().length < 3) {
     res.status(400).json({ error: "Subject must be at least 3 characters" }); return;
   }
@@ -34,8 +50,11 @@ router.post("/support/tickets", requireAuth, async (req, res): Promise<void> => 
     res.status(400).json({ error: "Invalid category" }); return;
   }
 
+  const orderIdNum = orderId ? Number(orderId) : null;
+
   const [ticket] = await db.insert(supportTicketsTable).values({
     userId,
+    orderId: orderIdNum && !isNaN(orderIdNum) ? orderIdNum : null,
     subject: subject.trim().slice(0, 255),
     category: String(category),
     status: "open",
@@ -46,6 +65,7 @@ router.post("/support/tickets", requireAuth, async (req, res): Promise<void> => 
     ticketId: ticket.id,
     senderId: userId,
     message: message.trim().slice(0, 5000),
+    isInternal: false,
   });
 
   res.status(201).json(ticket);
@@ -62,12 +82,13 @@ router.get("/support/tickets/:id", requireAuth, async (req, res): Promise<void> 
   if (!ticket) { res.status(404).json({ error: "Ticket not found" }); return; }
   if (!isAdmin && ticket.userId !== userId) { res.status(403).json({ error: "Forbidden" }); return; }
 
-  const messages = await db
+  const messagesQuery = db
     .select({
       id: ticketMessagesTable.id,
       ticketId: ticketMessagesTable.ticketId,
       senderId: ticketMessagesTable.senderId,
       message: ticketMessagesTable.message,
+      isInternal: ticketMessagesTable.isInternal,
       createdAt: ticketMessagesTable.createdAt,
       senderName: usersTable.name,
       senderRole: usersTable.role,
@@ -76,6 +97,10 @@ router.get("/support/tickets/:id", requireAuth, async (req, res): Promise<void> 
     .leftJoin(usersTable, eq(ticketMessagesTable.senderId, usersTable.id))
     .where(eq(ticketMessagesTable.ticketId, id))
     .orderBy(ticketMessagesTable.createdAt);
+
+  const allMessages = await messagesQuery;
+  // Customers cannot see internal notes
+  const messages = isAdmin ? allMessages : allMessages.filter((m) => !m.isInternal);
 
   res.json({ ticket, messages });
 });
@@ -92,24 +117,66 @@ router.post("/support/tickets/:id/messages", requireAuth, async (req, res): Prom
   if (!isAdmin && ticket.userId !== userId) { res.status(403).json({ error: "Forbidden" }); return; }
   if (ticket.status === "closed") { res.status(400).json({ error: "Ticket is closed" }); return; }
 
-  const { message } = req.body ?? {};
+  const { message, isInternal = false } = req.body ?? {};
   if (!message || typeof message !== "string" || message.trim().length < 1) {
     res.status(400).json({ error: "Message is required" }); return;
   }
+  // Only admins can post internal notes
+  const internalFlag = isAdmin ? Boolean(isInternal) : false;
 
   const [msg] = await db.insert(ticketMessagesTable).values({
     ticketId: id,
     senderId: userId,
     message: message.trim().slice(0, 5000),
+    isInternal: internalFlag,
   }).returning();
 
-  // Auto-update status
-  const newStatus = isAdmin ? "waiting_customer" : (ticket.status === "waiting_customer" ? "in_progress" : ticket.status);
-  await db.update(supportTicketsTable)
-    .set({ status: newStatus, updatedAt: new Date() })
-    .where(eq(supportTicketsTable.id, id));
+  // Auto-update status (only for public messages)
+  if (!internalFlag) {
+    let newStatus: string;
+    if (isAdmin) {
+      newStatus = "waiting_customer";
+    } else {
+      newStatus = ticket.status === "waiting_customer" ? "waiting_admin" : ticket.status;
+    }
+    await db.update(supportTicketsTable)
+      .set({ status: newStatus, updatedAt: new Date() })
+      .where(eq(supportTicketsTable.id, id));
+
+    // Notify customer via WhatsApp when admin replies (non-blocking)
+    if (isAdmin) {
+      void getUserPhone(ticket.userId).then((phone) =>
+        sendSupportReplyWhatsApp(phone, ticket.id, ticket.subject)
+      );
+    }
+  } else {
+    await db.update(supportTicketsTable)
+      .set({ updatedAt: new Date() })
+      .where(eq(supportTicketsTable.id, id));
+  }
 
   res.status(201).json(msg);
+});
+
+// ── Customer: close own ticket ───────────────────────────────────────────────
+router.patch("/support/tickets/:id/close", requireAuth, async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  const userId = req.user!.id;
+  const isAdmin = req.user!.role === "admin";
+  if (!id) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  const [ticket] = await db.select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id));
+  if (!ticket) { res.status(404).json({ error: "Ticket not found" }); return; }
+  if (!isAdmin && ticket.userId !== userId) { res.status(403).json({ error: "Forbidden" }); return; }
+  if (ticket.status === "closed") { res.status(400).json({ error: "Already closed" }); return; }
+
+  const [updated] = await db
+    .update(supportTicketsTable)
+    .set({ status: "closed", closedAt: new Date(), updatedAt: new Date() })
+    .where(eq(supportTicketsTable.id, id))
+    .returning();
+
+  res.json(updated);
 });
 
 // ── Admin: list all tickets ──────────────────────────────────────────────────
@@ -132,10 +199,12 @@ router.get("/admin/support/tickets", requireAuth, requireRole("admin"), async (r
     .select({
       id: supportTicketsTable.id,
       userId: supportTicketsTable.userId,
+      orderId: supportTicketsTable.orderId,
       subject: supportTicketsTable.subject,
       category: supportTicketsTable.category,
       status: supportTicketsTable.status,
       priority: supportTicketsTable.priority,
+      closedAt: supportTicketsTable.closedAt,
       createdAt: supportTicketsTable.createdAt,
       updatedAt: supportTicketsTable.updatedAt,
       userName: usersTable.name,
@@ -160,6 +229,7 @@ router.patch("/admin/support/tickets/:id", requireAuth, requireRole("admin"), as
   if (status !== undefined) {
     if (!VALID_STATUSES.includes(String(status))) { res.status(400).json({ error: "Invalid status" }); return; }
     update.status = String(status);
+    if (String(status) === "closed") update.closedAt = new Date();
   }
   if (priority !== undefined) {
     if (!VALID_PRIORITIES.includes(String(priority))) { res.status(400).json({ error: "Invalid priority" }); return; }

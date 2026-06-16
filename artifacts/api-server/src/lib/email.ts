@@ -361,6 +361,22 @@ export async function sendContactReply(to: string, name: string, replyMessage: s
   `));
 }
 
+export async function sendAbandonedCartEmail(
+  email: string,
+  name: string,
+  itemCount: number,
+  cartUrl: string,
+): Promise<void> {
+  await send(email, `You left something behind — Complete your order`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Your cart is waiting, ${name}</h2>
+    <p style="line-height:1.7;color:#444">You have ${itemCount} item${itemCount !== 1 ? "s" : ""} saved in your cart. Don't miss out — your items are still available but may sell out.</p>
+    <div style="text-align:center">
+      <a href="${cartUrl}" style="${btnStyle}">COMPLETE MY ORDER</a>
+    </div>
+    <p style="line-height:1.7;color:#999;font-size:13px;margin-top:24px">This is a one-time reminder. We won't send you further cart reminders for this session.</p>
+  `));
+}
+
 export async function sendNewsletterWelcome(to: string, unsubscribeToken: string): Promise<void> {
   const unsubUrl = `${APP_URL()}/newsletter/unsubscribe?token=${unsubscribeToken}`;
   await send(to, "Welcome to Velora — You're subscribed!", wrap(`

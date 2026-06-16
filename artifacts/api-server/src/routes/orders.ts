@@ -1,10 +1,16 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable, userAddressesTable } from "@workspace/db";
 import { eq, and, SQL, desc, inArray, gt, isNull } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, ListOrdersQueryParams } from "@workspace/api-zod";
 import { auditLog } from "../lib/audit";
 import { sendOrderConfirmationEmail, sendOrderStatusEmail, sendVendorNewOrderEmail } from "../lib/email";
+import {
+  sendOrderPlacedWhatsApp,
+  sendOrderShippedWhatsApp,
+  sendOrderDeliveredWhatsApp,
+} from "../lib/whatsapp";
+import { markCartRecovered } from "./abandoned-carts";
 
 const router: IRouter = Router();
 
@@ -235,6 +241,14 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
       sendOrderConfirmationEmail(customer.email, customer.name, order.id, Number(order.totalPrice), emailItems).catch(() => {});
     }
 
+    // WhatsApp order placed notification (non-blocking)
+    void db.select({ phone: userAddressesTable.phone }).from(userAddressesTable)
+      .where(eq(userAddressesTable.userId, order.userId)).limit(1)
+      .then(([addr]) => sendOrderPlacedWhatsApp(addr?.phone, order.id, Number(order.totalPrice)));
+
+    // Mark any abandoned cart as recovered
+    void markCartRecovered(order.userId);
+
     // Notify each vendor whose products are in this order (vendor preference not applicable here)
     const vendorIds = [...new Set((enriched.items as EnrichedItem[]).map(i => i.vendorId).filter((v): v is number => v !== null))];
     for (const vid of vendorIds) {
@@ -292,6 +306,16 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
     const wantsOrderUpdates = customer.emailPreferences?.orderUpdates !== false;
     if (wantsOrderUpdates) {
       sendOrderStatusEmail(customer.email, customer.name, order.id, parsed.data.status).catch(() => {});
+    }
+
+    // WhatsApp status notifications (non-blocking)
+    if (parsed.data.status === "shipped" || parsed.data.status === "delivered") {
+      void db.select({ phone: userAddressesTable.phone }).from(userAddressesTable)
+        .where(eq(userAddressesTable.userId, order.userId)).limit(1)
+        .then(([addr]) => {
+          if (parsed.data.status === "shipped") return sendOrderShippedWhatsApp(addr?.phone, order.id, order.trackingNote);
+          return sendOrderDeliveredWhatsApp(addr?.phone, order.id);
+        });
     }
   }
 });

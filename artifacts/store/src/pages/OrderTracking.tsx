@@ -4,7 +4,7 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
-import { CheckCircle2, Circle, Clock, Package, CreditCard, BoxIcon, Truck, MapPin, Home, ArrowLeft, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Package, CreditCard, BoxIcon, Truck, MapPin, Home, ArrowLeft, ShoppingBag, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -179,6 +179,7 @@ export default function OrderTracking() {
     queryFn: () => apiFetch(`/api/orders/${id}`),
     enabled: !!user && !!id,
     staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 
   if (!user) return null;
@@ -306,6 +307,22 @@ export default function OrderTracking() {
           </ol>
         </div>
       )}
+
+      {/* Support shortcut */}
+      <div className="border border-border px-5 py-4 flex items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <Headphones className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold">Need help with this order?</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Our support team is ready to assist you.</p>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/dashboard/customer?tab=support`}>
+            Contact Support
+          </Link>
+        </Button>
+      </div>
 
       <div className="border border-border">
         <div className="px-5 py-4 border-b border-border bg-muted/30">

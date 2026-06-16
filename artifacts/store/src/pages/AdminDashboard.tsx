@@ -71,6 +71,7 @@ const TABS = [
   { id: 'newsletter', label: 'Newsletter' },
   { id: 'payments', label: 'Payments' },
   { id: 'support', label: 'Support' },
+  { id: 'abandoned-carts', label: 'Abandoned Carts' },
   { id: 'audit-logs', label: 'Audit Logs' },
   { id: 'security', label: 'Security' },
   { id: 'settings', label: 'Settings' },
@@ -437,6 +438,9 @@ export default function AdminDashboard() {
         {activeTab === 'payments' && <AdminManualPaymentsTab />}
 
         {activeTab === 'support' && <AdminSupportTab />}
+
+        {/* ── ABANDONED CARTS ──────────────────────────────────────── */}
+        {activeTab === 'abandoned-carts' && <AdminAbandonedCartsTab />}
 
         {/* ── SECURITY ─────────────────────────────────────────────── */}
         {activeTab === 'security' && <SecurityPanel />}
@@ -912,6 +916,147 @@ const TICKET_STATUS_COLORS: Record<string, string> = {
 const TICKET_PRIORITY_COLORS: Record<string, string> = {
   low: "text-muted-foreground", normal: "text-foreground", high: "text-amber-600 font-semibold", urgent: "text-destructive font-bold",
 };
+
+// ── Abandoned Carts Tab ───────────────────────────────────────────────────────
+type AbandonedCart = {
+  userId: number; email: string; name: string;
+  itemCount: number; estimatedTotal: number;
+  lastActivity: string; emailSentAt: string | null; whatsappSentAt: string | null; recovered: boolean;
+};
+
+function AdminAbandonedCartsTab() {
+  const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const [carts, setCarts] = useState<AbandonedCart[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState<number | null>(null);
+  const [toast_, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [thresholdHours, setThresholdHours] = useState(2);
+
+  const adminFetch = async (path: string, opts?: RequestInit) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE}${path}`, {
+      ...opts,
+      headers: { ...(opts?.headers ?? {}), Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await adminFetch(`/api/abandoned-carts/admin?thresholdHours=${thresholdHours}`);
+      setCarts(data.carts ?? []);
+    } catch { setCarts([]); } finally { setLoading(false); }
+  };
+
+  useEffect(() => { void load(); }, [thresholdHours]);
+
+  const sendReminder = async (userId: number, type: "email" | "whatsapp") => {
+    setSending(userId);
+    try {
+      await adminFetch("/api/abandoned-carts/admin/send-reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, type }),
+      });
+      setToast({ msg: `${type === "email" ? "Email" : "WhatsApp"} reminder sent`, ok: true });
+      void load();
+    } catch (e) {
+      setToast({ msg: (e as Error).message, ok: false });
+    } finally { setSending(null); }
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast_ && (
+        <div className={`px-4 py-3 text-sm border ${toast_.ok ? "border-green-300 bg-green-50 text-green-700" : "border-red-300 bg-red-50 text-red-700"}`}>
+          {toast_.msg}
+          <button className="float-right opacity-60 hover:opacity-100" onClick={() => setToast(null)}>×</button>
+        </div>
+      )}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-bold">Abandoned Carts</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Customers who added items but haven't purchased in the last {thresholdHours}h</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-muted-foreground">Threshold:</label>
+          <select value={thresholdHours} onChange={e => setThresholdHours(Number(e.target.value))} className="border border-input bg-background px-3 py-1.5 text-sm">
+            {[1, 2, 4, 6, 12, 24, 48].map(h => <option key={h} value={h}>{h}h</option>)}
+          </select>
+          <button onClick={load} className="px-3 py-1.5 text-sm border border-border hover:bg-muted">Refresh</button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">Loading abandoned carts…</div>
+      ) : carts.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">No abandoned carts found for this threshold.</div>
+      ) : (
+        <div className="overflow-x-auto border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="px-4 py-3 text-left font-semibold text-xs">Customer</th>
+                <th className="px-4 py-3 text-left font-semibold text-xs">Items</th>
+                <th className="px-4 py-3 text-left font-semibold text-xs">Est. Total</th>
+                <th className="px-4 py-3 text-left font-semibold text-xs">Last Activity</th>
+                <th className="px-4 py-3 text-left font-semibold text-xs">Reminders Sent</th>
+                <th className="px-4 py-3 text-left font-semibold text-xs">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {carts.map(cart => (
+                <tr key={cart.userId} className={cart.recovered ? "opacity-50" : ""}>
+                  <td className="px-4 py-3">
+                    <p className="font-medium">{cart.name}</p>
+                    <p className="text-xs text-muted-foreground">{cart.email}</p>
+                  </td>
+                  <td className="px-4 py-3 text-xs">{cart.itemCount} item{cart.itemCount !== 1 ? "s" : ""}</td>
+                  <td className="px-4 py-3 text-xs">{Number(cart.estimatedTotal).toLocaleString()} EGP</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                    {format(new Date(cart.lastActivity), "MMM d, HH:mm")}
+                  </td>
+                  <td className="px-4 py-3 text-xs space-y-0.5">
+                    {cart.emailSentAt ? (
+                      <span className="block text-muted-foreground">📧 {format(new Date(cart.emailSentAt), "MMM d HH:mm")}</span>
+                    ) : <span className="text-muted-foreground">—</span>}
+                    {cart.whatsappSentAt && (
+                      <span className="block text-muted-foreground">💬 {format(new Date(cart.whatsappSentAt), "MMM d HH:mm")}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {cart.recovered ? (
+                      <span className="text-xs text-green-600 font-medium">✓ Recovered</span>
+                    ) : (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          onClick={() => sendReminder(cart.userId, "email")}
+                          disabled={sending === cart.userId}
+                          className="text-xs px-2 py-1 border border-border hover:bg-muted disabled:opacity-50"
+                        >
+                          📧 Email
+                        </button>
+                        <button
+                          onClick={() => sendReminder(cart.userId, "whatsapp")}
+                          disabled={sending === cart.userId}
+                          className="text-xs px-2 py-1 border border-border hover:bg-muted disabled:opacity-50"
+                        >
+                          💬 WhatsApp
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function AdminSupportTab() {
   const [tickets, setTickets] = useState<SupportTicketAdmin[]>([]);

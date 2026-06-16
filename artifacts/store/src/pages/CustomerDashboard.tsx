@@ -188,6 +188,7 @@ export default function CustomerDashboard() {
   const alertParam = searchParams.get("alert");
 
   const [activeTab, setActiveTab] = useState(tabParam ?? "overview");
+  const [supportOrderId, setSupportOrderId] = useState<number | null>(null);
   const [name, setName] = useState(user?.name || "");
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
@@ -222,6 +223,21 @@ export default function CustomerDashboard() {
   });
 
   const prefs = emailPrefs?.emailPreferences ?? { orderUpdates: true, promotions: true, securityAlerts: true };
+
+  type RecentProduct = { productId: number; nameEn: string | null; slug: string | null; imageUrl: string | null; price: string | null };
+  const { data: recentlyViewed } = useQuery<RecentProduct[]>({
+    queryKey: ["recently-viewed"],
+    queryFn: () => apiFetch("/api/recently-viewed?limit=8"),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  type SavedCoupon = { id: number; couponCode: string; savedAt: string; discountType: string | null; discountValue: string | null; endDate: string | null; active: boolean | null };
+  const { data: savedCoupons, refetch: refetchSavedCoupons } = useQuery<SavedCoupon[]>({
+    queryKey: ["saved-coupons"],
+    queryFn: () => apiFetch("/api/saved-coupons"),
+    enabled: !!user,
+  });
 
   const createAddressMutation = useMutation({
     mutationFn: (data: AddressFormData) => apiFetch<UserAddress>("/api/addresses", { method: "POST", body: JSON.stringify(data) }),
@@ -401,6 +417,32 @@ export default function CustomerDashboard() {
               )}
             </div>
 
+            {/* Recently Viewed */}
+            {recentlyViewed && recentlyViewed.length > 0 && (
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold">Recently Viewed</h3>
+                  <Link href="/products" className="text-xs text-primary hover:underline">Browse All</Link>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {recentlyViewed.map(p => (
+                    <Link key={p.productId} href={`/products/${p.slug ?? p.productId}`} className="group border border-border overflow-hidden hover:border-primary transition-colors">
+                      <div className="aspect-square bg-muted overflow-hidden">
+                        {p.imageUrl
+                          ? <img src={p.imageUrl} alt={p.nameEn ?? ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          : <div className="w-full h-full flex items-center justify-center"><Package className="w-6 h-6 text-muted-foreground" /></div>
+                        }
+                      </div>
+                      <div className="p-2">
+                        <p className="text-xs font-medium truncate">{p.nameEn}</p>
+                        {p.price && <p className="text-xs text-muted-foreground">{Number(p.price).toLocaleString()} EGP</p>}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Active order tracking */}
             {activeOrders.length > 0 && (
               <div>
@@ -526,6 +568,15 @@ export default function CustomerDashboard() {
                         <div className="flex gap-2 flex-wrap justify-end">
                           <Button variant="outline" size="sm" asChild>
                             <Link href={`/track-order/${order.id}`}>{t("dash.trackBtn")}</Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => { setSupportOrderId(order.id); setActiveTab("support"); }}
+                          >
+                            <Headphones className="w-3 h-3" />
+                            Support
                           </Button>
                           <Button
                             variant="outline"
@@ -703,7 +754,7 @@ export default function CustomerDashboard() {
 
           {/* ── SUPPORT ───────────────────────────────────────────────────── */}
           <TabsContent value="support" className="m-0 space-y-6">
-            <SupportTab userId={user.id} />
+            <SupportTab userId={user.id} prefilledOrderId={supportOrderId} />
           </TabsContent>
 
           {/* ── NOTIFICATIONS ─────────────────────────────────────────────── */}
@@ -776,6 +827,39 @@ export default function CustomerDashboard() {
           {/* ── PAYMENT HISTORY ───────────────────────────────────────────── */}
           <TabsContent value="payment-history" className="m-0 space-y-6">
             <PaymentHistoryTab />
+            {/* Saved Coupons */}
+            <div className="border-t border-border pt-6">
+              <h3 className="font-semibold mb-4 text-lg">Saved Coupons</h3>
+              {!savedCoupons?.length ? (
+                <p className="text-sm text-muted-foreground">No saved coupons yet. Coupons you save will appear here.</p>
+              ) : (
+                <div className="space-y-2">
+                  {savedCoupons.map(c => (
+                    <div key={c.id} className="border border-border p-4 flex items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-mono font-bold text-sm">{c.couponCode}</span>
+                          {c.active === false && <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Inactive</span>}
+                          {c.endDate && new Date(c.endDate) < new Date() && <span className="text-xs text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">Expired</span>}
+                        </div>
+                        {c.discountType && c.discountValue && (
+                          <p className="text-xs text-muted-foreground">
+                            {c.discountType === "percentage" ? `${c.discountValue}% off` : `${Number(c.discountValue).toLocaleString()} EGP off`}
+                            {c.endDate && ` · Expires ${format(new Date(c.endDate), "MMM d, yyyy")}`}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => apiFetch(`/api/saved-coupons/${c.couponCode}`, { method: "DELETE" }).then(() => refetchSavedCoupons())}
+                        className="text-xs text-muted-foreground hover:text-destructive"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* ── SECURITY ──────────────────────────────────────────────────── */}
@@ -991,18 +1075,19 @@ function MyReviewsTab({ userId }: { userId: number }) {
 }
 
 // ── Support Tab ──────────────────────────────────────────────────────────────
-type SupportTicket = { id: number; subject: string; category: string; status: string; priority: string; createdAt: string; updatedAt: string };
+type SupportTicket = { id: number; subject: string; category: string; status: string; priority: string; orderId?: number | null; closedAt?: string | null; createdAt: string; updatedAt: string };
 type TicketMsg = { id: number; ticketId: number; senderId: number; message: string; createdAt: string; senderName?: string; senderRole?: string };
 
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-blue-100 text-blue-700",
   in_progress: "bg-amber-100 text-amber-700",
   waiting_customer: "bg-purple-100 text-purple-700",
+  waiting_admin: "bg-orange-100 text-orange-700",
   resolved: "bg-green-100 text-green-700",
   closed: "bg-muted text-muted-foreground",
 };
 const STATUS_LABELS: Record<string, string> = {
-  open: "Open", in_progress: "In Progress", waiting_customer: "Waiting", resolved: "Resolved", closed: "Closed",
+  open: "Open", in_progress: "In Progress", waiting_customer: "Waiting on You", waiting_admin: "Awaiting Reply", resolved: "Resolved", closed: "Closed",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1137,7 +1222,7 @@ function PaymentHistoryTab() {
   );
 }
 
-function SupportTab({ userId }: { userId: number }) {
+function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrderId?: number | null }) {
   void userId;
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -1147,9 +1232,15 @@ function SupportTab({ userId }: { userId: number }) {
   const [loading, setLoading] = useState(true);
   const [reply, setReply] = useState("");
   const [replyPending, setReplyPending] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [newForm, setNewForm] = useState({ subject: "", category: "general", message: "" });
+  const [closing, setClosing] = useState(false);
+  const [showNew, setShowNew] = useState(!!prefilledOrderId);
+  const [newForm, setNewForm] = useState({ subject: prefilledOrderId ? `Issue with Order #${prefilledOrderId}` : "", category: "order", message: "", orderId: prefilledOrderId ? String(prefilledOrderId) : "" });
   const [creating, setCreating] = useState(false);
+  const { data: myOrders } = useQuery<Array<{ id: number; createdAt: string }>>({
+    queryKey: ["support-orders"],
+    queryFn: () => apiFetch("/api/orders"),
+    select: (d: unknown) => ((d as { orders?: Array<{ id: number; createdAt: string }> }).orders ?? []).slice(0, 20),
+  });
 
   const load = async () => {
     const token = localStorage.getItem("auth_token");
@@ -1194,18 +1285,38 @@ function SupportTab({ userId }: { userId: number }) {
     const token = localStorage.getItem("auth_token");
     setCreating(true);
     try {
+      const body: Record<string, string | number> = { subject: newForm.subject, category: newForm.category, message: newForm.message };
+      if (newForm.orderId) body.orderId = Number(newForm.orderId);
       const res = await fetch(`${BASE}/api/support/tickets`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(newForm),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
       toast({ title: t("dash.ticketOpened") });
-      setShowNew(false); setNewForm({ subject: "", category: "general", message: "" });
+      setShowNew(false); setNewForm({ subject: "", category: "general", message: "", orderId: "" });
       await load();
     } catch {
       toast({ title: t("dash.ticketFailed"), variant: "destructive" });
     } finally { setCreating(false); }
+  };
+
+  const closeTicket = async () => {
+    if (!selected) return;
+    setClosing(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`${BASE}/api/support/tickets/${selected.id}/close`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "Ticket closed" });
+      await loadTicket({ ...selected, status: "closed" });
+      await load();
+    } catch {
+      toast({ title: "Failed to close ticket", variant: "destructive" });
+    } finally { setClosing(false); }
   };
 
   useEffect(() => { void load(); }, []);
@@ -1218,11 +1329,19 @@ function SupportTab({ userId }: { userId: number }) {
             ← {t("dash.back")}
           </button>
           <span className="text-xs text-muted-foreground">Ticket #{selected.id}</span>
-          <span className={`px-2 py-0.5 text-xs capitalize rounded ${STATUS_COLORS[selected.status] ?? ""}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
+            <span className={`px-2 py-0.5 text-xs capitalize rounded ${STATUS_COLORS[selected.status] ?? ""}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
+          {selected.status !== "closed" && (
+            <button onClick={closeTicket} disabled={closing} className="ml-auto text-xs text-muted-foreground border border-border px-2 py-1 hover:bg-muted disabled:opacity-50">
+              {closing ? "Closing…" : "Close Ticket"}
+            </button>
+          )}
         </div>
         <div className="border border-border p-4">
           <h3 className="font-bold">{selected.subject}</h3>
           <p className="text-xs text-muted-foreground mt-1">{t("dash.ticketOpened2")} {format(new Date(selected.createdAt), "MMM d, yyyy")}</p>
+          {selected.orderId && (
+            <p className="text-xs text-muted-foreground mt-0.5">Linked Order: <Link href={`/order/${selected.orderId}/tracking`} className="text-primary hover:underline">#{selected.orderId}</Link></p>
+          )}
         </div>
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {messages.map(msg => (
@@ -1282,6 +1401,15 @@ function SupportTab({ userId }: { userId: number }) {
               <label className="text-xs font-medium block mb-1">{t("dash.ticketSubject")}</label>
               <input value={newForm.subject} onChange={e => setNewForm(f => ({ ...f, subject: e.target.value }))} placeholder={t("dash.ticketSubjectPlaceholder")} className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none" />
             </div>
+            {myOrders && myOrders.length > 0 && (
+              <div className="sm:col-span-2">
+                <label className="text-xs font-medium block mb-1">Link to an Order (optional)</label>
+                <select value={newForm.orderId} onChange={e => setNewForm(f => ({ ...f, orderId: e.target.value }))} className="w-full border border-input bg-background px-3 py-2 text-sm">
+                  <option value="">— No specific order —</option>
+                  {myOrders.map(o => <option key={o.id} value={o.id}>Order #{o.id} — {format(new Date(o.createdAt), "MMM d, yyyy")}</option>)}
+                </select>
+              </div>
+            )}
           </div>
           <div>
             <label className="text-xs font-medium block mb-1">{t("dash.ticketMessage")}</label>

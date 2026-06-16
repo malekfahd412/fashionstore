@@ -103,6 +103,27 @@ const SETTING_SECTIONS = [
       { key: "homepage_show_categories", label: "Category Grid", type: "boolean" },
     ],
   },
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    fields: [
+      { key: "whatsapp_enabled", label: "Enable WhatsApp Notifications", type: "boolean" },
+      { key: "whatsapp_provider", label: "Provider", type: "text", hint: "cloud (WhatsApp Cloud API) or twilio" },
+      { key: "whatsapp_template_order_placed", label: "Template: Order Placed", type: "text", hint: "Default: order_placed" },
+      { key: "whatsapp_template_payment_approved", label: "Template: Payment Approved", type: "text", hint: "Default: payment_approved" },
+      { key: "whatsapp_template_order_shipped", label: "Template: Order Shipped", type: "text", hint: "Default: order_shipped" },
+      { key: "whatsapp_template_order_delivered", label: "Template: Order Delivered", type: "text", hint: "Default: order_delivered" },
+      { key: "whatsapp_template_support_reply", label: "Template: Support Reply", type: "text", hint: "Default: support_reply" },
+    ],
+  },
+  {
+    key: "abandoned-cart",
+    label: "Abandoned Cart",
+    fields: [
+      { key: "abandoned_cart_enabled", label: "Enable Abandoned Cart Recovery", type: "boolean" },
+      { key: "abandoned_cart_threshold_hours", label: "Inactivity Threshold (hours)", type: "number", hint: "Mark cart as abandoned after this many hours of inactivity" },
+    ],
+  },
 ];
 
 export default function SettingsPanel() {

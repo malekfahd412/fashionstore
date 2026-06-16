@@ -1,0 +1,145 @@
+VELORA PHASE 4.5 — REVENUE & CUSTOMER EXPERIENCE
+
+IMPORTANT
+
+Do not modify stable systems unnecessarily.
+
+Focus on customer retention, support, and communication.
+
+====================================================
+T001 — WHATSAPP NOTIFICATIONS
+=============================
+
+Build a provider abstraction layer.
+
+Support:
+
+* WhatsApp Cloud API
+* Twilio WhatsApp
+* Future providers
+
+Admin Settings:
+
+* Enable/Disable
+* Provider
+* Access Token
+* Phone Number ID
+* Templates
+
+Notifications:
+
+* Order placed
+* Payment approved
+* Order shipped
+* Order delivered
+* Support reply
+
+Gracefully disable if not configured.
+
+====================================================
+T002 — SUPPORT TICKET CENTER
+============================
+
+Expand support system.
+
+Customer:
+
+* Open ticket
+* Reply
+* Attach order
+* View status
+* Close ticket
+
+Admin:
+
+* Assign status
+* Internal notes
+* Reply
+* Close ticket
+
+Statuses:
+
+* Open
+* Waiting Customer
+* Waiting Admin
+* Resolved
+* Closed
+
+====================================================
+T003 — ABANDONED CART RECOVERY
+==============================
+
+Track abandoned carts.
+
+Rules:
+
+Cart inactive for configurable time.
+
+Create recovery records.
+
+Admin:
+
+* Recovery dashboard
+* Recovery analytics
+
+Email automation:
+
+* Reminder after inactivity
+
+Only for opted-in customers.
+
+====================================================
+T004 — ORDER EXPERIENCE IMPROVEMENTS
+====================================
+
+Customer tracking page:
+
+Add:
+
+* Estimated delivery
+* Activity timeline
+* Payment status
+* Shipping updates
+* Support shortcut
+
+====================================================
+T005 — CUSTOMER DASHBOARD POLISH
+================================
+
+Add:
+
+* Recently viewed products
+* Saved coupons
+* Payment history improvements
+* Order quick actions
+
+====================================================
+T006 — QUALITY ASSURANCE
+========================
+
+Verify:
+
+Login
+Register
+Google Login
+Orders
+Payments
+Tracking
+Support
+Admin Panel
+Settings
+
+No regressions allowed.
+
+====================================================
+FINAL REPORT
+============
+
+Provide:
+
+* Files changed
+* APIs added
+* DB changes
+* Manual setup requirements
+* Required secrets
+* Production readiness score
