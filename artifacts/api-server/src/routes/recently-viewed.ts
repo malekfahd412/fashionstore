@@ -3,7 +3,6 @@ import {
   db,
   recentlyViewedTable,
   productsTable,
-  productVariantsTable,
   productImagesTable,
 } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -53,7 +52,8 @@ router.get("/recently-viewed", requireAuth, async (req, res): Promise<void> => {
       viewedAt: recentlyViewedTable.viewedAt,
       nameEn: productsTable.nameEn,
       nameAr: productsTable.nameAr,
-      slug: productsTable.slug,
+      price: productsTable.price,
+      salePrice: productsTable.salePrice,
     })
     .from(recentlyViewedTable)
     .leftJoin(productsTable, eq(recentlyViewedTable.productId, productsTable.id))
@@ -65,39 +65,27 @@ router.get("/recently-viewed", requireAuth, async (req, res): Promise<void> => {
 
   const productIds = rows.map((r) => r.productId);
 
-  // Fetch first image + lowest price variant per product
+  // Fetch first image per product
   const images = await db
-    .select({ productId: productImagesTable.productId, url: productImagesTable.url })
+    .select({ productId: productImagesTable.productId, imageUrl: productImagesTable.imageUrl })
     .from(productImagesTable)
     .where(
       sql`${productImagesTable.productId} = ANY(${sql`ARRAY[${sql.join(productIds.map(id => sql`${id}`), sql`, `)}]`})`
     )
-    .orderBy(productImagesTable.position);
-
-  const variants = await db
-    .select({
-      productId: productVariantsTable.productId,
-      price: sql<string>`MIN(${productVariantsTable.price})`,
-    })
-    .from(productVariantsTable)
-    .where(
-      sql`${productVariantsTable.productId} = ANY(${sql`ARRAY[${sql.join(productIds.map(id => sql`${id}`), sql`, `)}]`})`
-    )
-    .groupBy(productVariantsTable.productId);
+    .orderBy(productImagesTable.sortOrder);
 
   const imageMap = new Map<number, string>();
   for (const img of images) {
-    if (!imageMap.has(img.productId)) imageMap.set(img.productId, img.url);
+    if (!imageMap.has(img.productId)) imageMap.set(img.productId, img.imageUrl);
   }
-  const priceMap = new Map(variants.map((v) => [v.productId, v.price]));
 
   const result = rows.map((r) => ({
     productId: r.productId,
     nameEn: r.nameEn,
     nameAr: r.nameAr,
-    slug: r.slug,
     imageUrl: imageMap.get(r.productId) ?? null,
-    price: priceMap.get(r.productId) ?? null,
+    price: r.price ? Number(r.price) : null,
+    salePrice: r.salePrice ? Number(r.salePrice) : null,
     viewedAt: r.viewedAt,
   }));
 

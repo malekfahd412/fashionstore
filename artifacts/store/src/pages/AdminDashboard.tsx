@@ -933,7 +933,7 @@ function AdminAbandonedCartsTab() {
   const [thresholdHours, setThresholdHours] = useState(2);
 
   const adminFetch = async (path: string, opts?: RequestInit) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth_token");
     const res = await fetch(`${BASE}${path}`, {
       ...opts,
       headers: { ...(opts?.headers ?? {}), Authorization: `Bearer ${token}` },

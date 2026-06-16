@@ -224,7 +224,7 @@ export default function CustomerDashboard() {
 
   const prefs = emailPrefs?.emailPreferences ?? { orderUpdates: true, promotions: true, securityAlerts: true };
 
-  type RecentProduct = { productId: number; nameEn: string | null; slug: string | null; imageUrl: string | null; price: string | null };
+  type RecentProduct = { productId: number; nameEn: string | null; imageUrl: string | null; price: number | null; salePrice: number | null };
   const { data: recentlyViewed } = useQuery<RecentProduct[]>({
     queryKey: ["recently-viewed"],
     queryFn: () => apiFetch("/api/recently-viewed?limit=8"),
@@ -426,7 +426,7 @@ export default function CustomerDashboard() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {recentlyViewed.map(p => (
-                    <Link key={p.productId} href={`/products/${p.slug ?? p.productId}`} className="group border border-border overflow-hidden hover:border-primary transition-colors">
+                    <Link key={p.productId} href={`/products/${p.productId}`} className="group border border-border overflow-hidden hover:border-primary transition-colors">
                       <div className="aspect-square bg-muted overflow-hidden">
                         {p.imageUrl
                           ? <img src={p.imageUrl} alt={p.nameEn ?? ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />

@@ -32,19 +32,6 @@ export default function About() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center border-y border-border py-12">
-          {[
-            { en: "500+", label_en: "Brands", ar: "٥٠٠+", label_ar: "ماركة" },
-            { en: "10,000+", label_en: "Products", ar: "١٠٬٠٠٠+", label_ar: "منتج" },
-            { en: "50,000+", label_en: "Happy Customers", ar: "٥٠٬٠٠٠+", label_ar: "عميل سعيد" },
-            { en: "100%", label_en: "Authentic", ar: "١٠٠٪", label_ar: "أصلي" },
-          ].map((stat, i) => (
-            <div key={i}>
-              <div className="font-serif text-3xl font-bold text-primary mb-1">{isAr ? stat.ar : stat.en}</div>
-              <div className="text-sm text-muted-foreground">{isAr ? stat.label_ar : stat.label_en}</div>
-            </div>
-          ))}
-        </div>
 
         <div>
           <h2 className="font-serif text-3xl font-bold mb-8 text-center">{isAr ? "قيمنا" : "Our Values"}</h2>

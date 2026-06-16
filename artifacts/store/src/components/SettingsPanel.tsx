@@ -104,6 +104,18 @@ const SETTING_SECTIONS = [
     ],
   },
   {
+    key: "manual-payments",
+    label: "Manual Payments",
+    fields: [
+      { key: "payment_vodafone_cash_enabled", label: "Vodafone Cash", type: "boolean" },
+      { key: "vodafone_cash_number", label: "Vodafone Cash Number", type: "text", hint: "The number customers transfer to" },
+      { key: "payment_etisalat_cash_enabled", label: "Etisalat Cash", type: "boolean" },
+      { key: "etisalat_cash_number", label: "Etisalat Cash Number", type: "text" },
+      { key: "payment_instapay_enabled", label: "InstaPay", type: "boolean" },
+      { key: "instapay_address", label: "InstaPay Address", type: "text" },
+    ],
+  },
+  {
     key: "whatsapp",
     label: "WhatsApp",
     fields: [

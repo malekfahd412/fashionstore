@@ -54,7 +54,7 @@ router.post("/saved-coupons", requireAuth, async (req, res): Promise<void> => {
 // ── Remove a saved coupon ────────────────────────────────────────────────────
 router.delete("/saved-coupons/:code", requireAuth, async (req, res): Promise<void> => {
   const userId = req.user!.id;
-  const code = req.params.code.toUpperCase();
+  const code = String(req.params.code).toUpperCase();
 
   await db
     .delete(savedCouponsTable)

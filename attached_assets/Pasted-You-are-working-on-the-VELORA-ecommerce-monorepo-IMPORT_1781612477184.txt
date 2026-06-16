@@ -1,0 +1,272 @@
+You are working on the VELORA ecommerce monorepo.
+
+IMPORTANT RULES:
+- DO NOT add any new features.
+- DO NOT change product behavior or UI design unless fixing a bug.
+- ONLY fix bugs, errors, inconsistencies, and production issues.
+- PRIORITY: stability > correctness > performance.
+- Ensure zero breaking changes.
+
+---
+
+# 🎯 GOAL
+Make the entire system production-ready with:
+
+- 0 TypeScript errors
+- 0 build errors
+- 0 runtime crashes
+- 0 failed API calls
+- 100% database/schema consistency
+
+---
+
+# 🧪 T001 — FULL SYSTEM AUDIT
+
+Run a complete audit across:
+
+Frontend (React)
+Backend (Express / API)
+Database (Drizzle + PostgreSQL)
+OpenAPI schema
+Generated API hooks
+Auth system
+Admin dashboard
+Customer dashboard
+Vendor dashboard
+Checkout flow
+Payments
+Reviews
+Notifications
+Settings system
+Support system
+Contact system
+
+TASKS:
+- Identify ALL runtime errors
+- Identify ALL TypeScript errors
+- Identify ALL broken API routes
+- Identify ALL failed queries/mutations
+- Identify ALL inconsistent data types
+- Identify ALL missing translations
+- Identify ALL invalid API responses
+
+FIX ALL ISSUES FOUND.
+
+---
+
+# 🧹 T002 — REMOVE FAKE / MOCK DATA
+
+Remove ALL fake or placeholder content including:
+
+- fake ratings
+- fake reviews
+- fake testimonials
+- fake analytics
+- fake revenue stats
+- fake customer counts
+- fake coupons
+- fake FAQs
+
+RULE:
+If real data does not exist → replace with proper empty states:
+
+Example:
+"0 reviews yet"
+NOT "4.9 stars from 2000 users"
+
+---
+
+# 🌐 T003 — i18n / TRANSLATION FIX
+
+Fix all translation issues:
+
+- No raw keys visible in UI (e.g. "dashboard.tab")
+- Ensure Arabic + English coverage is complete
+- Fix missing translation fallbacks
+- Fix broken translation mapping
+
+RULE:
+UI must NEVER show translation keys directly.
+
+---
+
+# 🛠️ T004 — ADMIN DASHBOARD STABILITY
+
+Audit and fix:
+
+- Products CRUD
+- Orders management
+- Users management
+- Vendors management
+- Reviews moderation
+- Coupons
+- FAQ
+- Contact messages
+- Support tickets
+- Settings
+- Manual payments
+
+CHECK:
+- No broken API calls
+- No UI crashes
+- Correct empty states
+- Pagination works
+- Search works
+- CRUD works correctly
+
+---
+
+# 👤 T005 — CUSTOMER DASHBOARD STABILITY
+
+Audit:
+
+- Orders
+- Order tracking
+- Wishlist
+- Addresses
+- Notifications
+- Security settings
+- Reviews
+- Payment history
+- Support tickets
+
+FIX:
+- Broken buttons
+- Broken navigation
+- Failed API calls
+- Empty screens
+
+---
+
+# 🏪 T006 — VENDOR DASHBOARD TYPE SAFETY
+
+Fix all type mismatches:
+
+Ensure consistency across:
+
+- price (number only)
+- salePrice (number only)
+- stockQuantity (number only)
+- categoryId (number only)
+
+Apply fixes across:
+Frontend + Backend + Database + OpenAPI
+
+Run typecheck until ZERO errors.
+
+---
+
+# ⭐ T007 — REVIEWS SYSTEM FIX
+
+Verify and fix:
+
+- Create review after delivered order only
+- Edit review
+- Delete review
+- Admin moderation access
+- Rating updates correctly in real-time
+
+Fix broken permissions or routes.
+
+---
+
+# 💳 T008 — PAYMENT SYSTEM HARDENING
+
+Supported methods:
+- Vodafone Cash
+- Etisalat Cash
+- InstaPay
+
+RULES:
+- Disabled methods must NOT appear in checkout
+- Enabled methods must show correctly
+- Validate payment reference numbers
+- Save payment safely
+- Ensure order status updates correctly
+
+---
+
+# 🗄️ T009 — DATABASE INTEGRITY AUDIT
+
+Compare:
+- Drizzle schema
+- PostgreSQL database
+
+FIX:
+- Missing tables
+- Missing columns
+- Missing indexes
+- Missing constraints
+- Missing migrations
+
+Ensure 100% schema sync.
+
+---
+
+# 🔌 T010 — API STABILITY PASS
+
+Test all API routes:
+
+Ensure:
+- No 500 errors
+- Proper validation
+- Proper error handling
+- Proper auth checks
+
+APIs:
+Auth
+Products
+Orders
+Reviews
+Payments
+Users
+Settings
+Support
+Contact
+Notifications
+
+---
+
+# 🚀 T011 — BUILD & TYPECHECK
+
+Run:
+
+pnpm install
+pnpm typecheck
+pnpm build
+
+REQUIREMENTS:
+- Must pass with ZERO errors
+- No warnings allowed
+
+---
+
+# 📄 FINAL REPORT
+
+Provide:
+
+1. All bugs found
+2. All fixes applied
+3. Modified files list
+4. Database migrations applied
+5. Commands executed
+6. Remaining known issues (if any)
+
+---
+
+# ⚠️ MANUAL STEPS (IF ANY)
+
+If external services are required:
+
+- Google OAuth
+- Paymob
+- Email service
+- WhatsApp API
+- Environment variables
+- Replit secrets
+
+Provide step-by-step setup instructions clearly.
+
+---
+
+END OF TASK
