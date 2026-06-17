@@ -1,0 +1,104 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "GJx9IzhrvEeOZm4quiZzG"
+uri = "file://artifacts/mockup-sandbox/public/images/p1.png"
+type = "image"
+title = "Black turtleneck sweater"
+
+[[generated]]
+id = "IZxIBCJvffeZrz3u3JSDp"
+uri = "file://artifacts/mockup-sandbox/public/images/p2.png"
+type = "image"
+title = "Camel oversized blazer"
+
+[[generated]]
+id = "fwMBxDcPCSc2M_r01lhnb"
+uri = "file://artifacts/mockup-sandbox/public/images/p3.png"
+type = "image"
+title = "White silk blouse"
+
+[[generated]]
+id = "COhk5hU2MGXmawf18Q-eB"
+uri = "file://artifacts/mockup-sandbox/public/images/p4.png"
+type = "image"
+title = "Grey trousers"
+
+[[generated]]
+id = "xtTP__9QERBTU8_f1-LYG"
+uri = "file://artifacts/mockup-sandbox/public/images/p5.png"
+type = "image"
+title = "Leather crossbody bag"
+
+[[generated]]
+id = "rM1uyb7qWhb4R-7uiPXQA"
+uri = "file://artifacts/mockup-sandbox/public/images/p6.png"
+type = "image"
+title = "Long black coat"
+
+[[generated]]
+id = "PeFhuNePeDBcTtRbp1a0G"
+uri = "file://artifacts/mockup-sandbox/public/images/detail-1.png"
+type = "image"
+title = "Full product shot black coat"
+
+[[generated]]
+id = "Ack-h5J267BNpbgqg4csz"
+uri = "file://artifacts/mockup-sandbox/public/images/detail-2.png"
+type = "image"
+title = "Side view black coat"
+
+[[generated]]
+id = "TQ2yMQd1VmB5mVm6wYIzN"
+uri = "file://artifacts/mockup-sandbox/public/images/detail-3.png"
+type = "image"
+title = "Close-up detail black coat"
+
+[[generated]]
+id = "dT6lSE5VKN1rvHGxct4Gm"
+uri = "file://artifacts/mockup-sandbox/public/images/detail-story.png"
+type = "image"
+title = "Atelier workspace"
+
+[[generated]]
+id = "MYY7sdtQ0w8YSuLjaaqSO"
+uri = "file://artifacts/mockup-sandbox/public/images/hero-velora.png"
+type = "image"
+title = "Hero fashion editorial model"
+
+[[generated]]
+id = "ipwaaSu76kFhKh0mvoi3Z"
+uri = "file://artifacts/mockup-sandbox/public/images/story-fabric.png"
+type = "image"
+title = "Cashmere fabric texture"
+
+[[generated]]
+id = "oUxlJrDY1dIe0HGFFtkVa"
+uri = "file://artifacts/mockup-sandbox/public/images/product-coat.png"
+type = "image"
+title = "Black wool coat product"
+
+[[generated]]
+id = "o78WyvKFY0p6u8TfkkGPB"
+uri = "file://artifacts/mockup-sandbox/public/images/product-coat-detail.png"
+type = "image"
+title = "Coat lapel detail shot"
+
+[[generated]]
+id = "9HAIbyIapegzNM9MgHz_j"
+uri = "file://artifacts/mockup-sandbox/public/images/cat-knitwear.png"
+type = "image"
+title = "Knitwear collection flat lay"
+
+[[generated]]
+id = "cSv4ruFl9D3nWp-bYq3BQ"
+uri = "file://artifacts/mockup-sandbox/public/images/cat-outerwear.png"
+type = "image"
+title = "Outerwear collection neutral"
+
+[[generated]]
+id = "92nErRbktopi-5avtT9Sv"
+uri = "file://artifacts/mockup-sandbox/public/images/cat-accessories.png"
+type = "image"
+title = "Accessories clean background"
