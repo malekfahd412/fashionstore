@@ -1,4 +1,5 @@
 import { asc, desc, sql, type SQL, type AnyColumn } from "drizzle-orm";
+import { logger } from "./logger";
 
 /**
  * CRITICAL SAFETY LAYER: Safe OrderBy Wrapper
@@ -73,9 +74,9 @@ export function safeOrderBy(
 ): SQL<unknown> {
   // ── Guard 1: column must be defined ────────────────────────────────────────
   if (column === undefined || column === null) {
-    console.error(
-      "[safeOrderBy] column is undefined or null — returning fallback ORDER BY 1 ASC. " +
-      "Did you pass undefined or null instead of a column reference?",
+    logger.error(
+      { received: column },
+      "[safeOrderBy] column is undefined or null — returning fallback ORDER BY 1 ASC",
     );
     return sql`1`;
   }
@@ -84,20 +85,18 @@ export function safeOrderBy(
   // Drizzle 0.45.x marks all entity constructors with Symbol.for("drizzle:entityKind").
   // __isSelectable and __brand do NOT exist in this version — do not use them.
   if (!isDrizzleEntity(column)) {
-    console.error(
-      "[safeOrderBy] Invalid column — not a Drizzle entity. " +
-      `Received type: ${typeof column}` +
-      (typeof column === "string" ? ` ("${column}")` : "") +
-      ". Did you pass a table object, string, or plain object instead of table.column? " +
-      "Returning fallback ORDER BY 1 ASC.",
+    logger.error(
+      { receivedType: typeof column, receivedValue: typeof column === "string" ? column : undefined },
+      "[safeOrderBy] Invalid column — not a Drizzle entity. Returning fallback ORDER BY 1 ASC",
     );
     return sql`1`;
   }
 
   // ── Guard 3: direction must be valid ───────────────────────────────────────
   if (direction !== "asc" && direction !== "desc") {
-    console.warn(
-      `[safeOrderBy] direction must be "asc" or "desc". Received: "${direction}". Defaulting to "asc".`,
+    logger.warn(
+      { received: direction },
+      `[safeOrderBy] direction must be "asc" or "desc" — defaulting to "asc"`,
     );
     direction = "asc";
   }

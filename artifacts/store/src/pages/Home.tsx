@@ -28,7 +28,7 @@ export default function Home() {
   const { data: bestSellers } = useGetBestSellers({ query: { queryKey: [] } });
   const { data: categories } = useListCategories();
   const { data: faqs = [] } = useQuery<FaqItem[]>({
-    queryKey: ["public-faqs"],
+    queryKey: ["faqs-public", "all"],
     queryFn: () => fetch("/api/faq").then(r => r.json()) as Promise<FaqItem[]>,
     staleTime: 5 * 60_000,
   });

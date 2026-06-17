@@ -162,6 +162,14 @@ router.post("/products", requireAuth, requireRole("admin", "vendor"), async (req
 router.patch("/products/:id", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {
   const params = UpdateProductParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  // Vendors may only edit their own products
+  if (req.user!.role === "vendor") {
+    const [existing] = await db.select({ vendorId: productsTable.vendorId }).from(productsTable).where(eq(productsTable.id, params.data.id));
+    if (!existing) { res.status(404).json({ error: "Product not found" }); return; }
+    if (existing.vendorId !== req.user!.id) { res.status(403).json({ error: "Forbidden: you can only edit your own products" }); return; }
+  }
+
   const parsed = UpdateProductBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { price, salePrice, ...restData } = parsed.data;
@@ -176,6 +184,14 @@ router.patch("/products/:id", requireAuth, requireRole("admin", "vendor"), async
 router.delete("/products/:id", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {
   const params = DeleteProductParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  // Vendors may only delete their own products
+  if (req.user!.role === "vendor") {
+    const [existing] = await db.select({ vendorId: productsTable.vendorId }).from(productsTable).where(eq(productsTable.id, params.data.id));
+    if (!existing) { res.status(404).json({ error: "Product not found" }); return; }
+    if (existing.vendorId !== req.user!.id) { res.status(403).json({ error: "Forbidden: you can only delete your own products" }); return; }
+  }
+
   await db.delete(productsTable).where(eq(productsTable.id, params.data.id));
   res.json({ message: "Product deleted" });
 });

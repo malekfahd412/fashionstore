@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, reviewsTable, usersTable, ordersTable, orderItemsTable, productVariantsTable, productsTable } from "@workspace/db";
 import { eq, and, desc, asc, count, avg, sql, inArray, ilike, or } from "drizzle-orm";
-import { requireAuth, optionalAuth } from "../middlewares/auth";
+import { requireAuth, requireRole, optionalAuth } from "../middlewares/auth";
 import { z } from "zod";
 
 const router: IRouter = Router();
@@ -209,8 +209,7 @@ router.delete("/reviews/:id", requireAuth, async (req, res): Promise<void> => {
 });
 
 // GET /admin/reviews — admin review management
-router.get("/admin/reviews", requireAuth, async (req, res): Promise<void> => {
-  if (req.user!.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
+router.get("/admin/reviews", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
 
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);

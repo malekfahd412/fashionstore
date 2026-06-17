@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, ordersTable, usersTable, productsTable, orderItemsTable, productVariantsTable, categoriesTable } from "@workspace/db";
-import { eq, gte, lte, count, sum, avg, desc, and, ne, SQL, sql } from "drizzle-orm";
+import { eq, gte, lte, count, sum, avg, desc, and, sql, inArray } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 
 const router: IRouter = Router();
@@ -57,6 +57,19 @@ router.get("/analytics/sales", requireAuth, requireRole("admin", "vendor"), asyn
   const days = parseInt((req.query.days as string) || "30", 10);
   const result: { date: string; revenue: number; orders: number }[] = [];
   const now = new Date();
+  const isVendor = req.user!.role === "vendor";
+
+  // For vendors, pre-fetch the set of order IDs that contain their products
+  let vendorOrderIds: Set<number> | null = null;
+  if (isVendor) {
+    const rows = await db
+      .selectDistinct({ orderId: orderItemsTable.orderId })
+      .from(orderItemsTable)
+      .innerJoin(productVariantsTable, eq(orderItemsTable.productVariantId, productVariantsTable.id))
+      .innerJoin(productsTable, eq(productVariantsTable.productId, productsTable.id))
+      .where(eq(productsTable.vendorId, req.user!.id));
+    vendorOrderIds = new Set(rows.map(r => r.orderId));
+  }
 
   for (let i = days - 1; i >= 0; i--) {
     const date = new Date(now);
@@ -65,10 +78,22 @@ router.get("/analytics/sales", requireAuth, requireRole("admin", "vendor"), asyn
     const nextDay = new Date(date);
     nextDay.setDate(date.getDate() + 1);
 
+    const dateCondition = and(gte(ordersTable.createdAt, date), lte(ordersTable.createdAt, nextDay));
+    const vendorCondition = vendorOrderIds && vendorOrderIds.size > 0
+      ? and(dateCondition, inArray(ordersTable.id, [...vendorOrderIds]))
+      : vendorOrderIds && vendorOrderIds.size === 0
+        ? undefined
+        : dateCondition;
+
+    if (vendorCondition === undefined) {
+      result.push({ date: date.toISOString().split("T")[0], revenue: 0, orders: 0 });
+      continue;
+    }
+
     const [{ revenue, cnt }] = await db.select({
       revenue: sum(ordersTable.totalPrice),
       cnt: count(),
-    }).from(ordersTable).where(and(gte(ordersTable.createdAt, date), lte(ordersTable.createdAt, nextDay)));
+    }).from(ordersTable).where(vendorCondition);
 
     result.push({
       date: date.toISOString().split("T")[0],

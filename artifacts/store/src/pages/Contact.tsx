@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -191,7 +192,7 @@ export default function Contact() {
               </Button>
               <p className="text-xs text-muted-foreground text-center">
                 {isAr ? "يمكنك أيضاً فتح تذكرة دعم من " : "You can also open a support ticket from "}
-                <a href="/dashboard/customer" className="underline hover:text-foreground">{isAr ? "لوحة التحكم" : "your dashboard"}</a>.
+                <Link href="/dashboard/customer" className="underline hover:text-foreground">{isAr ? "لوحة التحكم" : "your dashboard"}</Link>.
               </p>
             </form>
           )}
