@@ -9,6 +9,7 @@ import {
 import { eq, desc, and, count, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { sendSupportReplyWhatsApp } from "../lib/whatsapp";
+import { sendSupportTicketReplyEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -143,11 +144,29 @@ router.post("/support/tickets/:id/messages", requireAuth, async (req, res): Prom
       .set({ status: newStatus, updatedAt: new Date() })
       .where(eq(supportTicketsTable.id, id));
 
-    // Notify customer via WhatsApp when admin replies (non-blocking)
+    // Notify customer when admin replies (non-blocking)
     if (isAdmin) {
+      // WhatsApp notification
       void getUserPhone(ticket.userId).then((phone) =>
         sendSupportReplyWhatsApp(phone, ticket.id, ticket.subject)
       );
+      // Email notification
+      void (async () => {
+        const [customer] = await db
+          .select({ email: usersTable.email, name: usersTable.name })
+          .from(usersTable)
+          .where(eq(usersTable.id, ticket.userId))
+          .limit(1);
+        if (customer?.email) {
+          await sendSupportTicketReplyEmail(
+            customer.email,
+            customer.name ?? "Valued Customer",
+            ticket.id,
+            ticket.subject,
+            message.trim(),
+          );
+        }
+      })();
     }
   } else {
     await db.update(supportTicketsTable)

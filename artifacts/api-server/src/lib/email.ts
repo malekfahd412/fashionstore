@@ -361,6 +361,27 @@ export async function sendContactReply(to: string, name: string, replyMessage: s
   `));
 }
 
+export async function sendSupportTicketReplyEmail(
+  email: string,
+  name: string,
+  ticketId: number,
+  ticketSubject: string,
+  replyMessage: string,
+): Promise<void> {
+  const ticketUrl = `${APP_URL()}/dashboard/customer?tab=support&ticket=${ticketId}`;
+  await send(email, `Re: [Ticket #${ticketId}] ${ticketSubject}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 8px">Support Reply</h2>
+    <p style="color:#888;margin:0 0 24px">Ticket #${ticketId} — ${ticketSubject}</p>
+    <p style="line-height:1.7;color:#444">Hi ${name}, our support team has replied to your support ticket.</p>
+    <div style="border-left:3px solid #065f46;padding:12px 16px;background:#f9f9f9;margin:20px 0;white-space:pre-wrap;font-size:14px;line-height:1.7;color:#444">${replyMessage}</div>
+    <p style="line-height:1.7;color:#444">You can view the full conversation and reply directly from your dashboard.</p>
+    <div style="text-align:center">
+      <a href="${ticketUrl}" style="${btnStyle}">VIEW TICKET</a>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:24px">If this issue has been resolved, you can close the ticket from your dashboard.</p>
+  `));
+}
+
 export async function sendAbandonedCartEmail(
   email: string,
   name: string,
