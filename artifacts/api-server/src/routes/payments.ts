@@ -173,7 +173,11 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
   const hmacSecret = process.env.PAYMOB_HMAC_SECRET;
   const reqHmac = (req.query.hmac ?? req.body?.hmac) as string | undefined;
 
-  if (hmacSecret && reqHmac) {
+  if (hmacSecret) {
+    if (!reqHmac) {
+      logger.warn("Paymob webhook received without HMAC signature — rejecting");
+      res.status(401).json({ error: "Missing HMAC signature" }); return;
+    }
     // Verify HMAC-SHA512
     const body = req.body as Record<string, unknown>;
     const obj = body?.obj as Record<string, unknown> ?? {};
@@ -204,6 +208,8 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
       logger.warn({ reqHmac }, "Paymob webhook HMAC mismatch");
       res.status(401).json({ error: "Invalid HMAC" }); return;
     }
+  } else {
+    logger.warn("PAYMOB_HMAC_SECRET not set — webhook HMAC verification skipped (set in production)");
   }
 
   const body = req.body as { type?: string; obj?: Record<string, unknown> };

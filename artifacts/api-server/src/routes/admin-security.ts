@@ -16,7 +16,7 @@ import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
-const APP_URL = () => process.env.APP_URL ?? "https://luxestore.com";
+const APP_URL = () => process.env.APP_URL ?? "";
 
 function sha256(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");

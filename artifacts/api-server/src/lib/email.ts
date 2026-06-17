@@ -1,8 +1,8 @@
 import { logger } from "./logger";
 
-const APP_URL = () => process.env.APP_URL ?? "https://luxestore.com";
+const APP_URL = () => process.env.APP_URL ?? "";
 const FROM_NAME = () => process.env.RESEND_FROM_NAME ?? "Velora Store";
-const FROM_EMAIL = () => process.env.RESEND_FROM_EMAIL ?? "noreply@luxestore.com";
+const FROM_EMAIL = () => process.env.RESEND_FROM_EMAIL ?? "";
 const FROM = () => `${FROM_NAME()} <${FROM_EMAIL()}>`;
 
 function isConfigured(): boolean {
