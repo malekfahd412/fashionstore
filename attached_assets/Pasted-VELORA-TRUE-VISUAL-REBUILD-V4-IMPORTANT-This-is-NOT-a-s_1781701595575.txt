@@ -1,0 +1,154 @@
+VELORA — TRUE VISUAL REBUILD (V4)
+
+IMPORTANT:
+This is NOT a style update.
+
+This is a FULL UI ARCHITECTURE REDESIGN.
+
+If you reuse any existing layout, GRID, or component structure → STOP and rebuild it.
+
+GOAL:
+Transform the app into a luxury fashion brand website (Zara / COS level).
+
+────────────────────
+
+RULES:
+
+* No backend changes
+* No API changes
+* No DB changes
+* Frontend ONLY
+* You ARE allowed to delete and rewrite components completely
+
+────────────────────
+
+HARD REQUIREMENTS:
+
+1. DESIGN SYSTEM RESET
+
+Build a real design system:
+
+* Spacing scale (8px system)
+* Typography scale (hero / title / body / caption)
+* Grid system (not default Tailwind grids)
+* Component primitives (Button, Card, Section, Container)
+
+────────────────────
+
+2. HOME PAGE (MUST FEEL EDITORIAL)
+
+REBUILD FROM ZERO
+
+* No ecommerce layout
+* No product grid first
+
+Must include:
+
+• Full screen cinematic hero (image + overlay text)
+• Editorial story sections (like magazine spreads)
+• Asymmetric layout blocks
+• Large whitespace
+• Scroll-based visual rhythm
+• 1 product section ONLY (not grid-heavy)
+
+────────────────────
+
+3. PRODUCT LISTING
+
+Replace grid system completely:
+
+* Masonry or editorial layout
+* Large product visuals
+* Minimal text
+* Hover reveals info
+* No dense filters UI
+
+────────────────────
+
+4. PRODUCT DETAILS
+
+Rebuild UX:
+
+* Sticky visual gallery (left)
+* Sticky purchase panel (right)
+* Scroll-based image experience
+* Minimal text sections
+* Premium spacing
+
+────────────────────
+
+5. CART
+
+* Slide-in luxury drawer
+* Soft transitions
+* No table layout
+* Card-based items only
+
+────────────────────
+
+6. CHECKOUT
+
+* Step-based UI (clean, minimal)
+* No heavy borders
+* Focus on clarity + whitespace
+* Apple-like checkout feel
+
+────────────────────
+
+7. DASHBOARD
+
+* Convert into modern SaaS-luxury hybrid
+* Card-based layout only
+* Remove table-heavy UI where possible
+
+────────────────────
+
+VISUAL LANGUAGE:
+
+* Inspired by:
+  Zara.com
+  COS stores
+  Apple.com
+  Aesop.com
+
+* No:
+  Neon colors
+  Heavy borders
+  Default shadcn look
+  Dense ecommerce grids
+
+────────────────────
+
+TYPOGRAPHY:
+
+* Headings: Playfair Display or equivalent serif
+* Body: Inter
+* Letter spacing: slightly increased for luxury feel
+
+────────────────────
+
+COLOR SYSTEM:
+
+Primary: #111111
+Background: #FFFFFF
+Muted: #F5F5F5
+Accent: #C9A227
+
+────────────────────
+
+SUCCESS CRITERIA:
+
+* If you remove a component → good
+* If you simplify UI → good
+* If layout becomes more editorial → good
+* If it still feels like a template → FAIL
+
+────────────────────
+
+DELIVERABLES:
+
+1. List of rebuilt components (not modified ones)
+2. Pages rewritten from scratch
+3. No TypeScript errors
+4. Build success
+5. No backend changes
