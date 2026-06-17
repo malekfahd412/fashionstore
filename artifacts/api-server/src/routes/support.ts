@@ -5,11 +5,12 @@ import {
   ticketMessagesTable,
   usersTable,
   userAddressesTable,
+  storeSettingsTable,
 } from "@workspace/db";
 import { eq, desc, and, count, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { sendSupportReplyWhatsApp } from "../lib/whatsapp";
-import { sendSupportTicketReplyEmail } from "../lib/email";
+import { sendSupportTicketReplyEmail, sendSupportNewTicketAdminEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -68,6 +69,30 @@ router.post("/support/tickets", requireAuth, async (req, res): Promise<void> => 
     message: message.trim().slice(0, 5000),
     isInternal: false,
   });
+
+  // Notify admin via email (non-blocking)
+  void (async () => {
+    const [setting] = await db
+      .select({ value: storeSettingsTable.value })
+      .from(storeSettingsTable)
+      .where(eq(storeSettingsTable.key, "contact_email"))
+      .limit(1);
+    const adminEmail = setting?.value || process.env.RESEND_FROM_EMAIL;
+    if (adminEmail) {
+      const [customer] = await db
+        .select({ name: usersTable.name, email: usersTable.email })
+        .from(usersTable)
+        .where(eq(usersTable.id, userId))
+        .limit(1);
+      if (customer) {
+        await sendSupportNewTicketAdminEmail(
+          adminEmail,
+          { id: ticket.id, subject: ticket.subject, category: ticket.category, message: message.trim() },
+          { name: customer.name ?? "Customer", email: customer.email },
+        );
+      }
+    }
+  })();
 
   res.status(201).json(ticket);
 });
