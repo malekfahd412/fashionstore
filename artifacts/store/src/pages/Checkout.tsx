@@ -3,11 +3,8 @@ import { useLocation, useSearch, Link } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetCart, useCreateOrder, getGetCartQueryKey, getListOrdersQueryKey, getGetAnalyticsSummaryQueryKey, getGetVendorSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, CreditCard, Check, Banknote, Building, Smartphone, FileText } from "lucide-react";
+import { Check, CreditCard, Banknote, Building, Smartphone, FileText, ChevronRight } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -26,7 +23,6 @@ type ManualSettings = {
 };
 
 type BillingErrors = Partial<Record<"firstName" | "lastName" | "address" | "city" | "phone", string>>;
-
 const MANUAL_METHODS: ManualMethod[] = ["vodafone_cash", "etisalat_cash", "instapay"];
 
 export default function Checkout() {
@@ -52,10 +48,7 @@ export default function Checkout() {
   const [couponError, setCouponError] = useState("");
   const [couponData, setCouponData] = useState<{ discountType: string; discountValue: number } | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
-
-  const [billing, setBilling] = useState({
-    firstName: "", lastName: "", address: "", city: "Cairo", phone: "",
-  });
+  const [billing, setBilling] = useState({ firstName: "", lastName: "", address: "", city: "Cairo", phone: "" });
 
   const search = useSearch();
   const autoAppliedRef = useRef(false);
@@ -81,11 +74,14 @@ export default function Checkout() {
     }).catch(() => setCouponError("Failed to validate coupon"));
   }, [search]);
 
-  if (isLoading) return <div className="p-32 text-center text-muted-foreground uppercase tracking-widest font-bold">{t("common.loading")}</div>;
-  if (!cart || !cart.items?.length) {
-    setLocation("/cart");
-    return null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-5 h-5 border border-black/20 border-t-black/60 rounded-full animate-spin" />
+      </div>
+    );
   }
+  if (!cart || !cart.items?.length) { setLocation("/cart"); return null; }
 
   const isPaymob = paymentMethod === "card" || paymentMethod === "meeza";
   const isManual = MANUAL_METHODS.includes(paymentMethod as ManualMethod);
@@ -105,7 +101,6 @@ export default function Checkout() {
     if (!billing.address.trim()) errors.address = `${t("checkout.address")} ${t("checkout.isRequired")}`;
     if (!billing.city.trim()) errors.city = `${t("checkout.city")} ${t("checkout.isRequired")}`;
     if (!billing.phone.trim()) errors.phone = `${t("checkout.phone")} ${t("checkout.isRequired")}`;
-    
     setBillingErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -114,10 +109,7 @@ export default function Checkout() {
     if (validateBilling()) setStep(2);
     else toast({ title: t("checkout.fillRequired"), variant: "destructive" });
   };
-
-  const advanceToStep3 = () => {
-    setStep(3);
-  };
+  const advanceToStep3 = () => setStep(3);
 
   async function handleValidateCoupon() {
     const code = couponCode.trim().toUpperCase();
@@ -131,31 +123,20 @@ export default function Checkout() {
       });
       if (!res.ok) {
         const err = await res.json() as { error?: string };
-        setCouponError(err.error ?? "Invalid coupon");
-        setCouponApplied(false);
-        setCouponData(null);
-        return;
+        setCouponError(err.error ?? "Invalid coupon"); setCouponApplied(false); setCouponData(null); return;
       }
       const data = await res.json() as { discountType: string; discountValue: number };
-      setCouponData(data);
-      setCouponApplied(true);
-      setCouponCode(code);
+      setCouponData(data); setCouponApplied(true); setCouponCode(code);
       toast({ title: "Coupon applied!", description: `Discount: ${data.discountType === "percentage" ? `${data.discountValue}%` : `${data.discountValue} EGP`}` });
-    } catch {
-      setCouponError("Failed to validate coupon");
-    }
+    } catch { setCouponError("Failed to validate coupon"); }
   }
 
   const cartSubtotal = cart!.subtotal ?? 0;
-
   function calcDiscount(): number {
     if (!couponApplied || !couponData) return 0;
-    if (couponData.discountType === "percentage") {
-      return Math.min((cartSubtotal * couponData.discountValue) / 100, cartSubtotal);
-    }
+    if (couponData.discountType === "percentage") return Math.min((cartSubtotal * couponData.discountValue) / 100, cartSubtotal);
     return Math.min(couponData.discountValue, cartSubtotal);
   }
-
   const discount = calcDiscount();
   const total = Math.max(0, cartSubtotal - discount);
 
@@ -163,26 +144,10 @@ export default function Checkout() {
     const token = localStorage.getItem("auth_token");
     const res = await fetch(`${BASE}/api/payments/paymob/initiate`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        orderId,
-        method: paymentMethod as PaymobMethod,
-        billingData: {
-          firstName: billing.firstName,
-          lastName: billing.lastName,
-          phone: billing.phone,
-          address: billing.address,
-          city: billing.city,
-        },
-      }),
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ orderId, method: paymentMethod as PaymobMethod, billingData: { firstName: billing.firstName, lastName: billing.lastName, phone: billing.phone, address: billing.address, city: billing.city } }),
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { error?: string };
-      throw new Error(err.error ?? "Payment initiation failed");
-    }
+    if (!res.ok) { const err = await res.json().catch(() => ({})) as { error?: string }; throw new Error(err.error ?? "Payment initiation failed"); }
     const data = await res.json() as { checkoutUrl: string };
     return data.checkoutUrl;
   }
@@ -191,37 +156,26 @@ export default function Checkout() {
     const token = localStorage.getItem("auth_token");
     const res = await fetch(`${BASE}/api/payments/manual`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ orderId, method: paymentMethod, referenceNumber: referenceNumber.trim() || null }),
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { error?: string };
-      throw new Error(err.error ?? "Failed to submit payment reference");
-    }
+    if (!res.ok) { const err = await res.json().catch(() => ({})) as { error?: string }; throw new Error(err.error ?? "Failed to submit payment reference"); }
   }
 
   const handleCheckout = async () => {
     if (!validateBilling()) return;
     setProcessing(true);
     try {
-      const orderItems = cart.items.map(item => ({
-        productVariantId: item.variantId,
-        quantity: item.quantity,
-      }));
-
       const result = await new Promise<{ id: number }>((resolve, reject) => {
         createOrderMutation.mutate({
           data: {
-            paymentMethod: paymentMethod,
+            paymentMethod,
             couponCode: couponApplied && couponCode ? couponCode : undefined,
             shippingName: `${billing.firstName} ${billing.lastName}`.trim(),
             shippingAddress: billing.address,
             shippingCity: billing.city,
             shippingPhone: billing.phone,
-            items: orderItems,
+            items: cart.items.map(item => ({ productVariantId: item.variantId, quantity: item.quantity })),
           }
         }, {
           onSuccess: (data) => {
@@ -230,7 +184,7 @@ export default function Checkout() {
             qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
             qc.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
             qc.invalidateQueries({ queryKey: getGetOrderStatusBreakdownQueryKey() });
-            qc.invalidateQueries({ queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) });
+            qc.invalidateQueries({ queryKey: getGetSalesTimelineQueryKey({ period: "month" }) });
             resolve(data as unknown as { id: number });
           },
           onError: reject,
@@ -241,9 +195,7 @@ export default function Checkout() {
         const checkoutUrl = await initiatePaymob(result.id);
         window.location.href = checkoutUrl;
       } else {
-        if (isManual) {
-          await submitManualPayment(result.id);
-        }
+        if (isManual) await submitManualPayment(result.id);
         toast({ title: t("checkout.successTitle"), description: t("checkout.successDesc") });
         setLocation(`/order/${result.id}/tracking`);
       }
@@ -254,37 +206,7 @@ export default function Checkout() {
     }
   };
 
-  const Field = ({
-    label, field, placeholder, type = "text"
-  }: {
-    label: string;
-    field: keyof typeof billing;
-    placeholder: string;
-    type?: string;
-  }) => (
-    <div className="space-y-2">
-      <Label htmlFor={field} className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex gap-1">
-        {label}
-        <span className="text-destructive">*</span>
-      </Label>
-      <Input
-        id={field}
-        type={type}
-        value={billing[field]}
-        onChange={e => {
-          setBilling(b => ({ ...b, [field]: e.target.value }));
-          if (billingErrors[field]) setBillingErrors(prev => ({ ...prev, [field]: undefined }));
-        }}
-        placeholder={placeholder}
-        className={`h-12 rounded-none bg-background border-border focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary ${billingErrors[field] ? "border-destructive focus-visible:ring-destructive" : ""}`}
-      />
-      {billingErrors[field] && (
-        <p className="text-xs font-bold uppercase tracking-widest text-destructive">{billingErrors[field]}</p>
-      )}
-    </div>
-  );
-
-  const paymentOptions: Array<{ id: PaymentMethod; label: string; description: string; icon: any; enabled: boolean }> = [
+  const paymentOptions: Array<{ id: PaymentMethod; label: string; description: string; icon: React.ComponentType<{ className?: string }>; enabled: boolean }> = [
     { id: "cash_on_delivery", label: t("payment.cod.label"), description: t("payment.cod.desc"), icon: Banknote, enabled: true },
     ...(manualSettings?.vodafone_cash_enabled ? [{ id: "vodafone_cash" as PaymentMethod, label: t("payment.vodafone.label"), description: t("payment.vodafone.desc"), icon: Smartphone, enabled: true }] : []),
     ...(manualSettings?.etisalat_cash_enabled ? [{ id: "etisalat_cash" as PaymentMethod, label: t("payment.etisalat.label"), description: t("payment.etisalat.desc"), icon: Smartphone, enabled: true }] : []),
@@ -297,255 +219,339 @@ export default function Checkout() {
 
   const accountInfo = getManualAccountInfo();
 
+  const LuxuryField = ({ label, field, placeholder, type = "text" }: {
+    label: string; field: keyof typeof billing; placeholder: string; type?: string;
+  }) => (
+    <div>
+      <label className="block text-[9px] font-bold tracking-[0.3em] uppercase text-black/40 mb-2">
+        {label} <span className="text-[#C9A227]">*</span>
+      </label>
+      <input
+        id={field}
+        type={type}
+        value={billing[field]}
+        onChange={e => {
+          setBilling(b => ({ ...b, [field]: e.target.value }));
+          if (billingErrors[field]) setBillingErrors(prev => ({ ...prev, [field]: undefined }));
+        }}
+        placeholder={placeholder}
+        className={`w-full h-12 border bg-[#F7F6F4] px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors tracking-wide ${billingErrors[field] ? "border-red-400" : "border-black/10"}`}
+      />
+      {billingErrors[field] && (
+        <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-red-500 mt-1.5">{billingErrors[field]}</p>
+      )}
+    </div>
+  );
+
   return (
-    <div className="container mx-auto px-4 py-16 max-w-3xl">
-      <div className="text-center mb-12">
-        <h1 className="font-serif text-4xl md:text-5xl font-bold mb-8 uppercase tracking-widest">Checkout</h1>
-        
-        {/* Progress Bar */}
-        <div className="flex items-center justify-center max-w-md mx-auto">
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${step >= 1 ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground'}`}>
-              {step > 1 ? <Check className="w-4 h-4" /> : "1"}
-            </div>
-            <span className={`text-[10px] uppercase tracking-widest mt-2 font-bold ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Shipping</span>
-          </div>
-          <div className={`flex-1 h-[2px] mx-4 transition-colors ${step >= 2 ? 'bg-primary' : 'bg-border'}`} />
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${step >= 2 ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-muted-foreground'}`}>
-              {step > 2 ? <Check className="w-4 h-4" /> : "2"}
-            </div>
-            <span className={`text-[10px] uppercase tracking-widest mt-2 font-bold ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>Payment</span>
-          </div>
-          <div className={`flex-1 h-[2px] mx-4 transition-colors ${step >= 3 ? 'bg-primary' : 'bg-border'}`} />
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${step >= 3 ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-muted-foreground'}`}>
-              3
-            </div>
-            <span className={`text-[10px] uppercase tracking-widest mt-2 font-bold ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>Review</span>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <div className="max-w-screen-xl mx-auto px-6 md:px-10">
+        <div className="grid lg:grid-cols-[1fr_380px] gap-16 py-12 md:py-20">
 
-      <div className="bg-background border border-border p-8 md:p-12 shadow-sm">
-        
-        {/* STEP 1: SHIPPING */}
-        <div className={step === 1 ? "block animate-in fade-in slide-in-from-right-4 duration-500" : "hidden"}>
-          <h2 className="font-serif text-2xl font-bold mb-8 pb-4 border-b border-border">{t("checkout.shippingInfo")}</h2>
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label={t("checkout.firstName")} field="firstName" placeholder={language === "ar" ? "محمد" : "John"} />
-              <Field label={t("checkout.lastName")} field="lastName" placeholder={language === "ar" ? "أحمد" : "Doe"} />
-            </div>
-            <Field label={t("checkout.address")} field="address" placeholder={language === "ar" ? "١٢٣ شارع الأزياء" : "123 Fashion St"} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label={t("checkout.city")} field="city" placeholder={language === "ar" ? "القاهرة" : "Cairo"} />
-              <Field label={t("checkout.phone")} field="phone" placeholder="+20 100 000 0000" type="tel" />
-            </div>
-          </div>
-          <div className="mt-10 pt-6 border-t border-border flex justify-end">
-            <Button size="lg" className="rounded-none uppercase tracking-widest px-10 h-14 text-sm font-bold" onClick={advanceToStep2}>
-              Continue to Payment <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </div>
+          {/* ── Left: Steps ─────────────────────────────────────────────── */}
+          <div>
+            {/* Title + progress */}
+            <div className="mb-12">
+              <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-black/28 mb-4">Velora</p>
+              <h1
+                className="text-4xl md:text-5xl font-bold text-[#111111] mb-10 leading-[0.92]"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                Checkout
+              </h1>
 
-        {/* STEP 2: PAYMENT */}
-        <div className={step === 2 ? "block animate-in fade-in slide-in-from-right-4 duration-500" : "hidden"}>
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
-            <h2 className="font-serif text-2xl font-bold">{t("checkout.paymentMethod")}</h2>
-            <button onClick={() => setStep(1)} className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">Edit Shipping</button>
-          </div>
-          
-          <div className="space-y-4 mb-10">
-            {paymentOptions.map(opt => {
-              const Icon = opt.icon;
-              const isActive = paymentMethod === opt.id;
-              return (
-                <div
-                  key={opt.id}
-                  className={`flex items-start gap-4 border p-5 cursor-pointer transition-all duration-200 ${isActive ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/50"}`}
-                  onClick={() => { setPaymentMethod(opt.id); setReferenceNumber(""); }}
-                >
-                  <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${isActive ? "border-primary" : "border-muted-foreground"}`}>
-                    {isActive && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-sm uppercase tracking-widest">{opt.label}</span>
-                      <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+              {/* Step indicators */}
+              <div className="flex items-center gap-0">
+                {[
+                  { n: 1, label: "Shipping" },
+                  { n: 2, label: "Payment" },
+                  { n: 3, label: "Review" },
+                ].map(({ n, label }, i) => (
+                  <div key={n} className="flex items-center">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-7 h-7 flex items-center justify-center text-[9px] font-bold border transition-colors ${
+                        step > n ? "bg-[#C9A227] border-[#C9A227] text-white" :
+                        step === n ? "bg-[#111111] border-[#111111] text-white" :
+                        "border-black/15 text-black/25"
+                      }`}>
+                        {step > n ? <Check className="w-3 h-3" /> : n}
+                      </div>
+                      <span className={`text-[9px] font-bold tracking-[0.22em] uppercase ${step >= n ? "text-[#111111]" : "text-black/25"}`}>
+                        {label}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{opt.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {isManual && accountInfo && (
-            <div className="mb-10 p-6 bg-muted/30 border border-border space-y-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-2"><FileText className="w-4 h-4" /> {t("checkout.manualAccountInfo")}</p>
-                <p className="font-mono font-bold text-xl text-primary tracking-wider">{accountInfo}</p>
-              </div>
-              <div className="pt-4 border-t border-border">
-                <Label htmlFor="referenceNumber" className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
-                  {t("checkout.manualReference")}
-                </Label>
-                <Input
-                  id="referenceNumber"
-                  value={referenceNumber}
-                  onChange={e => setReferenceNumber(e.target.value)}
-                  placeholder={t("checkout.manualReferencePlaceholder")}
-                  className="h-12 rounded-none bg-background border-border focus-visible:ring-1 focus-visible:ring-primary"
-                />
-                <p className="text-xs text-muted-foreground mt-2 font-medium">{t("checkout.manualReferenceHint")}</p>
-              </div>
-            </div>
-          )}
-
-          {isManual && !accountInfo && manualSettings && (
-            <div className="mb-10 p-4 bg-destructive/10 border border-destructive/20 text-sm text-destructive font-bold uppercase tracking-widest text-center">
-              Payment method not configured.
-            </div>
-          )}
-
-          <div className="mb-10">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t("checkout.couponCode")}</h3>
-            <div className="flex gap-0">
-              <Input
-                value={couponCode}
-                onChange={e => {
-                  setCouponCode(e.target.value.toUpperCase());
-                  if (couponApplied) { setCouponApplied(false); setCouponData(null); }
-                  setCouponError("");
-                }}
-                placeholder={t("checkout.enterCoupon")}
-                className={`h-12 rounded-none border-r-0 focus-visible:ring-0 uppercase tracking-widest font-bold ${couponError ? "border-destructive" : couponApplied ? "border-[#C9A227]" : ""}`}
-                disabled={processing}
-              />
-              <Button type="button" variant="outline" onClick={handleValidateCoupon} disabled={!couponCode.trim() || processing} className="h-12 rounded-none px-8 uppercase tracking-widest text-xs font-bold">
-                {t("btn.apply")}
-              </Button>
-            </div>
-            {couponError && <p className="text-xs font-bold uppercase tracking-widest text-destructive mt-2">{couponError}</p>}
-            {couponApplied && couponData && (
-              <p className="text-xs font-bold uppercase tracking-widest text-[#C9A227] mt-2 flex items-center gap-1">
-                <Check className="w-3 h-3" />
-                {t("checkout.couponApplied")} {couponData.discountType === "percentage" ? `${couponData.discountValue}%` : `${couponData.discountValue} EGP`} {t("checkout.off")}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-10 pt-6 border-t border-border flex justify-between items-center">
-            <button onClick={() => setStep(1)} className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">Back</button>
-            <Button size="lg" className="rounded-none uppercase tracking-widest px-10 h-14 text-sm font-bold" onClick={advanceToStep3}>
-              Review Order <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </div>
-
-        {/* STEP 3: REVIEW */}
-        <div className={step === 3 ? "block animate-in fade-in slide-in-from-right-4 duration-500" : "hidden"}>
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
-            <h2 className="font-serif text-2xl font-bold">Review Order</h2>
-          </div>
-
-          <div className="space-y-8 mb-10">
-            {/* Items */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Order Items</h3>
-                <Link href="/cart" className="text-xs font-bold uppercase tracking-widest text-primary hover:underline">Edit Bag</Link>
-              </div>
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
-                {cart.items.map(item => (
-                  <div key={item.variantId} className="flex gap-4 border border-border p-3">
-                    <div className="w-16 aspect-[3/4] bg-muted shrink-0 overflow-hidden">
-                      {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
-                    </div>
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <p className="font-bold text-sm line-clamp-1 truncate">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">
-                        {item.color} · {item.size} · Qty: {item.quantity}
-                      </p>
-                      <p className="font-bold text-sm mt-1">{((item.salePrice || item.price) * item.quantity).toLocaleString()} EGP</p>
-                    </div>
+                    {i < 2 && <div className={`w-10 h-[1px] mx-4 ${step > n ? "bg-[#C9A227]" : "bg-black/10"}`} />}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Info summaries */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Shipping To</h3>
-                  <button onClick={() => setStep(1)} className="text-xs font-bold uppercase tracking-widest text-primary hover:underline">Edit</button>
+            {/* STEP 1: SHIPPING */}
+            {step === 1 && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <h2 className="text-lg font-bold text-[#111111] mb-8 pb-5 border-b border-black/6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                  {t("checkout.shippingInfo")}
+                </h2>
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <LuxuryField label={t("checkout.firstName")} field="firstName" placeholder={language === "ar" ? "محمد" : "John"} />
+                    <LuxuryField label={t("checkout.lastName")} field="lastName" placeholder={language === "ar" ? "أحمد" : "Doe"} />
+                  </div>
+                  <LuxuryField label={t("checkout.address")} field="address" placeholder={language === "ar" ? "١٢٣ شارع الأزياء" : "123 Fashion St"} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <LuxuryField label={t("checkout.city")} field="city" placeholder={language === "ar" ? "القاهرة" : "Cairo"} />
+                    <LuxuryField label={t("checkout.phone")} field="phone" placeholder="+20 100 000 0000" type="tel" />
+                  </div>
                 </div>
-                <div className="text-sm font-medium leading-relaxed bg-muted/10 p-4 border border-border">
-                  {billing.firstName} {billing.lastName}<br/>
-                  {billing.address}<br/>
-                  {billing.city}<br/>
-                  {billing.phone}
+                <div className="mt-10 pt-6 border-t border-black/6 flex justify-end">
+                  <button
+                    className="flex items-center gap-3 bg-[#111111] text-white px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300"
+                    onClick={advanceToStep2}
+                  >
+                    Continue to Payment <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Payment</h3>
-                  <button onClick={() => setStep(2)} className="text-xs font-bold uppercase tracking-widest text-primary hover:underline">Edit</button>
+            )}
+
+            {/* STEP 2: PAYMENT */}
+            {step === 2 && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <div className="flex items-center justify-between mb-8 pb-5 border-b border-black/6">
+                  <h2 className="text-lg font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                    {t("checkout.paymentMethod")}
+                  </h2>
+                  <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors border-b border-black/15 pb-0.5">
+                    Edit Shipping
+                  </button>
                 </div>
-                <div className="text-sm font-medium leading-relaxed bg-muted/10 p-4 border border-border">
-                  <span className="uppercase tracking-widest font-bold">{paymentOptions.find(o => o.id === paymentMethod)?.label}</span>
-                  {isManual && referenceNumber && <><br/><span className="text-muted-foreground mt-1 block text-xs">Ref: {referenceNumber}</span></>}
+
+                <div className="space-y-2.5 mb-10">
+                  {paymentOptions.map(opt => {
+                    const Icon = opt.icon;
+                    const isActive = paymentMethod === opt.id;
+                    return (
+                      <div
+                        key={opt.id}
+                        onClick={() => { setPaymentMethod(opt.id); setReferenceNumber(""); }}
+                        className={`flex items-center gap-5 border p-5 cursor-pointer transition-all duration-200 ${isActive ? "border-[#111111] bg-[#F7F6F4]" : "border-black/8 hover:border-black/25"}`}
+                      >
+                        <div className={`w-4 h-4 border shrink-0 flex items-center justify-center ${isActive ? "border-[#111111] bg-[#111111]" : "border-black/25"}`}>
+                          {isActive && <Check className="w-2.5 h-2.5 text-white" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-bold tracking-[0.18em] uppercase text-[#111111]">{opt.label}</p>
+                          <p className="text-[10px] text-black/38 mt-0.5 tracking-wide">{opt.description}</p>
+                        </div>
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#111111]" : "text-black/25"}`} />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {isManual && accountInfo && (
+                  <div className="mb-10 p-6 bg-[#F7F6F4] border border-black/8 space-y-5">
+                    <div>
+                      <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/35 mb-2 flex items-center gap-2"><FileText className="w-3.5 h-3.5" /> {t("checkout.manualAccountInfo")}</p>
+                      <p className="font-mono text-2xl font-bold text-[#111111] tracking-wider">{accountInfo}</p>
+                    </div>
+                    <div className="pt-4 border-t border-black/8">
+                      <label className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/40 mb-2 block">{t("checkout.manualReference")}</label>
+                      <input
+                        value={referenceNumber}
+                        onChange={e => setReferenceNumber(e.target.value)}
+                        placeholder={t("checkout.manualReferencePlaceholder")}
+                        className="w-full h-11 border border-black/10 bg-white px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors tracking-wide"
+                      />
+                      <p className="text-[9px] text-black/35 mt-1.5 tracking-wide">{t("checkout.manualReferenceHint")}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Coupon */}
+                <div className="mb-10">
+                  <label className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/40 mb-3 block">{t("checkout.couponCode")}</label>
+                  <div className="flex gap-0">
+                    <input
+                      value={couponCode}
+                      onChange={e => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        if (couponApplied) { setCouponApplied(false); setCouponData(null); }
+                        setCouponError("");
+                      }}
+                      placeholder={t("checkout.enterCoupon")}
+                      className={`flex-1 h-11 border border-r-0 bg-[#F7F6F4] px-4 text-xs font-bold tracking-widest uppercase focus:outline-none focus:border-[#111111] transition-colors ${couponError ? "border-red-400" : couponApplied ? "border-[#C9A227]" : "border-black/10"}`}
+                      disabled={processing}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleValidateCoupon}
+                      disabled={!couponCode.trim() || processing}
+                      className="h-11 px-6 bg-[#111111] text-white text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-30"
+                    >
+                      {t("btn.apply")}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-red-500 mt-2">{couponError}</p>}
+                  {couponApplied && couponData && (
+                    <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#C9A227] mt-2 flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      {t("checkout.couponApplied")} {couponData.discountType === "percentage" ? `${couponData.discountValue}%` : `${couponData.discountValue} EGP`} {t("checkout.off")}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-10 pt-6 border-t border-black/6 flex justify-between items-center">
+                  <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors">
+                    Back
+                  </button>
+                  <button
+                    className="flex items-center gap-3 bg-[#111111] text-white px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300"
+                    onClick={advanceToStep3}
+                  >
+                    Review Order <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
+            )}
+
+            {/* STEP 3: REVIEW */}
+            {step === 3 && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <div className="flex items-center justify-between mb-8 pb-5 border-b border-black/6">
+                  <h2 className="text-lg font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                    Review Order
+                  </h2>
+                </div>
+
+                <div className="space-y-8 mb-10">
+                  {/* Items */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-black/38">Order Items</p>
+                      <Link href="/cart" className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/38 hover:text-black transition-colors border-b border-black/15 pb-0.5">Edit Bag</Link>
+                    </div>
+                    <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1 no-scrollbar">
+                      {cart.items.map(item => (
+                        <div key={item.variantId} className="flex gap-4 bg-[#F7F6F4] p-3">
+                          <div className="w-14 bg-white overflow-hidden shrink-0" style={{ aspectRatio: "3/4" }}>
+                            {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
+                          </div>
+                          <div className="flex-1 min-w-0 flex flex-col justify-center">
+                            <p className="text-sm font-medium text-[#111111] line-clamp-1 mb-1">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
+                            <p className="text-[9px] text-black/35 tracking-[0.18em] uppercase font-bold">{[item.color, item.size].filter(Boolean).join(" · ")} · Qty {item.quantity}</p>
+                            <p className="text-sm font-bold text-[#111111] mt-1">{((Number(item.salePrice) || Number(item.price)) * item.quantity).toLocaleString()} EGP</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-black/6">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/38">Shipping To</p>
+                        <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.18em] uppercase text-black/35 hover:text-black border-b border-black/15 pb-0.5">Edit</button>
+                      </div>
+                      <div className="bg-[#F7F6F4] p-4 text-xs text-[#111111] leading-relaxed tracking-wide">
+                        {billing.firstName} {billing.lastName}<br />
+                        {billing.address}<br />
+                        {billing.city}<br />
+                        {billing.phone}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/38">Payment</p>
+                        <button onClick={() => setStep(2)} className="text-[9px] font-bold tracking-[0.18em] uppercase text-black/35 hover:text-black border-b border-black/15 pb-0.5">Edit</button>
+                      </div>
+                      <div className="bg-[#F7F6F4] p-4 text-xs text-[#111111] tracking-[0.15em] uppercase font-bold">
+                        {paymentOptions.find(o => o.id === paymentMethod)?.label}
+                        {isManual && referenceNumber && <span className="block text-[9px] font-normal normal-case mt-1 text-black/40 tracking-wide">Ref: {referenceNumber}</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-10 pt-6 border-t border-black/6 flex justify-between items-center">
+                  <button onClick={() => setStep(2)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors">Back</button>
+                  <button
+                    className="flex items-center gap-3 bg-[#111111] text-white px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300 disabled:opacity-40"
+                    onClick={handleCheckout}
+                    disabled={processing || createOrderMutation.isPending}
+                  >
+                    {processing ? (
+                      <span className="flex items-center gap-3">
+                        <span className="w-4 h-4 border border-white/40 border-t-white rounded-full animate-spin" />
+                        {isPaymob ? t("btn.redirectingToPaymob") : t("checkout.processing")}
+                      </span>
+                    ) : isPaymob ? t("btn.payWithPaymob") : t("btn.placeOrder")}
+                  </button>
+                </div>
+                <p className="text-[9px] text-black/25 text-center mt-6 tracking-[0.18em] uppercase font-bold">{t("checkout.terms")}</p>
+              </div>
+            )}
+          </div>
+
+          {/* ── Right: Order Summary ─────────────────────────────────────── */}
+          <div className="lg:border-l lg:border-black/6 lg:ps-16 py-12 md:py-20">
+            <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/30 mb-6">Order Summary</p>
+
+            {/* Items */}
+            <div className="space-y-5 mb-8 pb-8 border-b border-black/6">
+              {cart.items.map(item => (
+                <div key={item.variantId} className="flex gap-4">
+                  <div className="w-14 bg-[#F7F6F4] overflow-hidden shrink-0 relative" style={{ aspectRatio: "3/4" }}>
+                    {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
+                    <div className="absolute -top-1.5 -end-1.5 w-5 h-5 bg-[#111111] text-white text-[9px] font-bold flex items-center justify-center">
+                      {item.quantity}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 py-1">
+                    <p className="text-xs font-medium text-[#111111] leading-snug mb-1 line-clamp-2">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
+                    {(item.color || item.size) && <p className="text-[9px] text-black/30 tracking-[0.15em] uppercase font-bold">{[item.color, item.size].filter(Boolean).join(" · ")}</p>}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-[#111111]">{((Number(item.salePrice) || Number(item.price)) * item.quantity).toLocaleString()} EGP</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Totals */}
-            <div className="bg-muted/10 p-6 border border-border space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground uppercase tracking-widest font-bold text-xs">{t("common.subtotal")}</span>
-                <span className="font-bold">{cart.subtotal.toFixed(2)} EGP</span>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/38">{t("common.subtotal")}</span>
+                <span className="font-medium text-[#111111]">{cartSubtotal.toFixed(2)} EGP</span>
               </div>
               {couponApplied && discount > 0 && (
-                <div className="flex justify-between text-sm text-destructive">
-                  <span className="uppercase tracking-widest font-bold text-xs">{t("checkout.discountLabel")} ({couponCode})</span>
+                <div className="flex justify-between text-[#C9A227]">
+                  <span className="text-[9px] font-bold tracking-[0.22em] uppercase">{t("checkout.discountLabel")}</span>
                   <span className="font-bold">−{discount.toFixed(2)} EGP</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground uppercase tracking-widest font-bold text-xs">{t("common.shipping")}</span>
-                <span className="text-[#C9A227] font-bold uppercase tracking-widest text-xs">{t("common.free")}</span>
+              <div className="flex justify-between">
+                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/38">{t("common.shipping")}</span>
+                <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#C9A227]">{t("common.free")}</span>
               </div>
-              <div className="flex justify-between font-bold text-xl border-t border-border pt-4 mt-4">
-                <span className="uppercase tracking-widest">{t("common.total")}</span>
-                <span className="font-serif text-2xl">{total.toFixed(2)} EGP</span>
+              <div className="flex justify-between pt-4 border-t border-black/8 mt-2">
+                <span
+                  className="text-base font-bold text-[#111111]"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                >
+                  {t("common.total")}
+                </span>
+                <span
+                  className="text-xl font-bold text-[#111111]"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                >
+                  {total.toFixed(2)} EGP
+                </span>
               </div>
             </div>
           </div>
-
-          <div className="mt-10 pt-6 border-t border-border flex justify-between items-center">
-            <button onClick={() => setStep(2)} className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">Back</button>
-            <Button
-              size="lg"
-              className="rounded-none uppercase tracking-widest px-12 h-16 text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
-              onClick={handleCheckout}
-              disabled={processing || createOrderMutation.isPending}
-            >
-              {processing ? (
-                <span className="flex items-center gap-3">
-                  <span className="h-5 w-5 border-2 border-background border-t-transparent rounded-full animate-spin" />
-                  {isPaymob ? t("btn.redirectingToPaymob") : t("checkout.processing")}
-                </span>
-              ) : isPaymob ? t("btn.payWithPaymob") : t("btn.placeOrder")}
-            </Button>
-          </div>
-          <p className="text-[10px] text-muted-foreground text-center mt-6 uppercase tracking-widest font-bold">
-            {t("checkout.terms")}
-          </p>
         </div>
-
       </div>
     </div>
   );

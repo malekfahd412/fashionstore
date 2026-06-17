@@ -15,8 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGuestCart } from "@/hooks/useGuestCart";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useCartDrawer } from "@/contexts/CartDrawerContext";
-
-import { Heart, Truck, RotateCcw, ShieldCheck, ZoomIn, ChevronLeft, ChevronRight, Star, PenLine, Trash2, CheckCircle2, X, Bell } from "lucide-react";
+import { Heart, Truck, RotateCcw, ShieldCheck, ChevronLeft, ChevronRight, Star, PenLine, Trash2, CheckCircle2, X, Bell, Minus, Plus } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -35,24 +34,17 @@ function StarRating({ value, onChange, readonly = false, size = "md" }: {
   value: number; onChange?: (v: number) => void; readonly?: boolean; size?: "sm" | "md";
 }) {
   const [hovered, setHovered] = useState(0);
-  const sz = size === "sm" ? "w-4 h-4" : "w-6 h-6";
+  const sz = size === "sm" ? "w-3.5 h-3.5" : "w-5 h-5";
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(i => (
-        <button
-          key={i}
-          type="button"
-          disabled={readonly}
+        <button key={i} type="button" disabled={readonly}
           onClick={() => onChange?.(i)}
           onMouseEnter={() => !readonly && setHovered(i)}
           onMouseLeave={() => !readonly && setHovered(0)}
           className={readonly ? "cursor-default" : "cursor-pointer"}
         >
-          <Star
-            className={`${sz} transition-colors ${
-              i <= (hovered || value) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"
-            }`}
-          />
+          <Star className={`${sz} transition-colors ${i <= (hovered || value) ? "fill-[#C9A227] text-[#C9A227]" : "text-black/15"}`} />
         </button>
       ))}
     </div>
@@ -61,40 +53,38 @@ function StarRating({ value, onChange, readonly = false, size = "md" }: {
 
 function ReviewCard({ review, currentUserId, onEdit, onDelete }: {
   review: { id: number; userName?: string; rating: number; title?: string | null; comment?: string | null; verifiedPurchase: boolean; createdAt: string; userId: number };
-  currentUserId?: number;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  currentUserId?: number; onEdit?: () => void; onDelete?: () => void;
 }) {
   const { t } = useLanguage();
   const isOwn = currentUserId === review.userId;
   return (
-    <div className="border border-border p-5 space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">{review.userName ?? t("product.anonymous")}</span>
+    <div className="border-b border-black/6 py-8">
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <StarRating value={review.rating} readonly size="sm" />
             {review.verifiedPurchase && (
-              <span className="flex items-center gap-1 text-xs text-[#9a7a1a] bg-[#C9A227]/8 px-2 py-0.5">
+              <span className="flex items-center gap-1 text-[9px] text-[#9a7a1a] tracking-[0.18em] uppercase font-bold">
                 <CheckCircle2 className="w-3 h-3" /> {t("reviews.verifiedPurchase")}
               </span>
             )}
           </div>
-          <StarRating value={review.rating} readonly size="sm" />
+          <p className="text-xs font-bold tracking-[0.15em] uppercase text-[#111111]">{review.userName ?? t("product.anonymous")}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-muted-foreground">
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-[9px] text-black/30 tracking-[0.15em] uppercase font-medium">
             {new Date(review.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
           </span>
           {isOwn && (
             <>
-              <button onClick={onEdit} className="p-1 text-muted-foreground hover:text-foreground transition-colors"><PenLine className="w-3.5 h-3.5" /></button>
-              <button onClick={onDelete} className="p-1 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+              <button onClick={onEdit} className="p-1 text-black/30 hover:text-[#111111] transition-colors"><PenLine className="w-3.5 h-3.5" /></button>
+              <button onClick={onDelete} className="p-1 text-black/30 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
             </>
           )}
         </div>
       </div>
-      {review.title && <p className="font-semibold text-sm">{review.title}</p>}
-      {review.comment && <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>}
+      {review.title && <p className="font-bold text-sm text-[#111111] mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{review.title}</p>}
+      {review.comment && <p className="text-sm text-black/50 leading-relaxed tracking-wide">{review.comment}</p>}
     </div>
   );
 }
@@ -158,11 +148,7 @@ export default function ProductDetails() {
     qc.invalidateQueries({ queryKey: getAdminListReviewsQueryKey() });
   };
 
-  const openWriteReview = () => {
-    setReviewForm({ rating: 0, title: "", comment: "" });
-    setEditingReview(null);
-    setShowReviewModal(true);
-  };
+  const openWriteReview = () => { setReviewForm({ rating: 0, title: "", comment: "" }); setEditingReview(null); setShowReviewModal(true); };
   const openEditReview = (r: { id: number; rating: number; title?: string | null; comment?: string | null }) => {
     setEditingReview({ id: r.id, rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
     setReviewForm({ rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
@@ -172,7 +158,6 @@ export default function ProductDetails() {
     e.preventDefault();
     if (reviewForm.rating === 0) { toast({ title: t("reviews.pleaseRate"), variant: "destructive" }); return; }
     if (reviewForm.comment.length < 10) { toast({ title: t("reviews.commentMin"), variant: "destructive" }); return; }
-
     if (editingReview) {
       updateReviewMutation.mutate(
         { id: editingReview.id, data: { rating: reviewForm.rating, title: reviewForm.title || undefined, comment: reviewForm.comment } },
@@ -200,7 +185,6 @@ export default function ProductDetails() {
     }
   }, [product]);
 
-  // Track recently viewed (non-blocking, only for logged-in users)
   useEffect(() => {
     if (user && productId) {
       const token = localStorage.getItem("auth_token");
@@ -211,29 +195,21 @@ export default function ProductDetails() {
     }
   }, [user, productId]);
 
-  const handleImageSelect = (url: string, idx: number) => {
-    setActiveImage(url);
-    setActiveImageIdx(idx);
-  };
-
+  const handleImageSelect = (url: string, idx: number) => { setActiveImage(url); setActiveImageIdx(idx); };
   const handlePrevImage = () => {
     if (!product?.images) return;
     const idx = (activeImageIdx - 1 + product.images.length) % product.images.length;
     handleImageSelect(product.images[idx].imageUrl, idx);
   };
-
   const handleNextImage = () => {
     if (!product?.images) return;
     const idx = (activeImageIdx + 1) % product.images.length;
     handleImageSelect(product.images[idx].imageUrl, idx);
   };
-
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageRef.current) return;
     const rect = imageRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPos({ x, y });
+    setZoomPos({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 });
   };
 
   const colors = [...new Set((product?.variants || []).map(v => v.color))].filter(Boolean) as string[];
@@ -243,6 +219,7 @@ export default function ProductDetails() {
     : null;
   const selectedVariant = product?.variants?.find(v => v.color === selectedColor && v.size === selectedSize);
   const notifyVariantId = selectedVariant?.id;
+
   const { data: notifyStatus, refetch: refetchNotifyStatus } = useQuery({
     queryKey: ["notify-status", notifyVariantId],
     queryFn: async () => {
@@ -261,68 +238,44 @@ export default function ProductDetails() {
     mutationFn: async () => {
       const token = localStorage.getItem("auth_token");
       const res = await fetch(`${BASE}/api/products/variants/${notifyVariantId}/notify`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error("Failed to subscribe");
     },
-    onSuccess: () => {
-      void refetchNotifyStatus();
-      toast({ title: "You'll be notified when this item is back in stock!" });
-    },
+    onSuccess: () => { void refetchNotifyStatus(); toast({ title: "You'll be notified when this item is back in stock!" }); },
   });
   const unsubscribeMutation = useMutation({
     mutationFn: async () => {
       const token = localStorage.getItem("auth_token");
       const res = await fetch(`${BASE}/api/products/variants/${notifyVariantId}/notify`, {
-        method: "DELETE",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        method: "DELETE", headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error("Failed to unsubscribe");
     },
-    onSuccess: () => {
-      void refetchNotifyStatus();
-      toast({ title: "Stock notification removed" });
-    },
+    onSuccess: () => { void refetchNotifyStatus(); toast({ title: "Stock notification removed" }); },
   });
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
-    if (selectedSize && availableSizesForColor && !availableSizesForColor.has(selectedSize)) {
-      setSelectedSize("");
-    }
+    if (selectedSize && availableSizesForColor && !availableSizesForColor.has(selectedSize)) setSelectedSize("");
   };
 
   const handleAddToCart = () => {
-    if (!selectedColor && colors.length > 0) {
-      toast({ title: t("product.selectColor"), variant: "destructive" }); return;
-    }
-    if (!selectedSize && sizes.length > 0) {
-      toast({ title: t("product.selectSize"), variant: "destructive" }); return;
-    }
-    if ((colors.length > 0 || sizes.length > 0) && !selectedVariant) {
-      toast({ title: t("product.unavailable"), variant: "destructive" }); return;
-    }
+    if (!selectedColor && colors.length > 0) { toast({ title: t("product.selectColor"), variant: "destructive" }); return; }
+    if (!selectedSize && sizes.length > 0) { toast({ title: t("product.selectSize"), variant: "destructive" }); return; }
+    if ((colors.length > 0 || sizes.length > 0) && !selectedVariant) { toast({ title: t("product.unavailable"), variant: "destructive" }); return; }
     const variantId = selectedVariant?.id ?? product?.variants?.[0]?.id;
     if (!variantId || !product) return;
 
     if (!user) {
       guestCart.addItem({
-        variantId,
-        productId: product.id,
-        nameEn: product.nameEn,
-        nameAr: product.nameAr,
-        imageUrl: product.images?.[0]?.imageUrl ?? null,
-        price: Number(product.price),
+        variantId, productId: product.id, nameEn: product.nameEn, nameAr: product.nameAr,
+        imageUrl: product.images?.[0]?.imageUrl ?? null, price: Number(product.price),
         salePrice: product.salePrice ? Number(product.salePrice) : null,
-        color: selectedVariant?.color ?? null,
-        size: selectedVariant?.size ?? null,
-        stockQuantity: selectedVariant?.stockQuantity ?? 0,
-        quantity,
+        color: selectedVariant?.color ?? null, size: selectedVariant?.size ?? null,
+        stockQuantity: selectedVariant?.stockQuantity ?? 0, quantity,
       });
-      toast({ title: t("product.addedToCart") });
-      openCart();
-      return;
+      toast({ title: t("product.addedToCart") }); openCart(); return;
     }
     const cartKey = getGetCartQueryKey();
     qc.cancelQueries({ queryKey: cartKey });
@@ -332,40 +285,23 @@ export default function ProductDetails() {
       const existing = old.items.find(i => i.variantId === variantId);
       const items = existing
         ? old.items.map(i => i.variantId === variantId ? { ...i, quantity: i.quantity + quantity } : i)
-        : [...old.items, {
-            variantId,
-            quantity,
-            price: Number(product.price),
-            salePrice: product.salePrice ? Number(product.salePrice) : null,
-            nameEn: product.nameEn,
-            nameAr: product.nameAr,
-            imageUrl: product.images?.[0]?.imageUrl ?? null,
-            color: selectedVariant?.color ?? null,
-            size: selectedVariant?.size ?? null,
-          }];
+        : [...old.items, { variantId, quantity, price: Number(product.price), salePrice: product.salePrice ? Number(product.salePrice) : null, nameEn: product.nameEn, nameAr: product.nameAr, imageUrl: product.images?.[0]?.imageUrl ?? null, color: selectedVariant?.color ?? null, size: selectedVariant?.size ?? null }];
       const subtotal = items.reduce((acc, i) => acc + (Number(i.salePrice || i.price) * i.quantity), 0);
       return { ...old, items, subtotal };
     });
     addToCartMutation.mutate({ data: { variantId, quantity } }, {
       onError: () => { qc.setQueryData(cartKey, previous); },
-      onSuccess: () => {
-        toast({ title: t("product.addedToCart") });
-        openCart();
-      },
+      onSuccess: () => { toast({ title: t("product.addedToCart") }); openCart(); },
       onSettled: () => { qc.invalidateQueries({ queryKey: cartKey }); },
     });
   };
 
   const handleWishlist = () => {
-    if (!user) {
-      toast({ title: t("product.signInToSave") }); return;
-    }
+    if (!user) { toast({ title: t("product.signInToSave") }); return; }
     const wKey = getGetWishlistQueryKey();
     if (isWishlisted) {
       const previous = qc.getQueryData(wKey);
-      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) =>
-        old ? old.filter(w => w.productId !== productId) : []
-      );
+      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) => old ? old.filter(w => w.productId !== productId) : []);
       removeWishlistMutation.mutate({ productId }, {
         onError: () => { qc.setQueryData(wKey, previous); },
         onSuccess: () => toast({ title: t("product.removedFromWishlist") }),
@@ -373,9 +309,7 @@ export default function ProductDetails() {
       });
     } else {
       const previous = qc.getQueryData(wKey);
-      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) =>
-        old ? [...old, { productId }] : [{ productId }]
-      );
+      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) => old ? [...old, { productId }] : [{ productId }]);
       addWishlistMutation.mutate({ productId }, {
         onError: () => { qc.setQueryData(wKey, previous); },
         onSuccess: () => toast({ title: t("product.savedToWishlist") }),
@@ -390,19 +324,18 @@ export default function ProductDetails() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="space-y-4">
-            <div className="aspect-[3/4] bg-muted animate-pulse" />
+      <div className="max-w-screen-xl mx-auto px-6 md:px-10 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div className="space-y-3">
+            <div className="aspect-[3/4] bg-[#F7F6F4] animate-pulse" />
             <div className="flex gap-2">
-              {[1, 2, 3].map(i => <div key={i} className="w-20 aspect-[3/4] bg-muted animate-pulse" />)}
+              {[1,2,3].map(i => <div key={i} className="w-16 aspect-[3/4] bg-[#F7F6F4] animate-pulse" />)}
             </div>
           </div>
-          <div className="space-y-6 pt-4">
-            <div className="h-5 bg-muted rounded w-1/4 animate-pulse" />
-            <div className="h-10 bg-muted rounded w-3/4 animate-pulse" />
-            <div className="h-8 bg-muted rounded w-1/4 animate-pulse" />
-            <div className="h-24 bg-muted rounded animate-pulse" />
+          <div className="space-y-6 pt-8">
+            <div className="h-3 bg-[#F7F6F4] rounded-none w-1/4 animate-pulse" />
+            <div className="h-12 bg-[#F7F6F4] rounded-none w-3/4 animate-pulse" />
+            <div className="h-8 bg-[#F7F6F4] rounded-none w-1/4 animate-pulse" />
           </div>
         </div>
       </div>
@@ -411,514 +344,484 @@ export default function ProductDetails() {
 
   if (!product) {
     return (
-      <div className="container mx-auto px-4 py-32 text-center max-w-lg">
-        <h2 className="font-serif text-4xl font-bold mb-6">{t("product.notFound")}</h2>
-        <Button asChild className="uppercase tracking-widest rounded-none h-14" size="lg"><Link href="/products">{t("product.backToShop")}</Link></Button>
+      <div className="max-w-screen-xl mx-auto px-6 py-32 text-center">
+        <h2
+          className="text-4xl font-bold mb-8 text-[#111111]"
+          style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+        >
+          {t("product.notFound")}
+        </h2>
+        <Link
+          href="/products"
+          className="inline-flex items-center bg-[#111111] text-white px-10 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors"
+        >
+          {t("product.backToShop")}
+        </Link>
       </div>
     );
   }
 
   const displayPrice = Number(product.price).toLocaleString();
   const displaySalePrice = product.salePrice ? Number(product.salePrice).toLocaleString() : null;
-  const savePct = product.salePrice
-    ? Math.round((1 - Number(product.salePrice) / Number(product.price)) * 100)
-    : null;
+  const savePct = product.salePrice ? Math.round((1 - Number(product.salePrice) / Number(product.price)) * 100) : null;
   const name = language === "en" ? product.nameEn : (product.nameAr || product.nameEn);
   const description = language === "en" ? product.descriptionEn : (product.descriptionAr || product.descriptionEn);
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <nav className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-8">
-        <Link href="/" className="hover:text-primary transition-colors">{t("product.home")}</Link>
-        <span>/</span>
-        <Link href="/products" className="hover:text-primary transition-colors">{t("product.shop")}</Link>
-        {product.categoryName && (
-          <>
-            <span>/</span>
-            <Link href={`/products?categoryId=${product.categoryId}`} className="hover:text-primary transition-colors">{product.categoryName}</Link>
-          </>
-        )}
-        <span>/</span>
-        <span className="text-foreground truncate max-w-[200px]">{name}</span>
-      </nav>
+    <div className="bg-white" style={{ fontFamily: "'Inter', sans-serif" }}>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 mb-24">
-        {/* Gallery */}
-        <div className="space-y-4">
-          <div
-            ref={imageRef}
-            className={`aspect-[3/4] bg-muted w-full overflow-hidden relative cursor-zoom-in ${zoomed ? "cursor-zoom-out" : ""}`}
-            onClick={() => setZoomed(v => !v)}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => setZoomed(false)}
-          >
-            {activeImage ? (
-              <img
-                src={activeImage}
-                alt={name ?? ""}
-                className="w-full h-full object-cover transition-transform duration-300"
-                style={
-                  zoomed
-                    ? {
-                        transform: "scale(2.5)",
-                        transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
-                        transition: "transform 0.1s ease",
-                      }
-                    : {}
-                }
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm uppercase tracking-widest">{t("product.noImage")}</div>
-            )}
-
-            {!zoomed && activeImage && (
-              <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur text-foreground text-xs uppercase tracking-widest px-3 py-1.5 flex items-center gap-2 shadow-sm">
-                <ZoomIn className="w-4 h-4" /> {t("product.zoomHint")}
-              </div>
-            )}
-
-            {savePct && (
-              <div className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 uppercase tracking-widest shadow-sm">
-                SALE {savePct}%
-              </div>
-            )}
-
-            {product.images && product.images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 hover:bg-background flex items-center justify-center shadow-md transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 hover:bg-background flex items-center justify-center shadow-md transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </>
-            )}
-          </div>
-
-          {product.images && product.images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-              {product.images.map((img, idx) => (
-                <button
-                  key={img.id}
-                  onClick={() => handleImageSelect(img.imageUrl, idx)}
-                  className={`w-24 aspect-[3/4] bg-muted shrink-0 overflow-hidden transition-all duration-300 relative ${
-                    activeImageIdx === idx ? "opacity-100 ring-1 ring-primary ring-offset-2" : "opacity-60 hover:opacity-100"
-                  }`}
-                >
-                  <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex flex-col pt-2 lg:pt-8">
+      {/* Breadcrumb */}
+      <div className="border-b border-black/6">
+        <nav className="max-w-screen-xl mx-auto px-6 md:px-10 py-4 flex items-center gap-2 text-[9px] tracking-[0.2em] uppercase text-black/30 font-bold">
+          <Link href="/" className="hover:text-black transition-colors">{t("product.home")}</Link>
+          <span className="text-black/15">/</span>
+          <Link href="/products" className="hover:text-black transition-colors">{t("product.shop")}</Link>
           {product.categoryName && (
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">{product.categoryName}</p>
+            <>
+              <span className="text-black/15">/</span>
+              <Link href={`/products?categoryId=${product.categoryId}`} className="hover:text-black transition-colors">{product.categoryName}</Link>
+            </>
           )}
+          <span className="text-black/15">/</span>
+          <span className="text-black/50 truncate max-w-[180px]">{name}</span>
+        </nav>
+      </div>
 
-          <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6 leading-tight">{name}</h1>
+      {/* Product Layout */}
+      <div className="max-w-screen-xl mx-auto px-6 md:px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-16">
 
-          {/* Rating */}
-          {reviewsData && reviewsData.stats.totalReviews > 0 && (
-            <div className="flex items-center gap-3 mb-6">
-              <StarRating value={Math.round(reviewsData.stats.averageRating)} readonly size="sm" />
-              <span className="text-sm text-muted-foreground underline decoration-muted-foreground/30 hover:decoration-foreground transition-colors cursor-pointer" onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}>
-                {reviewsData.stats.totalReviews} {t("reviews.total")}
-              </span>
+          {/* ── Gallery (sticky) ─────────────────────────────────────────── */}
+          <div className="lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col lg:justify-start lg:pt-10 py-8 lg:py-10 lg:overflow-hidden">
+            <div
+              ref={imageRef}
+              className={`relative bg-[#F7F6F4] overflow-hidden ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
+              style={{ aspectRatio: "3/4" }}
+              onClick={() => setZoomed(v => !v)}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={() => setZoomed(false)}
+            >
+              {activeImage ? (
+                <img
+                  src={activeImage}
+                  alt={name ?? ""}
+                  className="w-full h-full object-cover transition-transform duration-150"
+                  style={zoomed ? { transform: "scale(2.2)", transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`, transition: "transform 0.1s ease" } : {}}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-black/20 text-xs tracking-[0.2em] uppercase">{t("product.noImage")}</div>
+              )}
+
+              {savePct && (
+                <div className="absolute top-5 start-5 bg-[#111111] text-white text-[9px] font-bold px-3 py-1.5 tracking-[0.2em] uppercase">
+                  −{savePct}%
+                </div>
+              )}
+
+              {product.images && product.images.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
+                    className="absolute start-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 backdrop-blur hover:bg-white flex items-center justify-center transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
+                    className="absolute end-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 backdrop-blur hover:bg-white flex items-center justify-center transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </div>
-          )}
 
-          {/* Price */}
-          <div className="flex items-baseline gap-4 mb-8">
-            {displaySalePrice ? (
-              <>
-                <span className="text-3xl font-bold text-destructive">{displaySalePrice} EGP</span>
-                <span className="text-xl line-through text-muted-foreground">{displayPrice} EGP</span>
-              </>
-            ) : (
-              <span className="text-3xl font-bold">{displayPrice} EGP</span>
+            {/* Thumbnails */}
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={img.id}
+                    onClick={() => handleImageSelect(img.imageUrl, idx)}
+                    className={`w-16 shrink-0 bg-[#F7F6F4] overflow-hidden transition-all duration-200 ${activeImageIdx === idx ? "ring-1 ring-[#111111]" : "opacity-45 hover:opacity-100"}`}
+                    style={{ aspectRatio: "3/4" }}
+                  >
+                    <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
-          {description && (
-            <div className="prose prose-sm md:prose-base prose-neutral dark:prose-invert mb-10 max-w-none text-muted-foreground">
-              <p className="leading-relaxed">{description}</p>
-            </div>
-          )}
+          {/* ── Product Info ──────────────────────────────────────────────── */}
+          <div className="py-10 lg:py-16 flex flex-col">
 
-          <div className="space-y-8 mb-10 flex-1">
-            {/* Colors */}
-            {colors.length > 0 && (
-              <div>
-                <div className="flex justify-between items-end mb-4">
-                  <h3 className="text-xs font-bold uppercase tracking-widest">{t("common.color")}</h3>
-                  {selectedColor && <span className="text-sm text-muted-foreground">{selectedColor}</span>}
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {colors.map(color => (
-                    <button
-                      key={color}
-                      onClick={() => handleColorSelect(color)}
-                      className={`relative w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
-                        selectedColor === color
-                          ? "border-primary ring-1 ring-primary ring-offset-2 scale-110"
-                          : "border-border hover:scale-105"
-                      }`}
-                      style={{ backgroundColor: color.toLowerCase() }}
-                      title={color}
-                    >
-                      <span className="sr-only">{color}</span>
-                    </button>
-                  ))}
-                </div>
+            {product.categoryName && (
+              <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/30 mb-5">{product.categoryName}</p>
+            )}
+
+            <h1
+              className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#111111] mb-6 leading-[0.92]"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              {name}
+            </h1>
+
+            {/* Rating */}
+            {reviewsData && reviewsData.stats.totalReviews > 0 && (
+              <div className="flex items-center gap-3 mb-6">
+                <StarRating value={Math.round(reviewsData.stats.averageRating)} readonly size="sm" />
+                <button
+                  className="text-[9px] text-black/35 tracking-[0.2em] uppercase font-bold hover:text-black transition-colors"
+                  onClick={() => document.getElementById("reviews-section")?.scrollIntoView({ behavior: "smooth" })}
+                >
+                  {reviewsData.stats.totalReviews} {t("reviews.total")}
+                </button>
               </div>
             )}
 
-            {/* Sizes */}
-            {sizes.length > 0 && (
-              <div>
-                <div className="flex justify-between items-end mb-4">
-                  <h3 className="text-xs font-bold uppercase tracking-widest">{t("common.size")}</h3>
-                  <button className="text-xs underline text-muted-foreground hover:text-foreground transition-colors">Size Guide</button>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {sizes.map(size => {
-                    const unavailable = availableSizesForColor !== null && !availableSizesForColor.has(size);
-                    return (
+            {/* Price */}
+            <div className="flex items-baseline gap-4 mb-8">
+              {displaySalePrice ? (
+                <>
+                  <span className="text-2xl font-bold text-[#C9A227]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{displaySalePrice} EGP</span>
+                  <span className="text-lg line-through text-black/28">{displayPrice} EGP</span>
+                </>
+              ) : (
+                <span className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{displayPrice} EGP</span>
+              )}
+            </div>
+
+            {description && (
+              <p className="text-sm text-black/50 leading-relaxed tracking-wide mb-10 max-w-md">{description}</p>
+            )}
+
+            <div className="space-y-8 mb-10">
+              {/* Colors */}
+              {colors.length > 0 && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-[#111111]">{t("common.color")}</p>
+                    {selectedColor && <span className="text-[9px] tracking-[0.2em] uppercase text-black/40 font-medium">{selectedColor}</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {colors.map(color => (
                       <button
-                        key={size}
-                        disabled={unavailable}
-                        onClick={() => !unavailable && setSelectedSize(size)}
-                        className={`min-w-[3rem] h-12 px-4 flex items-center justify-center border text-sm font-medium transition-all relative ${
-                          selectedSize === size
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : unavailable
-                            ? "border-border text-muted-foreground/30 cursor-not-allowed bg-muted/20"
-                            : "border-border hover:border-foreground"
-                        }`}
+                        key={color}
+                        onClick={() => handleColorSelect(color)}
+                        title={color}
+                        className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${selectedColor === color ? "border-[#111111] scale-110 ring-2 ring-[#111111]/20 ring-offset-1" : "border-black/15 hover:border-black/40 hover:scale-105"}`}
+                        style={{ backgroundColor: color.toLowerCase() }}
                       >
-                        {size}
-                        {unavailable && (
-                          <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <span className="w-full h-[1px] bg-border rotate-45 transform origin-center absolute" />
-                          </span>
-                        )}
+                        <span className="sr-only">{color}</span>
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sizes */}
+              {sizes.length > 0 && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-[#111111]">{t("common.size")}</p>
+                    <button className="text-[9px] tracking-[0.18em] uppercase text-black/35 font-bold hover:text-black transition-colors border-b border-black/20 pb-0.5">Size Guide</button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {sizes.map(size => {
+                      const unavailable = availableSizesForColor !== null && !availableSizesForColor.has(size);
+                      return (
+                        <button
+                          key={size}
+                          disabled={unavailable}
+                          onClick={() => !unavailable && setSelectedSize(size)}
+                          className={`min-w-[3rem] h-11 px-4 text-xs font-bold tracking-[0.12em] uppercase transition-all relative ${
+                            selectedSize === size
+                              ? "bg-[#111111] text-white border border-[#111111]"
+                              : unavailable
+                              ? "border border-black/8 text-black/18 cursor-not-allowed"
+                              : "border border-black/15 text-[#111111] hover:border-[#111111]"
+                          }`}
+                        >
+                          {size}
+                          {unavailable && <span className="absolute inset-0 flex items-center justify-center pointer-events-none"><span className="w-full h-[1px] bg-black/12 rotate-45 transform origin-center absolute" /></span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Quantity */}
+              <div>
+                <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-[#111111] mb-4">{t("common.quantity")}</p>
+                <div className="flex items-center border border-black/12 w-32 h-11">
+                  <button className="w-11 h-full flex items-center justify-center text-black/40 hover:text-black hover:bg-[#F7F6F4] transition-colors" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
+                    <Minus className="w-3 h-3" />
+                  </button>
+                  <div className="flex-1 h-full flex items-center justify-center text-sm font-bold text-[#111111]">{quantity}</div>
+                  <button className="w-11 h-full flex items-center justify-center text-black/40 hover:text-black hover:bg-[#F7F6F4] transition-colors" onClick={() => setQuantity(q => q + 1)}>
+                    <Plus className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
-            )}
-
-            {/* Quantity */}
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest mb-4">{t("common.quantity")}</h3>
-              <div className="flex items-center border border-border w-36 h-12">
-                <button className="w-12 h-full hover:bg-muted transition-colors flex items-center justify-center" onClick={() => setQuantity(q => Math.max(1, q - 1))}>−</button>
-                <div className="flex-1 h-full flex items-center justify-center font-medium text-sm">{quantity}</div>
-                <button className="w-12 h-full hover:bg-muted transition-colors flex items-center justify-center" onClick={() => setQuantity(q => q + 1)}>+</button>
-              </div>
             </div>
-          </div>
 
-          {/* CTA */}
-          <div className="flex gap-4 mb-10">
-            {isOutOfStock ? (
-              user ? (
-                isSubscribed ? (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="flex-1 h-14 text-sm rounded-none uppercase tracking-widest border-[#C9A227] text-[#C9A227] hover:bg-[#C9A227]/5"
-                    onClick={() => unsubscribeMutation.mutate()}
-                    disabled={unsubscribeMutation.isPending}
-                  >
-                    <Bell className="w-4 h-4 mr-2 fill-[#C9A227]" />
-                    {unsubscribeMutation.isPending ? "..." : "Notified ✓"}
-                  </Button>
+            {/* CTA */}
+            <div className="flex gap-3 mb-10">
+              {isOutOfStock ? (
+                user ? (
+                  isSubscribed ? (
+                    <button
+                      className="flex-1 h-13 py-4 text-[9px] font-bold tracking-[0.28em] uppercase border border-[#C9A227] text-[#C9A227] hover:bg-[#C9A227]/5 transition-colors flex items-center justify-center gap-2"
+                      onClick={() => unsubscribeMutation.mutate()}
+                      disabled={unsubscribeMutation.isPending}
+                    >
+                      <Bell className="w-3.5 h-3.5 fill-[#C9A227]" />
+                      {unsubscribeMutation.isPending ? "..." : "Notified ✓"}
+                    </button>
+                  ) : (
+                    <button
+                      className="flex-1 py-4 text-[9px] font-bold tracking-[0.28em] uppercase border border-black/15 text-[#111111] hover:border-[#111111] transition-colors flex items-center justify-center gap-2"
+                      onClick={() => subscribeMutation.mutate()}
+                      disabled={subscribeMutation.isPending || !notifyVariantId}
+                    >
+                      <Bell className="w-3.5 h-3.5" />
+                      {subscribeMutation.isPending ? "Saving..." : "Notify Me When Back"}
+                    </button>
+                  )
                 ) : (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="flex-1 h-14 text-sm rounded-none uppercase tracking-widest"
-                    onClick={() => subscribeMutation.mutate()}
-                    disabled={subscribeMutation.isPending || !notifyVariantId}
-                  >
-                    <Bell className="w-4 h-4 mr-2" />
-                    {subscribeMutation.isPending ? "Saving..." : "Notify Me When Back"}
-                  </Button>
+                  <button className="flex-1 py-4 text-[9px] font-bold tracking-[0.28em] uppercase border border-black/10 text-black/25 cursor-not-allowed" disabled>
+                    Out of Stock
+                  </button>
                 )
               ) : (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="flex-1 h-14 text-sm rounded-none uppercase tracking-widest opacity-50 cursor-not-allowed"
-                  disabled
+                <button
+                  className="flex-1 py-4 bg-[#111111] text-white text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={handleAddToCart}
+                  disabled={addToCartMutation.isPending || (needsSelection && !selectionComplete)}
                 >
-                  Out of Stock
-                </Button>
-              )
-            ) : (
-              <Button
-                size="lg"
-                className="flex-1 h-14 text-sm rounded-none uppercase tracking-widest hover:bg-primary/90 transition-colors"
-                onClick={handleAddToCart}
-                disabled={addToCartMutation.isPending || (needsSelection && !selectionComplete)}
-              >
-                {addToCartMutation.isPending
-                  ? t("btn.addingToCart")
-                  : needsSelection && !selectionComplete
-                  ? `${t("common.color").toLowerCase() !== t("common.size").toLowerCase() && !selectedColor && colors.length > 0 ? t("product.selectColor") : t("product.selectSize")}`
-                  : t("btn.addToCart")}
-              </Button>
-            )}
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-14 h-14 rounded-none shrink-0 p-0 border-border hover:bg-muted transition-colors"
-              onClick={handleWishlist}
-              aria-label={isWishlisted ? t("product.removedFromWishlist") : t("product.savedToWishlist")}
-            >
-              <Heart className={`w-5 h-5 transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : ""}`} />
-            </Button>
-          </div>
+                  {addToCartMutation.isPending
+                    ? t("btn.addingToCart")
+                    : needsSelection && !selectionComplete
+                    ? (!selectedColor && colors.length > 0 ? t("product.selectColor") : t("product.selectSize"))
+                    : t("btn.addToCart")}
+                </button>
+              )}
 
-          {/* Shipping & policy */}
-          <div className="border border-border divide-y divide-border bg-muted/10">
-            {[
-              { icon: Truck, text: "Free shipping on orders over 2,000 EGP" },
-              { icon: RotateCcw, text: "Easy 14-day return policy" },
-              { icon: ShieldCheck, text: "Secure checkout & payment" },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-4 px-6 py-4">
-                <Icon className="w-5 h-5 text-muted-foreground shrink-0" />
-                <p className="text-sm font-medium">{text}</p>
-              </div>
-            ))}
+              <button
+                className={`w-13 h-full py-4 px-4 border transition-colors shrink-0 flex items-center justify-center ${isWishlisted ? "border-red-200 bg-red-50" : "border-black/12 hover:border-black/40"}`}
+                onClick={handleWishlist}
+                aria-label={isWishlisted ? t("product.removedFromWishlist") : t("product.savedToWishlist")}
+              >
+                <Heart className={`w-4 h-4 transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500" : "text-black/40"}`} />
+              </button>
+            </div>
+
+            {/* Shipping & Policy */}
+            <div className="border-t border-black/6 divide-y divide-black/6">
+              {[
+                { icon: Truck, text: "Free shipping on orders over 2,000 EGP" },
+                { icon: RotateCcw, text: "Easy 14-day return policy" },
+                { icon: ShieldCheck, text: "Secure checkout & payment" },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-4 py-4">
+                  <Icon className="w-4 h-4 text-black/30 shrink-0" strokeWidth={1.5} />
+                  <p className="text-xs text-black/45 tracking-wide">{text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── REVIEWS SECTION ──────────────────────────────────────────────── */}
-      <section id="reviews-section" className="border-t border-border pt-20 mb-24">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">{t("reviews.customerFeedback")}</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">{t("reviews.title")}</h2>
+      {/* ── Reviews ──────────────────────────────────────────────────────── */}
+      <section id="reviews-section" className="border-t border-black/6 bg-[#F7F6F4]">
+        <div className="max-w-screen-xl mx-auto px-6 md:px-10 py-20 md:py-28">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
+            <div>
+              <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-black/28 mb-4">{t("reviews.customerFeedback")}</p>
+              <h2
+                className="text-3xl md:text-4xl font-bold text-[#111111]"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                {t("reviews.title")}
+              </h2>
+            </div>
+            <div className="flex items-center gap-4">
+              {reviewsData && reviewsData.stats.totalReviews > 0 && (
+                <select
+                  value={reviewSort}
+                  onChange={e => { setReviewSort(e.target.value); setReviewPage(1); }}
+                  className="border border-black/12 px-4 py-2 text-[9px] bg-white focus:outline-none tracking-[0.18em] uppercase font-bold text-[#111111]"
+                >
+                  <option value="newest">{t("reviews.newestFirst")}</option>
+                  <option value="oldest">{t("reviews.oldestFirst")}</option>
+                  <option value="highest">{t("reviews.highestRating")}</option>
+                  <option value="lowest">{t("reviews.lowestRating")}</option>
+                </select>
+              )}
+              {reviewsData?.canReview && (
+                <button
+                  onClick={openWriteReview}
+                  className="flex items-center gap-2 bg-[#111111] text-white px-6 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] transition-colors"
+                >
+                  <PenLine className="w-3.5 h-3.5" /> {t("reviews.write")}
+                </button>
+              )}
+            </div>
           </div>
-          {reviewsData?.canReview && (
-            <Button onClick={openWriteReview} className="shrink-0 rounded-none uppercase tracking-widest text-xs h-12 px-6">
-              <PenLine className="w-4 h-4 me-2" /> {t("reviews.write")}
-            </Button>
-          )}
-          {user && !reviewsData?.canReview && !reviewsData?.userReview && (
-            <p className="text-sm text-muted-foreground max-w-xs text-right bg-muted/30 p-3">
-              {t("reviews.onlyDelivered")}
-            </p>
+
+          {reviewsLoading ? (
+            <div className="space-y-6">
+              {[1,2,3].map(i => <div key={i} className="h-28 bg-white animate-pulse" />)}
+            </div>
+          ) : (
+            <>
+              {reviewsData && reviewsData.stats.totalReviews > 0 && (
+                <div className="grid md:grid-cols-3 gap-8 mb-16 pb-16 border-b border-black/8">
+                  <div className="flex flex-col items-center justify-center text-center bg-white p-10">
+                    <span
+                      className="text-7xl font-bold text-[#111111] leading-none mb-3"
+                      style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                    >
+                      {reviewsData.stats.averageRating.toFixed(1)}
+                    </span>
+                    <StarRating value={Math.round(reviewsData.stats.averageRating)} readonly />
+                    <span className="text-[9px] text-black/35 mt-4 tracking-[0.2em] uppercase font-bold">
+                      {reviewsData.stats.totalReviews} {t("reviews.total")}
+                    </span>
+                  </div>
+                  <div className="md:col-span-2 space-y-3 flex flex-col justify-center">
+                    {[5, 4, 3, 2, 1].map(star => {
+                      const count = reviewsData.stats.distribution[star.toString() as "1"|"2"|"3"|"4"|"5"] ?? 0;
+                      const pct = reviewsData.stats.totalReviews ? Math.round((count / reviewsData.stats.totalReviews) * 100) : 0;
+                      return (
+                        <div key={star} className="flex items-center gap-4">
+                          <div className="flex items-center gap-1 w-10 shrink-0 text-xs font-bold text-black/40">
+                            {star}<Star className="w-3 h-3 fill-[#C9A227] text-[#C9A227]" />
+                          </div>
+                          <div className="flex-1 bg-black/6 h-1">
+                            <div className="h-full bg-[#C9A227] transition-all duration-700" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-[9px] text-black/35 w-8 text-right font-bold tracking-widest">{pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {reviewsData?.userReview && (
+                <div className="mb-10">
+                  <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/30 mb-4">{t("reviews.yourReview")}</p>
+                  <ReviewCard review={reviewsData.userReview} currentUserId={user?.id} onEdit={() => openEditReview(reviewsData.userReview!)} onDelete={() => handleDeleteReview(reviewsData.userReview!.id)} />
+                </div>
+              )}
+
+              {reviewsData && reviewsData.stats.totalReviews > 0 && (
+                <div>
+                  {reviewsData.reviews.filter(r => r.userId !== user?.id).map(review => (
+                    <ReviewCard key={review.id} review={review} currentUserId={user?.id} onEdit={() => openEditReview(review)} onDelete={() => handleDeleteReview(review.id)} />
+                  ))}
+                  {reviewsData.total > reviewsData.limit && (
+                    <div className="flex justify-center gap-2 mt-12">
+                      <Button variant="outline" size="sm" disabled={reviewPage === 1} className="rounded-none px-8 tracking-[0.22em] uppercase text-[9px] h-10 border-black/12" onClick={() => setReviewPage(p => p - 1)}>{t("reviews.prev")}</Button>
+                      <span className="px-6 py-2 text-[9px] text-black/35 font-bold tracking-widest uppercase flex items-center">{t("common.page")} {reviewPage} {t("common.of")} {Math.ceil(reviewsData.total / reviewsData.limit)}</span>
+                      <Button variant="outline" size="sm" disabled={reviewPage >= Math.ceil(reviewsData.total / reviewsData.limit)} className="rounded-none px-8 tracking-[0.22em] uppercase text-[9px] h-10 border-black/12" onClick={() => setReviewPage(p => p + 1)}>{t("reviews.next")}</Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {reviewsData && reviewsData.stats.totalReviews === 0 && (
+                <div className="bg-white p-16 text-center">
+                  <Star className="w-10 h-10 text-black/12 mx-auto mb-6" strokeWidth={1} />
+                  <h3 className="text-xl font-bold text-[#111111] mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>No reviews yet</h3>
+                  <p className="text-xs text-black/35 tracking-[0.18em] uppercase font-bold">Be the first to share your experience</p>
+                </div>
+              )}
+            </>
           )}
         </div>
-
-        {reviewsLoading ? (
-          <div className="space-y-6">
-            {[1, 2, 3].map(i => <div key={i} className="border border-border p-6 h-32 animate-pulse bg-muted/20 rounded-none" />)}
-          </div>
-        ) : (
-          <>
-            {reviewsData && reviewsData.stats.totalReviews > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-12 pb-12 border-b border-border">
-                <div className="md:col-span-4 flex flex-col items-center justify-center text-center bg-muted/10 p-8 border border-border">
-                  <span className="font-serif text-7xl font-bold leading-none mb-4">
-                    {reviewsData.stats.averageRating.toFixed(1)}
-                  </span>
-                  <StarRating value={Math.round(reviewsData.stats.averageRating)} readonly />
-                  <span className="text-sm text-muted-foreground mt-4 uppercase tracking-widest">
-                    Based on {reviewsData.stats.totalReviews} {t("reviews.total")}
-                  </span>
-                </div>
-                <div className="md:col-span-8 space-y-3 flex flex-col justify-center">
-                  {[5, 4, 3, 2, 1].map(star => {
-                    const count = reviewsData.stats.distribution[star.toString() as "1" | "2" | "3" | "4" | "5"] ?? 0;
-                    const pct = reviewsData.stats.totalReviews ? Math.round((count / reviewsData.stats.totalReviews) * 100) : 0;
-                    return (
-                      <div key={star} className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 w-12 shrink-0 text-sm font-medium">
-                          {star}<Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        </div>
-                        <div className="flex-1 bg-muted h-1.5 overflow-hidden">
-                          <div
-                            className="h-full bg-primary transition-all duration-700"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-muted-foreground w-12 text-right">{pct}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {reviewsData?.userReview && (
-              <div className="mb-10">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t("reviews.yourReview")}</p>
-                <ReviewCard
-                  review={reviewsData.userReview}
-                  currentUserId={user?.id}
-                  onEdit={() => openEditReview(reviewsData.userReview!)}
-                  onDelete={() => handleDeleteReview(reviewsData.userReview!.id)}
-                />
-              </div>
-            )}
-
-            {reviewsData && reviewsData.stats.totalReviews > 0 && (
-              <>
-                <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
-                  <span className="text-sm font-medium uppercase tracking-widest">{reviewsData.total} Reviews</span>
-                  <select
-                    value={reviewSort}
-                    onChange={e => { setReviewSort(e.target.value); setReviewPage(1); }}
-                    className="border border-border px-4 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary uppercase tracking-widest font-medium"
-                  >
-                    <option value="newest">{t("reviews.newestFirst")}</option>
-                    <option value="oldest">{t("reviews.oldestFirst")}</option>
-                    <option value="highest">{t("reviews.highestRating")}</option>
-                    <option value="lowest">{t("reviews.lowestRating")}</option>
-                  </select>
-                </div>
-
-                <div className="space-y-6">
-                  {reviewsData.reviews.filter(r => r.userId !== user?.id).map(review => (
-                    <ReviewCard
-                      key={review.id}
-                      review={review}
-                      currentUserId={user?.id}
-                      onEdit={() => openEditReview(review)}
-                      onDelete={() => handleDeleteReview(review.id)}
-                    />
-                  ))}
-                </div>
-
-                {reviewsData.total > reviewsData.limit && (
-                  <div className="flex justify-center gap-2 mt-12">
-                    <Button
-                      variant="outline" size="sm" disabled={reviewPage === 1} className="rounded-none px-6 uppercase tracking-widest text-xs h-10"
-                      onClick={() => setReviewPage(p => p - 1)}
-                    >{t("reviews.prev")}</Button>
-                    <span className="px-6 py-2 text-sm text-muted-foreground font-medium flex items-center">
-                      {t("common.page")} {reviewPage} {t("common.of")} {Math.ceil(reviewsData.total / reviewsData.limit)}
-                    </span>
-                    <Button
-                      variant="outline" size="sm" disabled={reviewPage >= Math.ceil(reviewsData.total / reviewsData.limit)} className="rounded-none px-6 uppercase tracking-widest text-xs h-10"
-                      onClick={() => setReviewPage(p => p + 1)}
-                    >{t("reviews.next")}</Button>
-                  </div>
-                )}
-              </>
-            )}
-
-            {reviewsData && reviewsData.stats.totalReviews === 0 && (
-              <div className="border border-border p-16 text-center bg-muted/10">
-                <Star className="w-12 h-12 text-muted-foreground/30 mx-auto mb-6" />
-                <p className="font-serif text-2xl font-bold mb-2">{t("reviews.noReviews")}</p>
-                <p className="text-muted-foreground">{t("reviews.noReviewsDesc")}</p>
-              </div>
-            )}
-          </>
-        )}
       </section>
 
-      {/* Review Write/Edit Modal */}
+      {/* ── Related Products ─────────────────────────────────────────────── */}
+      {(relatedProducts ?? []).length > 0 && (
+        <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6 md:px-10">
+          <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-black/28 mb-5">You May Also Like</p>
+          <h2
+            className="text-3xl md:text-4xl font-bold text-[#111111] mb-14 leading-[0.92]"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+          >
+            Related Pieces
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-12">
+            {(relatedProducts ?? []).slice(0, 4).map(p => (
+              <ProductCard key={p.id} id={p.id} nameEn={p.nameEn} nameAr={p.nameAr} price={p.price} salePrice={p.salePrice} imageUrl={p.images?.[0]?.imageUrl} variants={p.variants} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Review Modal ─────────────────────────────────────────────────── */}
       {showReviewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-background border border-border w-full max-w-xl shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
-              <h3 className="font-serif text-2xl font-bold">{editingReview ? t("reviews.edit") : t("reviews.write")}</h3>
-              <button onClick={() => setShowReviewModal(false)} className="text-muted-foreground hover:text-foreground transition-colors"><X className="w-6 h-6" /></button>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowReviewModal(false)} />
+          <div className="relative bg-white w-full sm:max-w-lg mx-4 p-8 sm:p-10 shadow-2xl" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <div className="flex items-center justify-between mb-8">
+              <h3
+                className="text-2xl font-bold text-[#111111]"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                {editingReview ? t("reviews.editTitle") : t("reviews.writeTitle")}
+              </h3>
+              <button onClick={() => setShowReviewModal(false)} className="text-black/30 hover:text-black transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <form onSubmit={handleReviewSubmit} className="space-y-6">
               <div>
-                <label className="text-xs font-bold uppercase tracking-widest mb-3 block">{t("reviews.rating")} *</label>
-                <StarRating
-                  value={reviewForm.rating}
-                  onChange={v => setReviewForm(f => ({ ...f, rating: v }))}
-                  size="md"
-                />
+                <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/40 mb-3">{t("reviews.rating")}</p>
+                <StarRating value={reviewForm.rating} onChange={v => setReviewForm(f => ({ ...f, rating: v }))} />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-widest mb-3 block">
-                  {t("reviews.titleLabel")} <span className="text-muted-foreground font-normal">({t("common.optional")})</span>
-                </label>
+                <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/40 mb-2">{t("reviews.titleLabel")}</p>
                 <input
                   type="text"
                   maxLength={120}
                   value={reviewForm.title}
                   onChange={e => setReviewForm(f => ({ ...f, title: e.target.value }))}
-                  placeholder={t("reviews.summarize")}
-                  className="w-full border border-border px-4 py-3 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/50"
+                  placeholder="Optional title"
+                  className="w-full h-11 border border-black/12 px-4 text-sm bg-[#F7F6F4] focus:outline-none focus:border-[#111111] transition-colors"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-widest mb-3 block">
-                  {t("reviews.commentLabel")} * <span className="text-muted-foreground font-normal">(min 10 chars)</span>
-                </label>
+                <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/40 mb-2">{t("reviews.commentLabel")}</p>
                 <textarea
-                  rows={5}
+                  rows={4}
                   maxLength={2000}
                   value={reviewForm.comment}
                   onChange={e => setReviewForm(f => ({ ...f, comment: e.target.value }))}
-                  placeholder={t("reviews.placeholder")}
-                  className="w-full border border-border px-4 py-3 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-none placeholder:text-muted-foreground/50"
+                  placeholder="Share your experience..."
+                  className="w-full border border-black/12 px-4 py-3 text-sm bg-[#F7F6F4] focus:outline-none focus:border-[#111111] transition-colors resize-none tracking-wide"
                 />
-                <p className="text-xs text-muted-foreground text-right mt-2">{reviewForm.comment.length}/2000</p>
               </div>
-              <div className="flex gap-4 pt-4 border-t border-border mt-8">
-                <Button type="button" variant="outline" className="flex-1 rounded-none h-12 uppercase tracking-widest text-xs font-bold" onClick={() => setShowReviewModal(false)}>
-                  {t("btn.cancel")}
-                </Button>
-                <Button type="submit" className="flex-1 rounded-none h-12 uppercase tracking-widest text-xs font-bold"
-                  disabled={createReviewMutation.isPending || updateReviewMutation.isPending}>
-                  {createReviewMutation.isPending || updateReviewMutation.isPending
-                    ? "Saving..."
-                    : editingReview ? t("reviews.update") : t("reviews.submit")}
-                </Button>
+              <div className="flex gap-3 pt-4 border-t border-black/6">
+                <button type="button" onClick={() => setShowReviewModal(false)} className="flex-1 py-4 border border-black/12 text-[9px] font-bold tracking-[0.25em] uppercase text-black/50 hover:border-black/40 hover:text-black transition-colors">
+                  {t("dash.cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-4 bg-[#111111] text-white text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-40"
+                  disabled={createReviewMutation.isPending || updateReviewMutation.isPending}
+                >
+                  {createReviewMutation.isPending || updateReviewMutation.isPending ? "..." : (editingReview ? t("reviews.update") : t("reviews.submit"))}
+                </button>
               </div>
             </form>
           </div>
         </div>
-      )}
-
-      {/* ── RELATED PRODUCTS ───────────────────────────────────────────── */}
-      {relatedProducts && relatedProducts.length > 0 && (
-        <section className="border-t border-border pt-20">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">{t("product.youMayAlsoLike")}</h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-            {relatedProducts.map(rp => (
-              <ProductCard
-                key={rp.id}
-                id={rp.id}
-                nameEn={rp.nameEn}
-                nameAr={rp.nameAr}
-                price={rp.price}
-                salePrice={rp.salePrice}
-                imageUrl={rp.images?.[0]?.imageUrl}
-                categoryName={rp.categoryName}
-                variants={rp.variants}
-                averageRating={rp.averageRating}
-                reviewCount={rp.reviewCount}
-              />
-            ))}
-          </div>
-        </section>
       )}
     </div>
   );
