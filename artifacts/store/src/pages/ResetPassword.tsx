@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/LanguageContext";
-import { KeyRound, ArrowLeft, CheckCircle2, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -61,12 +61,19 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center space-y-4">
-          <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
-          <h1 className="font-serif text-2xl font-bold">{t("reset.invalidTitle")}</h1>
-          <p className="text-muted-foreground">{t("reset.invalidDesc")}</p>
-          <Button asChild variant="outline">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
+        <div className="w-full max-w-[400px] text-center space-y-6">
+          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-4">
+            VELORA
+          </Link>
+          <div className="flex justify-center">
+            <AlertCircle className="w-12 h-12 text-destructive" />
+          </div>
+          <div>
+            <h1 className="font-serif text-2xl font-bold mb-2">{t("reset.invalidTitle")}</h1>
+            <p className="text-muted-foreground text-sm">{t("reset.invalidDesc")}</p>
+          </div>
+          <Button asChild className="velora-btn-outline w-full h-12">
             <Link href="/forgot-password">{t("reset.requestNew")}</Link>
           </Button>
         </div>
@@ -76,8 +83,11 @@ export default function ResetPassword() {
 
   if (success) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center space-y-6">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
+        <div className="w-full max-w-[400px] text-center space-y-8">
+          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-4">
+            VELORA
+          </Link>
           <div className="flex justify-center">
             <div className="w-16 h-16 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
@@ -85,36 +95,33 @@ export default function ResetPassword() {
           </div>
           <div>
             <h1 className="font-serif text-3xl font-bold mb-3">{t("reset.successTitle")}</h1>
-            <p className="text-muted-foreground">{t("reset.successDesc")}</p>
+            <p className="text-muted-foreground tracking-wide text-sm">{t("reset.successDesc")}</p>
           </div>
-          <Link href="/login" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            {t("reset.goToLogin")}
-          </Link>
+          <div className="pt-6 border-t border-border">
+            <Link href="/login" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-primary hover:opacity-80 transition-opacity">
+              <ArrowLeft className="w-4 h-4" />
+              {t("reset.goToLogin")}
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" />
-          {t("reset.backToLogin")}
-        </Link>
-
-        <div className="mb-8">
-          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-5">
-            <KeyRound className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <h1 className="font-serif text-3xl font-bold mb-2">{t("reset.title")}</h1>
-          <p className="text-muted-foreground">{t("reset.subtitle")}</p>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
+      <div className="w-full max-w-[400px]">
+        <div className="mb-12 text-center">
+          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-8">
+            VELORA
+          </Link>
+          <h1 className="font-serif text-3xl font-bold mb-3">{t("reset.title")}</h1>
+          <p className="text-muted-foreground text-sm tracking-wide">{t("reset.subtitle")}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">{t("reset.newPassword")}</label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
+            <label htmlFor="password" className="velora-label block">{t("reset.newPassword")}</label>
             <div className="relative">
               <Input
                 id="password"
@@ -125,7 +132,7 @@ export default function ResetPassword() {
                   setPassword(e.target.value);
                   if (errors.password) setErrors(prev => ({ ...prev, password: undefined }));
                 }}
-                className={errors.password ? "border-destructive focus-visible:ring-destructive pr-10" : "pr-10"}
+                className={`rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary pr-10 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 disabled={loading}
                 autoComplete="new-password"
               />
@@ -140,27 +147,29 @@ export default function ResetPassword() {
             {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="confirm" className="text-sm font-medium">{t("reset.confirmPassword")}</label>
-            <Input
-              id="confirm"
-              type={showPassword ? "text" : "password"}
-              placeholder={t("reset.repeatPassword")}
-              value={confirm}
-              onChange={e => {
-                setConfirm(e.target.value);
-                if (errors.confirm) setErrors(prev => ({ ...prev, confirm: undefined }));
-              }}
-              className={errors.confirm ? "border-destructive focus-visible:ring-destructive" : ""}
-              disabled={loading}
-              autoComplete="new-password"
-            />
+          <div className="space-y-3">
+            <label htmlFor="confirm" className="velora-label block">{t("reset.confirmPassword")}</label>
+            <div className="relative">
+              <Input
+                id="confirm"
+                type={showPassword ? "text" : "password"}
+                placeholder={t("reset.repeatPassword")}
+                value={confirm}
+                onChange={e => {
+                  setConfirm(e.target.value);
+                  if (errors.confirm) setErrors(prev => ({ ...prev, confirm: undefined }));
+                }}
+                className={`rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary pr-10 ${errors.confirm ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                disabled={loading}
+                autoComplete="new-password"
+              />
+            </div>
             {errors.confirm && <p className="text-xs text-destructive">{errors.confirm}</p>}
           </div>
 
           <Button
             type="submit"
-            className="w-full h-12 rounded-none uppercase tracking-widest"
+            className="velora-btn-primary w-full h-12 mt-2"
             disabled={loading}
           >
             {loading ? (
@@ -173,6 +182,13 @@ export default function ResetPassword() {
             )}
           </Button>
         </form>
+
+        <div className="mt-8 pt-8 border-t border-border text-center flex flex-col gap-4">
+          <Link href="/login" className="inline-flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3 h-3" />
+            {t("reset.backToLogin")}
+          </Link>
+        </div>
       </div>
     </div>
   );

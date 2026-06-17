@@ -63,67 +63,74 @@ export default function FAQ() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-4xl">
-      <div className="text-center mb-12">
-        <h1 className="font-serif text-4xl font-bold mb-4">{isAr ? "الأسئلة الشائعة" : "Frequently Asked Questions"}</h1>
-        <p className="text-muted-foreground text-lg">{isAr ? "ابحث عن إجابات لأكثر الأسئلة شيوعاً" : "Find answers to the most common questions"}</p>
-      </div>
-
-      <div className="relative mb-8">
-        <input
-          type="text"
-          value={search}
-          onChange={e => { setSearch(e.target.value); setOpenId(null); }}
-          placeholder={isAr ? "ابحث في الأسئلة..." : "Search questions..."}
-          className="w-full border border-border bg-background px-4 py-3 text-sm ps-10 focus:outline-none focus:ring-1 focus:ring-primary"
-        />
-        <svg className="absolute start-3 top-3.5 w-4 h-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        {search && <button onClick={() => setSearch("")} className="absolute end-3 top-3 text-muted-foreground hover:text-foreground">✕</button>}
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-10 justify-center">
-        {CATEGORIES.map(cat => (
-          <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setOpenId(null); }}
-            className={`px-4 py-2 text-sm font-medium transition-colors border ${activeCategory === cat.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}>
-            {isAr ? cat.ar : cat.en}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">{isAr ? "لا توجد نتائج." : "No results found."}</p>
-          {search && <button onClick={() => setSearch("")} className="mt-2 text-sm text-primary underline">{isAr ? "مسح البحث" : "Clear search"}</button>}
+    <div className="bg-background min-h-screen pt-24 pb-24">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <div className="text-center mb-16">
+          <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6">{isAr ? "الأسئلة الشائعة" : "FAQ"}</h1>
+          <p className="text-muted-foreground text-sm uppercase tracking-widest">
+            {isAr ? "ابحث عن إجابات لأكثر الأسئلة شيوعاً" : "Frequently Asked Questions"}
+          </p>
         </div>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map(faq => (
-            <div key={faq.id} className="border border-border">
-              <button onClick={() => setOpenId(openId === faq.id ? null : faq.id)}
-                className="w-full flex items-center justify-between px-6 py-4 text-left font-medium hover:bg-muted/50 transition-colors">
-                <span className="text-sm leading-relaxed">{isAr ? faq.questionAr : faq.questionEn}</span>
-                <span className="text-primary ms-4 shrink-0 text-lg">{openId === faq.id ? "−" : "+"}</span>
-              </button>
-              {openId === faq.id && (
-                <div className="px-6 pb-5 text-muted-foreground text-sm leading-relaxed border-t border-border pt-4">
-                  {isAr ? faq.answerAr : faq.answerEn}
-                </div>
-              )}
-            </div>
+
+        <div className="relative mb-12 max-w-xl mx-auto">
+          <input
+            type="text"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setOpenId(null); }}
+            placeholder={isAr ? "ابحث في الأسئلة..." : "SEARCH QUESTIONS..."}
+            className="w-full border-b border-border bg-transparent px-0 py-4 text-xs uppercase tracking-widest focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/50"
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute end-0 top-1/2 -translate-y-1/2 text-xs uppercase text-muted-foreground hover:text-foreground">
+              {isAr ? "مسح" : "CLEAR"}
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-6 mb-16 justify-center">
+          {CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setOpenId(null); }}
+              className={`text-xs uppercase tracking-widest transition-colors pb-1 border-b ${activeCategory === cat.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+              {isAr ? cat.ar : cat.en}
+            </button>
           ))}
         </div>
-      )}
 
-      <div className="mt-16 p-8 border border-border bg-muted/20 text-center">
-        <h3 className="font-serif text-xl font-bold mb-2">{isAr ? "لم تجد إجابتك؟" : "Didn't find your answer?"}</h3>
-        <p className="text-muted-foreground mb-4">{isAr ? "تواصل مع فريق الدعم وسنساعدك." : "Contact our support team and we'll help you out."}</p>
-        <div className="flex flex-wrap gap-3 justify-center">
-          <a href="/contact" className="inline-block px-6 py-2.5 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-            {isAr ? "تواصل معنا" : "Contact Us"}
-          </a>
-          <a href="/dashboard/customer" className="inline-block px-6 py-2.5 border border-border text-sm font-medium hover:bg-muted transition-colors">
-            {isAr ? "فتح تذكرة دعم" : "Open Support Ticket"}
-          </a>
+        {filtered.length === 0 ? (
+          <div className="text-center py-20 border-y border-border">
+            <p className="text-muted-foreground uppercase tracking-widest text-xs">{isAr ? "لا توجد نتائج." : "No results found."}</p>
+          </div>
+        ) : (
+          <div className="border-t border-border">
+            {filtered.map(faq => (
+              <div key={faq.id} className="border-b border-border">
+                <button onClick={() => setOpenId(openId === faq.id ? null : faq.id)}
+                  className="w-full flex items-center justify-between py-6 text-left hover:text-primary transition-colors group">
+                  <span className="font-serif text-xl md:text-2xl font-bold pr-8">{isAr ? faq.questionAr : faq.questionEn}</span>
+                  <span className="shrink-0 text-2xl font-light text-muted-foreground group-hover:text-primary transition-colors">
+                    {openId === faq.id ? "−" : "+"}
+                  </span>
+                </button>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openId === faq.id ? "max-h-96 pb-8 opacity-100" : "max-h-0 opacity-0"}`}>
+                  <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl pr-12">
+                    {isAr ? faq.answerAr : faq.answerEn}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-24 text-center space-y-6">
+          <h3 className="font-serif text-2xl font-bold">{isAr ? "لم تجد إجابتك؟" : "Still have questions?"}</h3>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+            {isAr ? "فريق الدعم لدينا مستعد للمساعدة. تواصل معنا في أي وقت." : "Our support team is ready to assist you with any inquiries."}
+          </p>
+          <div className="pt-4">
+            <a href="/contact" className="velora-btn-outline inline-flex items-center justify-center px-8 h-12 uppercase tracking-widest text-xs">
+              {isAr ? "تواصل معنا" : "Contact Us"}
+            </a>
+          </div>
         </div>
       </div>
     </div>

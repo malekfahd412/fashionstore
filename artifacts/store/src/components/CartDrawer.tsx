@@ -76,7 +76,7 @@ export default function CartDrawer() {
         {/* Header */}
         <div className="flex items-start justify-between px-7 pt-8 pb-6 border-b border-border">
           <div>
-            <p className="text-[7px] font-bold tracking-[0.45em] uppercase text-foreground/30 mb-2">Velora</p>
+            <p className="text-[7px] font-bold tracking-[0.45em] uppercase text-foreground/30 mb-2">VELORA</p>
             <h2
               className="text-2xl font-bold text-foreground leading-none tracking-[-0.02em]"
               style={{ fontFamily: "'Playfair Display', Georgia, serif" }}

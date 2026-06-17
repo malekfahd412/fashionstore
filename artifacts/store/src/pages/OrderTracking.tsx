@@ -1,11 +1,9 @@
 import { useEffect } from "react";
-import { useLocation, Link } from "wouter";
-import { useParams } from "wouter";
+import { useLocation, Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
-import { CheckCircle2, Circle, Clock, Package, CreditCard, BoxIcon, Truck, MapPin, Home, ArrowLeft, ShoppingBag, Headphones } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -54,64 +52,14 @@ type Order = {
   items: OrderItem[];
 };
 
-type Step = {
-  key: string;
-  label: string;
-  description: string;
-  icon: typeof Package;
-  timestampField: keyof Pick<Order, "createdAt" | "paidAt" | "processingAt" | "packedAt" | "shippedAt" | "outForDeliveryAt" | "deliveredAt"> | null;
-};
-
-const STEPS: Step[] = [
-  {
-    key: "new",
-    label: "Order Placed",
-    description: "Your order has been received and is awaiting payment confirmation.",
-    icon: ShoppingBag,
-    timestampField: "createdAt",
-  },
-  {
-    key: "paid",
-    label: "Order Confirmed",
-    description: "Your order has been confirmed and is being prepared for packing.",
-    icon: CreditCard,
-    timestampField: "paidAt",
-  },
-  {
-    key: "processing",
-    label: "Processing",
-    description: "Your order is being reviewed and prepared for packing.",
-    icon: BoxIcon,
-    timestampField: "processingAt",
-  },
-  {
-    key: "packed",
-    label: "Packed",
-    description: "Your items have been picked, packed, and quality-checked.",
-    icon: BoxIcon,
-    timestampField: "packedAt",
-  },
-  {
-    key: "shipped",
-    label: "Shipped",
-    description: "Your order is on its way. Check your email for tracking details.",
-    icon: Truck,
-    timestampField: "shippedAt",
-  },
-  {
-    key: "out_for_delivery",
-    label: "Out for Delivery",
-    description: "Your order is with the courier and will arrive today.",
-    icon: MapPin,
-    timestampField: "outForDeliveryAt",
-  },
-  {
-    key: "delivered",
-    label: "Delivered",
-    description: "Your order has arrived. Enjoy your purchase!",
-    icon: Home,
-    timestampField: "deliveredAt",
-  },
+const STEPS = [
+  { key: "new", label: "Order Placed", timestampField: "createdAt" as const },
+  { key: "paid", label: "Confirmed", timestampField: "paidAt" as const },
+  { key: "processing", label: "Processing", timestampField: "processingAt" as const },
+  { key: "packed", label: "Packed", timestampField: "packedAt" as const },
+  { key: "shipped", label: "Shipped", timestampField: "shippedAt" as const },
+  { key: "out_for_delivery", label: "Out for Delivery", timestampField: "outForDeliveryAt" as const },
+  { key: "delivered", label: "Delivered", timestampField: "deliveredAt" as const },
 ];
 
 const STATUS_ORDER = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
@@ -127,46 +75,21 @@ function stepState(stepKey: string, currentStatus: string): "done" | "active" | 
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    new: "bg-blue-50 text-blue-700 border-blue-200",
-    paid: "bg-green-50 text-green-700 border-green-200",
-    processing: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    packed: "bg-teal-50 text-teal-700 border-teal-200",
-    shipped: "bg-purple-50 text-purple-700 border-purple-200",
-    out_for_delivery: "bg-orange-50 text-orange-700 border-orange-200",
-    delivered: "bg-[#C9A227]/8 text-[#9a7a1a] border-[#C9A227]/20",
-    cancelled: "bg-red-50 text-red-700 border-red-200",
-  };
-  const label = status.replace(/_/g, " ");
+  const isCancelled = status === "cancelled";
+  const isDelivered = status === "delivered";
   return (
-    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold uppercase tracking-wide border rounded-full ${styles[status] ?? "bg-muted text-muted-foreground border-border"}`}>
-      {label}
+    <span className={`velora-label px-3 py-1.5 border ${isDelivered ? 'border-primary text-primary' : isCancelled ? 'border-destructive text-destructive' : 'border-border text-foreground'}`}>
+      {status.replace(/_/g, " ")}
     </span>
   );
 }
 
 function PaymentStatusBadge({ order }: { order: Order }) {
   const ps = order.paymentStatus;
-  if (ps === "cod") {
-    if (order.status === "delivered") {
-      return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">COD Paid</span>;
-    }
-    return <span className="text-xs font-medium text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Pay on Delivery</span>;
-  }
-  if (ps === "paid") {
-    return <span className="text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Paid</span>;
-  }
-  if (ps === "failed") {
-    return <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">Payment Failed</span>;
-  }
-  return <span className="text-xs font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">Payment Pending</span>;
-}
-
-function estimatedDelivery(order: Order): string | null {
-  if (order.status === "delivered" || order.status === "cancelled") return null;
-  const base = order.shippedAt ? new Date(order.shippedAt) : new Date(order.createdAt);
-  const est = addDays(base, order.shippedAt ? 3 : 7);
-  return format(est, "EEEE, MMMM d");
+  const label = ps === "cod" ? (order.status === "delivered" ? "COD Paid" : "Pay on Delivery") :
+                ps === "paid" ? "Paid" :
+                ps === "failed" ? "Payment Failed" : "Payment Pending";
+  return <span className="velora-label px-3 py-1.5 border border-border text-muted-foreground">{label}</span>;
 }
 
 export default function OrderTracking() {
@@ -189,203 +112,164 @@ export default function OrderTracking() {
   if (!user) return null;
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-16 max-w-2xl">
-        <div className="space-y-4 animate-pulse">
-          <div className="h-8 bg-muted rounded w-48" />
-          <div className="h-4 bg-muted rounded w-64" />
-          <div className="h-64 bg-muted rounded" />
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">Loading Order...</div>;
   }
 
   if (error || !order) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-2xl text-center space-y-4">
-        <Package className="w-12 h-12 text-muted-foreground mx-auto" />
-        <h1 className="text-2xl font-bold font-serif">Order not found</h1>
-        <p className="text-muted-foreground">This order doesn't exist or you don't have permission to view it.</p>
-        <Button asChild variant="outline">
-          <Link href="/dashboard/customer">← Back to Dashboard</Link>
-        </Button>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center space-y-6">
+          <h1 className="font-serif text-4xl">Order Not Found</h1>
+          <p className="text-muted-foreground text-sm uppercase tracking-widest">This order doesn't exist or access is denied.</p>
+          <Link href="/dashboard/customer" className="velora-link uppercase text-xs tracking-widest inline-block mt-4">Return to Dashboard</Link>
+        </div>
       </div>
     );
   }
 
   const isCancelled = order.status === "cancelled";
-  const estDelivery = estimatedDelivery(order);
+  const estDelivery = isCancelled || order.status === "delivered" ? null : format(addDays(order.shippedAt ? new Date(order.shippedAt) : new Date(order.createdAt), order.shippedAt ? 3 : 7), "EEEE, MMMM d");
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-2xl">
-      <Link href="/dashboard/customer" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" />
-        Back to My Orders
-      </Link>
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold font-serif">Order #{order.id}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Placed on {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <StatusBadge status={order.status} />
-          <PaymentStatusBadge order={order} />
-        </div>
-      </div>
-
-      {estDelivery && (
-        <div className="border border-border bg-muted/30 px-5 py-3 mb-6 flex items-center gap-3">
-          <Clock className="w-4 h-4 text-primary shrink-0" />
-          <p className="text-sm"><span className="font-medium">Estimated delivery:</span> {estDelivery}</p>
-        </div>
-      )}
-
-      {order.trackingNote && (
-        <div className="border border-primary/20 bg-primary/5 px-5 py-3 mb-6 flex items-start gap-3">
-          <Package className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-          <p className="text-sm"><span className="font-medium">Tracking note:</span> {order.trackingNote}</p>
-        </div>
-      )}
-
-      {(order.shippingAddress || order.shippingName) && (
-        <div className="border border-border px-5 py-4 mb-6 flex items-start gap-3">
-          <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-          <div className="text-sm space-y-0.5">
-            <p className="font-medium text-foreground">Shipping Address</p>
-            {order.shippingName && <p className="text-muted-foreground">{order.shippingName}</p>}
-            {order.shippingAddress && <p className="text-muted-foreground">{order.shippingAddress}</p>}
-            {order.shippingCity && <p className="text-muted-foreground">{order.shippingCity}</p>}
-            {order.shippingPhone && <p className="text-muted-foreground">{order.shippingPhone}</p>}
-          </div>
-        </div>
-      )}
-
-      {isCancelled ? (
-        <div className="border border-destructive/30 bg-destructive/5 p-6 rounded text-center space-y-2 mb-8">
-          <p className="font-semibold text-destructive">Order Cancelled</p>
-          <p className="text-sm text-muted-foreground">This order has been cancelled. If you have questions, please contact support.</p>
-        </div>
-      ) : (
-        <div className="relative mb-10">
-          <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-border" aria-hidden="true" />
-
-          <ol className="space-y-0">
-            {STEPS.map((step, idx) => {
-              const state = stepState(step.key, order.status);
-              const ts = step.timestampField ? order[step.timestampField] : null;
-              const Icon = step.icon;
-              const isLast = idx === STEPS.length - 1;
-
-              return (
-                <li key={step.key} className={`relative flex gap-4 ${isLast ? "" : "pb-8"}`}>
-                  <div
-                    className={`relative z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                      state === "done"
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : state === "active"
-                        ? "border-primary bg-background text-primary"
-                        : "border-border bg-background text-muted-foreground"
-                    }`}
-                  >
-                    {state === "done" ? (
-                      <CheckCircle2 className="w-5 h-5" />
-                    ) : state === "active" ? (
-                      <Icon className="w-4 h-4" />
-                    ) : (
-                      <Circle className="w-4 h-4 opacity-40" />
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0 pt-1.5">
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5">
-                      <p className={`font-semibold text-sm ${state === "pending" ? "text-muted-foreground" : "text-foreground"}`}>
-                        {step.label}
-                      </p>
-                      {ts ? (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {format(new Date(ts), "MMM d, yyyy · h:mm a")}
-                        </span>
-                      ) : state === "active" ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-primary">
-                          <Clock className="w-3 h-3" /> In progress
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className={`text-xs mt-0.5 leading-relaxed ${state === "pending" ? "text-muted-foreground/60" : "text-muted-foreground"}`}>
-                      {step.description}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      )}
-
-      {/* Support shortcut */}
-      <div className="border border-border px-5 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Headphones className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-          <div>
-            <p className="text-sm font-semibold">Need help with this order?</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Our support team is ready to assist you.</p>
-          </div>
-        </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/dashboard/customer?tab=support`}>
-            Contact Support
+    <div className="bg-background min-h-screen pt-24 pb-24">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <div className="mb-16">
+          <Link href="/dashboard/customer" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3 h-3" />
+            Back to Orders
           </Link>
-        </Button>
-      </div>
-
-      <div className="border border-border">
-        <div className="px-5 py-4 border-b border-border bg-muted/30">
-          <h2 className="text-sm font-semibold uppercase tracking-wide">Order Summary</h2>
         </div>
 
-        <div className="divide-y divide-border">
-          {order.items.map((item) => (
-            <div key={item.productVariantId} className="flex items-center gap-4 px-5 py-4">
-              {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.nameEn} className="w-14 h-14 object-cover bg-muted flex-shrink-0" />
-              ) : (
-                <div className="w-14 h-14 bg-muted flex-shrink-0 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-muted-foreground" />
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20">
+          <div>
+            <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">Order #{order.id}</h1>
+            <p className="text-muted-foreground text-sm uppercase tracking-widest">
+              Placed on {format(new Date(order.createdAt), "MMMM d, yyyy")}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={order.status} />
+            <PaymentStatusBadge order={order} />
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-12 gap-16 lg:gap-24">
+          {/* Main Content - Timeline */}
+          <div className="lg:col-span-7">
+            <h2 className="font-serif text-2xl font-bold mb-10">Tracking History</h2>
+            
+            {isCancelled ? (
+              <div className="border border-border p-8 text-center space-y-2">
+                <p className="font-serif text-xl text-destructive">Order Cancelled</p>
+                <p className="text-sm text-muted-foreground tracking-wide">This order has been cancelled. Contact support for details.</p>
+              </div>
+            ) : (
+              <div className="relative pl-4">
+                <div className="absolute left-4 top-2 bottom-2 w-px bg-border -translate-x-1/2" />
+                <div className="space-y-12">
+                  {STEPS.map((step) => {
+                    const state = stepState(step.key, order.status);
+                    const ts = step.timestampField ? order[step.timestampField] : null;
+
+                    return (
+                      <div key={step.key} className={`relative flex items-start gap-8 ${state === "pending" ? "opacity-40" : "opacity-100"} transition-opacity`}>
+                        <div className="absolute left-0 -translate-x-1/2 mt-1.5 w-2 h-2 bg-background border border-foreground rounded-full flex items-center justify-center z-10">
+                           {state === "done" && <div className="w-1 h-1 bg-foreground rounded-full" />}
+                           {state === "active" && <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className={`font-serif text-xl mb-1 ${state === "active" ? "text-primary" : "text-foreground"}`}>{step.label}</p>
+                          {ts ? (
+                            <p className="text-xs text-muted-foreground uppercase tracking-widest">
+                              {format(new Date(ts), "MMM d, yyyy · h:mm a")}
+                            </p>
+                          ) : state === "active" ? (
+                            <p className="text-xs text-primary uppercase tracking-widest">
+                              In Progress
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
+            {estDelivery && (
+              <div className="mt-16 p-8 bg-muted/30 border border-border">
+                <p className="velora-label text-muted-foreground mb-2">ESTIMATED DELIVERY</p>
+                <p className="font-serif text-xl">{estDelivery}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar - Details */}
+          <div className="lg:col-span-5 space-y-12">
+            <div>
+              <h3 className="velora-label text-muted-foreground border-b border-border pb-4 mb-6">SHIPPING DETAILS</h3>
+              <div className="space-y-2 text-sm leading-relaxed">
+                <p className="font-medium">{order.shippingName}</p>
+                <p className="text-muted-foreground">{order.shippingAddress}</p>
+                <p className="text-muted-foreground">{order.shippingCity}</p>
+                <p className="text-muted-foreground">{order.shippingPhone}</p>
+              </div>
+              {order.trackingNote && (
+                <div className="mt-6 p-4 border border-border bg-muted/10 text-sm">
+                  <p className="font-medium mb-1">Tracking Note:</p>
+                  <p className="text-muted-foreground">{order.trackingNote}</p>
                 </div>
               )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.nameEn}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {[item.color, item.size].filter(Boolean).join(" · ")}
-                  {" "}× {item.quantity}
-                </p>
-              </div>
-              <p className="text-sm font-semibold flex-shrink-0">
-                {(item.price * item.quantity).toFixed(2)} EGP
-              </p>
             </div>
-          ))}
-        </div>
 
-        <div className="px-5 py-4 border-t border-border bg-muted/20 space-y-2 text-sm">
-          {order.discount > 0 && (
-            <div className="flex justify-between text-muted-foreground">
-              <span>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</span>
-              <span className="text-green-600">−{Number(order.discount).toFixed(2)} EGP</span>
+            <div>
+              <h3 className="velora-label text-muted-foreground border-b border-border pb-4 mb-6">ORDER ITEMS</h3>
+              <div className="space-y-6">
+                {order.items.map((item) => (
+                  <div key={item.productVariantId} className="flex gap-4">
+                    {item.imageUrl ? (
+                      <div className="w-16 h-20 bg-muted shrink-0">
+                        <img src={item.imageUrl} alt={item.nameEn} className="w-full h-full object-cover mix-blend-multiply" />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-20 bg-muted shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate mb-1">{item.nameEn}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                        {[item.color, item.size].filter(Boolean).join(" · ")}
+                      </p>
+                      <div className="flex items-center justify-between mt-auto">
+                        <span className="text-xs text-muted-foreground">QTY {item.quantity}</span>
+                        <span className="text-sm">{(item.price * item.quantity).toLocaleString()} EGP</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
-          <div className="flex justify-between font-bold text-base pt-1 border-t border-border">
-            <span>Total</span>
-            <span>{Number(order.totalPrice).toFixed(2)} EGP</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground capitalize">
-              {order.paymentMethod.replace(/_/g, " ")}
-            </p>
-            <PaymentStatusBadge order={order} />
+
+            <div>
+              <h3 className="velora-label text-muted-foreground border-b border-border pb-4 mb-6">SUMMARY</h3>
+              <div className="space-y-3 text-sm">
+                {order.discount > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Discount {order.couponCode ? `(${order.couponCode})` : ""}</span>
+                    <span>−{Number(order.discount).toLocaleString()} EGP</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold text-lg pt-4 border-t border-border">
+                  <span>Total</span>
+                  <span>{Number(order.totalPrice).toLocaleString()} EGP</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t border-border text-center">
+              <Link href={`/dashboard/customer?tab=support`} className="velora-link text-[10px] uppercase tracking-widest text-muted-foreground">
+                Need Help? Contact Support
+              </Link>
+            </div>
           </div>
         </div>
       </div>

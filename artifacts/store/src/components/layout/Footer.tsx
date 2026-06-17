@@ -67,7 +67,7 @@ export function Footer() {
       <div className="max-w-screen-xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10">
         {/* Brand */}
         <div className="col-span-2 lg:col-span-2">
-          <h2 className="font-serif text-3xl font-bold text-white mb-4">Velora</h2>
+          <h2 className="font-serif text-3xl font-bold text-white mb-4 tracking-[0.3em]">VELORA</h2>
           <p className="text-sm text-white/40 leading-relaxed mb-6 max-w-xs">{t("footer.tagline")}</p>
           {socials.length > 0 && (
             <div className="flex gap-2">

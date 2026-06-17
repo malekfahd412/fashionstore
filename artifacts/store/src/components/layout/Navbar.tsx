@@ -133,7 +133,7 @@ export function Navbar() {
 
           {/* Center: Logo */}
           <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-            <span className="font-serif text-2xl font-bold tracking-tight text-foreground">Velora</span>
+            <span className="font-serif text-2xl font-bold tracking-[0.4em] uppercase text-foreground">VELORA</span>
           </Link>
 
           {/* Right: actions */}
@@ -277,7 +277,7 @@ export function Navbar() {
           <div className="fixed inset-0 z-[60] bg-black/50 md:hidden" onClick={() => setMobileOpen(false)} />
           <div className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-xs z-[70] bg-background border-r border-border shadow-2xl md:hidden flex flex-col">
             <div className="h-16 px-5 border-b border-border flex items-center justify-between">
-              <span className="font-serif text-xl font-bold text-foreground">Velora</span>
+              <span className="font-serif text-xl font-bold tracking-[0.3em] text-foreground">VELORA</span>
               <button onClick={() => setMobileOpen(false)} className="w-8 h-8 flex items-center justify-center text-foreground/40 hover:text-foreground">
                 <X className="w-4 h-4" />
               </button>

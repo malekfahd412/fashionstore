@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/LanguageContext";
-import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -45,57 +45,56 @@ export default function ForgotPassword() {
 
   if (sent) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center space-y-6">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
+        <div className="w-full max-w-[400px] text-center space-y-8">
+          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-4">
+            VELORA
+          </Link>
           <div className="flex justify-center">
             <div className="w-16 h-16 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
             </div>
           </div>
           <div>
-            <h1 className="font-serif text-3xl font-bold mb-3">{t("forgot.sentTitle")}</h1>
+            <h1 className="font-serif text-3xl font-bold mb-4">{t("forgot.sentTitle")}</h1>
             <p className="text-muted-foreground leading-relaxed">
-              {t("forgot.sentDesc")} <strong>{email}</strong>. {t("forgot.sentInstructions")}
+              {t("forgot.sentDesc")} <strong className="text-foreground">{email}</strong>. {t("forgot.sentInstructions")}
             </p>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground pt-4 border-t border-border">
             {t("forgot.didntReceive")}{" "}
             <button
-              className="text-primary underline underline-offset-2 hover:text-primary/80"
+              className="velora-link text-primary"
               onClick={() => setSent(false)}
             >
               {t("forgot.tryAgain")}
             </button>
-            .
           </p>
-          <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            {t("forgot.backToLogin")}
-          </Link>
+          <div className="pt-4">
+            <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest text-[10px]">
+              <ArrowLeft className="w-3 h-3" />
+              {t("forgot.backToLogin")}
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" />
-          {t("forgot.backToLogin")}
-        </Link>
-
-        <div className="mb-8">
-          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-5">
-            <Mail className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <h1 className="font-serif text-3xl font-bold mb-2">{t("forgot.title")}</h1>
-          <p className="text-muted-foreground">{t("forgot.subtitle")}</p>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
+      <div className="w-full max-w-[400px]">
+        <div className="mb-12 text-center">
+          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-8">
+            VELORA
+          </Link>
+          <h1 className="font-serif text-3xl font-bold mb-3">{t("forgot.title")}</h1>
+          <p className="text-muted-foreground text-sm tracking-wide">{t("forgot.subtitle")}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
+            <label htmlFor="email" className="velora-label block">
               {t("forgot.emailLabel")}
             </label>
             <Input
@@ -107,7 +106,7 @@ export default function ForgotPassword() {
                 setEmail(e.target.value);
                 if (error) setError("");
               }}
-              className={error ? "border-destructive focus-visible:ring-destructive" : ""}
+              className={`rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
               disabled={loading}
               autoFocus
               autoComplete="email"
@@ -117,7 +116,7 @@ export default function ForgotPassword() {
 
           <Button
             type="submit"
-            className="w-full h-12 rounded-none uppercase tracking-widest"
+            className="velora-btn-primary w-full h-12"
             disabled={loading}
           >
             {loading ? (
@@ -131,12 +130,12 @@ export default function ForgotPassword() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          {t("forgot.remember")}{" "}
-          <Link href="/login" className="text-primary underline underline-offset-2 hover:text-primary/80">
-            {t("forgot.signIn")}
+        <div className="mt-8 pt-8 border-t border-border text-center flex flex-col gap-4">
+          <Link href="/login" className="inline-flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3 h-3" />
+            {t("forgot.backToLogin")}
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

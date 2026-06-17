@@ -1,20 +1,25 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
+import { Link } from "wouter";
 
 export default function NotFound() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const isAr = language === "ar";
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">{t("notFound.title")}</h1>
-          </div>
-          <p className="mt-4 text-sm text-gray-600">{t("notFound.desc")}</p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+      <Link href="/" className="inline-block velora-heading text-4xl hover:opacity-70 transition-opacity mb-12">
+        VELORA
+      </Link>
+      <div className="text-center space-y-6 max-w-md">
+        <h1 className="font-serif text-5xl font-bold">{isAr ? "الصفحة غير موجودة" : "404"}</h1>
+        <p className="text-muted-foreground text-sm uppercase tracking-widest leading-loose">
+          {isAr ? "عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها." : "The page you are looking for does not exist or has been moved."}
+        </p>
+        <div className="pt-8">
+          <Link href="/" className="velora-btn-outline inline-flex items-center justify-center h-12 px-8 uppercase tracking-[0.2em] text-xs">
+            {isAr ? "العودة للرئيسية" : "Return Home"}
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
