@@ -10,7 +10,7 @@ import {
 import { eq, desc, and, count, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { sendSupportReplyWhatsApp } from "../lib/whatsapp";
-import { sendSupportTicketReplyEmail, sendSupportNewTicketAdminEmail, sendSupportTicketConfirmationEmail } from "../lib/email";
+import { sendSupportTicketReplyEmail, sendSupportNewTicketAdminEmail, sendSupportTicketConfirmationEmail, sendSupportTicketStatusEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -293,6 +293,25 @@ router.patch("/admin/support/tickets/:id", requireAuth, requireRole("admin"), as
   const [ticket] = await db.update(supportTicketsTable).set(update).where(eq(supportTicketsTable.id, id)).returning();
   if (!ticket) { res.status(404).json({ error: "Ticket not found" }); return; }
   res.json(ticket);
+
+  // Email customer when status changes (non-blocking, after response is sent)
+  if (status !== undefined) {
+    void (async () => {
+      const [customer] = await db
+        .select({ email: usersTable.email, name: usersTable.name })
+        .from(usersTable)
+        .where(eq(usersTable.id, ticket.userId))
+        .limit(1);
+      if (customer?.email) {
+        await sendSupportTicketStatusEmail(
+          customer.email,
+          customer.name ?? "Valued Customer",
+          { id: ticket.id, subject: ticket.subject },
+          String(status),
+        );
+      }
+    })();
+  }
 });
 
 export default router;

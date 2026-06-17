@@ -361,6 +361,37 @@ export async function sendContactReply(to: string, name: string, replyMessage: s
   `));
 }
 
+export async function sendSupportTicketStatusEmail(
+  email: string,
+  name: string,
+  ticket: { id: number; subject: string },
+  newStatus: string,
+): Promise<void> {
+  const ticketUrl = `${APP_URL()}/dashboard/customer?tab=support&ticket=${ticket.id}`;
+  const statusLabels: Record<string, { label: string; message: string; color: string }> = {
+    in_progress:      { label: "In Progress",          message: "Our support team is actively working on your ticket.",                                                color: "#d97706" },
+    waiting_customer: { label: "Waiting for You",       message: "Our team has replied and is waiting for additional information from you. Please check your ticket.", color: "#2563eb" },
+    waiting_admin:    { label: "Under Review",          message: "We've received your reply and our team is reviewing it.",                                            color: "#7c3aed" },
+    resolved:         { label: "Resolved",              message: "Your support ticket has been marked as resolved. We hope your issue has been addressed.",             color: "#059669" },
+    closed:           { label: "Closed",                message: "Your support ticket has been closed. If you need further help, you're welcome to open a new ticket.", color: "#6b7280" },
+  };
+  const info = statusLabels[newStatus];
+  if (!info) return;
+
+  await send(email, `Ticket #${ticket.id} status update: ${info.label}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 8px">Ticket Status Update</h2>
+    <p style="color:#888;margin:0 0 24px">Ticket #${ticket.id} — ${ticket.subject}</p>
+    <p style="line-height:1.7;color:#444">Hi ${name}, there's an update on your support ticket.</p>
+    <div style="background:#f9f9f9;padding:20px;margin:20px 0;border-left:4px solid ${info.color}">
+      <p style="margin:0 0 6px;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:${info.color}">${info.label}</p>
+      <p style="margin:0;line-height:1.6;color:#444">${info.message}</p>
+    </div>
+    <div style="text-align:center">
+      <a href="${ticketUrl}" style="${btnStyle}">VIEW MY TICKET</a>
+    </div>
+  `));
+}
+
 export async function sendSupportTicketConfirmationEmail(
   email: string,
   name: string,
