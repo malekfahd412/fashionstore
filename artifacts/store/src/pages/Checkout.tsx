@@ -421,7 +421,7 @@ export default function Checkout() {
                   setCouponError("");
                 }}
                 placeholder={t("checkout.enterCoupon")}
-                className={`h-12 rounded-none border-r-0 focus-visible:ring-0 uppercase tracking-widest font-bold ${couponError ? "border-destructive" : couponApplied ? "border-emerald-500" : ""}`}
+                className={`h-12 rounded-none border-r-0 focus-visible:ring-0 uppercase tracking-widest font-bold ${couponError ? "border-destructive" : couponApplied ? "border-[#C9A227]" : ""}`}
                 disabled={processing}
               />
               <Button type="button" variant="outline" onClick={handleValidateCoupon} disabled={!couponCode.trim() || processing} className="h-12 rounded-none px-8 uppercase tracking-widest text-xs font-bold">
@@ -430,7 +430,7 @@ export default function Checkout() {
             </div>
             {couponError && <p className="text-xs font-bold uppercase tracking-widest text-destructive mt-2">{couponError}</p>}
             {couponApplied && couponData && (
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mt-2 flex items-center gap-1">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#C9A227] mt-2 flex items-center gap-1">
                 <Check className="w-3 h-3" />
                 {t("checkout.couponApplied")} {couponData.discountType === "percentage" ? `${couponData.discountValue}%` : `${couponData.discountValue} EGP`} {t("checkout.off")}
               </p>
@@ -516,7 +516,7 @@ export default function Checkout() {
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground uppercase tracking-widest font-bold text-xs">{t("common.shipping")}</span>
-                <span className="text-emerald-600 font-bold uppercase tracking-widest text-xs">{t("common.free")}</span>
+                <span className="text-[#C9A227] font-bold uppercase tracking-widest text-xs">{t("common.free")}</span>
               </div>
               <div className="flex justify-between font-bold text-xl border-t border-border pt-4 mt-4">
                 <span className="uppercase tracking-widest">{t("common.total")}</span>

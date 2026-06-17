@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, User, Search, Menu, Globe, LogOut, X, Heart, ChevronRight, ChevronDown } from "lucide-react";
+import { ShoppingBag, User, Search, Menu, LogOut, X, Heart, ChevronRight, ChevronDown, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useGetCart, getGetCartQueryKey, useListCategories } from "@workspace/api-client-react";
 import { useGuestCart } from "@/hooks/useGuestCart";
@@ -19,8 +18,6 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [showMegaMenu, setShowMegaMenu] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const megaMenuRef = useRef<HTMLDivElement>(null);
-  
   const { openCart } = useCartDrawer();
 
   const { data: cart } = useGetCart({ query: { enabled: !!user, queryKey: getGetCartQueryKey() } });
@@ -32,35 +29,28 @@ export function Navbar() {
     : guestCartCount;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    if (searchOpen) {
-      setTimeout(() => searchRef.current?.focus(), 50);
-    }
+    if (searchOpen) setTimeout(() => searchRef.current?.focus(), 50);
   }, [searchOpen]);
 
-  useEffect(() => { 
-    setMobileOpen(false); 
+  useEffect(() => {
+    setMobileOpen(false);
     setSearchOpen(false);
     setShowMegaMenu(false);
   }, [location]);
 
-  const handleLogout = () => {
-    logout();
-    setLocation("/");
-  };
+  const handleLogout = () => { logout(); setLocation("/"); };
 
   const getDashboardLink = () => {
     if (!user) return "/login";
-    switch (user.role) {
-      case "admin": return "/admin-panel";
-      case "vendor": return "/dashboard/vendor";
-      default: return "/dashboard/customer";
-    }
+    if (user.role === "admin") return "/admin-panel";
+    if (user.role === "vendor") return "/dashboard/vendor";
+    return "/dashboard/customer";
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -72,121 +62,119 @@ export function Navbar() {
     }
   };
 
-  const activeLinkClass = "text-foreground after:scale-x-100";
-  const linkClass = "relative px-2 py-1 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:scale-x-0 after:origin-left after:transition-transform hover:after:scale-x-100";
+  const isActive = (path: string) => location === path;
 
   return (
     <>
       <header
-        className={`sticky top-0 z-50 w-full transition-all duration-300 border-b border-border/50 ${
-          scrolled || showMegaMenu || searchOpen
-            ? "bg-background/95 backdrop-blur-md shadow-sm"
-            : "bg-background/80 backdrop-blur-sm"
+        className={`sticky top-0 z-50 w-full transition-all duration-500 ${
+          scrolled ? "bg-white/98 backdrop-blur-md border-b border-black/8 shadow-[0_1px_0_rgba(0,0,0,0.06)]" : "bg-white border-b border-black/6"
         }`}
         onMouseLeave={() => setShowMegaMenu(false)}
       >
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6 min-w-0">
+        <div className="max-w-screen-xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+          {/* Left: mobile hamburger + desktop nav */}
+          <div className="flex items-center gap-8 flex-1">
             <button
-              className="md:hidden flex items-center justify-center w-10 h-10 -ml-2 text-foreground"
+              className="md:hidden w-9 h-9 flex items-center justify-center text-foreground"
               onClick={() => setMobileOpen(v => !v)}
               aria-label="Toggle menu"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
 
-            <Link href="/" className="shrink-0 pt-1">
-              <span className="font-serif text-3xl font-bold tracking-tight text-primary">Velora</span>
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-6 ml-8">
-              <Link href="/" className={`${linkClass} ${location === "/" ? activeLinkClass : ""}`}>
+            <nav className="hidden md:flex items-center gap-8">
+              <Link
+                href="/"
+                className={`text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors ${isActive("/") ? "text-foreground" : "text-foreground/50 hover:text-foreground"}`}
+              >
                 {t("nav.home")}
               </Link>
-              <Link href="/products" className={`${linkClass} ${location === "/products" ? activeLinkClass : ""}`}>
+              <Link
+                href="/products"
+                className={`text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors ${isActive("/products") ? "text-foreground" : "text-foreground/50 hover:text-foreground"}`}
+              >
                 {t("nav.shop")}
               </Link>
-              <div 
-                className="h-20 flex items-center"
+              <div
+                className="h-16 flex items-center"
                 onMouseEnter={() => setShowMegaMenu(true)}
               >
-                <Link href="/categories" className={`${linkClass} flex items-center gap-1 ${location === "/categories" ? activeLinkClass : ""}`}>
+                <button className={`flex items-center gap-1 text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors ${showMegaMenu ? "text-foreground" : "text-foreground/50 hover:text-foreground"}`}>
                   {t("nav.categories")}
-                  <ChevronDown className="w-3 h-3" />
-                </Link>
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${showMegaMenu ? "rotate-180" : ""}`} />
+                </button>
               </div>
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Center: Logo */}
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+            <span className="font-serif text-2xl font-bold tracking-tight text-foreground">Velora</span>
+          </Link>
+
+          {/* Right: actions */}
+          <div className="flex items-center gap-1 flex-1 justify-end">
             <button
-              className="flex items-center justify-center w-10 h-10 text-foreground hover:bg-muted rounded-full transition-colors"
+              className="w-9 h-9 flex items-center justify-center text-foreground/60 hover:text-foreground transition-colors"
               onClick={() => setSearchOpen(v => !v)}
               aria-label={t("nav.search")}
             >
-              {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+              {searchOpen ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
             </button>
 
             <button
-              className="hidden sm:flex items-center justify-center w-10 h-10 text-foreground hover:bg-muted rounded-full transition-colors font-medium text-xs tracking-wider uppercase"
+              className="hidden sm:flex w-9 h-9 items-center justify-center text-[10px] font-bold tracking-widest text-foreground/60 hover:text-foreground transition-colors uppercase"
               onClick={() => setLanguage(language === "en" ? "ar" : "en")}
               aria-label="Switch language"
             >
-              {language === "en" ? "عربى" : "EN"}
+              {language === "en" ? "ع" : "EN"}
             </button>
 
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button aria-label="Account menu" className="hidden sm:flex items-center justify-center w-10 h-10 text-foreground hover:bg-muted rounded-full transition-colors">
-                    <User className="h-5 w-5" />
+                  <button aria-label="Account" className="hidden sm:flex w-9 h-9 items-center justify-center text-foreground/60 hover:text-foreground transition-colors">
+                    <User className="w-4 h-4" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-none border-border">
-                  <div className="px-3 py-3 border-b border-border mb-1 bg-muted/20">
+                <DropdownMenuContent align="end" className="w-56 border-black/10 shadow-xl">
+                  <div className="px-3 py-3 border-b border-black/8 mb-1">
                     <p className="font-semibold text-sm truncate">{user.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{user.email}</p>
                   </div>
-                  <DropdownMenuItem asChild className="cursor-pointer py-2.5">
+                  <DropdownMenuItem asChild className="cursor-pointer py-2.5 text-sm">
                     <Link href={getDashboardLink()}>
-                      <User className="me-2 h-4 w-4" />
-                      {t("nav.dashboard")}
+                      <User className="me-2 h-3.5 w-3.5" />{t("nav.dashboard")}
                     </Link>
                   </DropdownMenuItem>
                   {user.role === "customer" && (
-                    <DropdownMenuItem asChild className="cursor-pointer py-2.5">
+                    <DropdownMenuItem asChild className="cursor-pointer py-2.5 text-sm">
                       <Link href="/dashboard/customer?tab=wishlist">
-                        <Heart className="me-2 h-4 w-4" />
-                        {t("nav.wishlist")}
+                        <Heart className="me-2 h-3.5 w-3.5" />{t("nav.wishlist")}
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="text-destructive focus:text-destructive cursor-pointer py-2.5"
-                  >
-                    <LogOut className="me-2 h-4 w-4" />
-                    {t("btn.logout")}
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer py-2.5 text-sm">
+                    <LogOut className="me-2 h-3.5 w-3.5" />{t("btn.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden sm:flex items-center gap-4 ml-2">
-                <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors uppercase tracking-wider">
-                  {t("nav.login")}
-                </Link>
-              </div>
+              <Link href="/login" className="hidden sm:flex items-center text-[11px] font-semibold tracking-[0.12em] uppercase text-foreground/60 hover:text-foreground transition-colors px-2">
+                {t("nav.login")}
+              </Link>
             )}
 
             <button
-              className="relative flex items-center justify-center w-10 h-10 text-foreground hover:bg-muted rounded-full transition-colors ml-1"
+              className="relative w-9 h-9 flex items-center justify-center text-foreground/60 hover:text-foreground transition-colors"
               onClick={openCart}
               aria-label={t("nav.cart")}
             >
-              <ShoppingBag className="h-5 w-5" />
+              <ShoppingBag className="w-4 h-4" />
               {cartItemCount > 0 && (
-                <span className="absolute top-1.5 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground border-2 border-background">
+                <span className="absolute top-1 right-0.5 w-4 h-4 bg-foreground text-background text-[9px] font-bold flex items-center justify-center rounded-full">
                   {cartItemCount > 9 ? "9+" : cartItemCount}
                 </span>
               )}
@@ -195,69 +183,61 @@ export function Navbar() {
         </div>
 
         {/* Mega Menu */}
-        <div 
-          ref={megaMenuRef}
-          className={`absolute top-full left-0 w-full bg-background border-b border-border shadow-lg transition-all duration-300 origin-top overflow-hidden ${
-            showMegaMenu ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0 pointer-events-none h-0"
+        <div
+          className={`absolute top-full left-0 w-full bg-white border-b border-black/8 shadow-lg transition-all duration-300 origin-top ${
+            showMegaMenu ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0 pointer-events-none"
           }`}
         >
-          <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-4 gap-6">
+          <div className="max-w-screen-xl mx-auto px-6 py-10">
+            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6">
               {categories?.slice(0, 8).map(category => (
-                <Link 
-                  key={category.id} 
+                <Link
+                  key={category.id}
                   href={`/products?categoryId=${category.id}`}
-                  className="group flex items-center gap-4 p-2 hover:bg-muted/30 transition-colors"
+                  className="group"
                   onClick={() => setShowMegaMenu(false)}
                 >
-                  <div className="w-16 h-16 bg-muted shrink-0 overflow-hidden">
+                  <div className="aspect-square bg-secondary overflow-hidden mb-3">
                     {category.imageUrl ? (
-                      <img src={category.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <img src={category.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted/50" />
+                      <div className="w-full h-full bg-secondary" />
                     )}
                   </div>
-                  <div>
-                    <h4 className="font-medium group-hover:text-primary transition-colors">
-                      {language === "en" ? category.nameEn : (category.nameAr || category.nameEn)}
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider flex items-center group-hover:text-foreground">
-                      Shop <ChevronRight className="w-3 h-3 ml-0.5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                    </p>
-                  </div>
+                  <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-foreground/60 group-hover:text-foreground transition-colors text-center">
+                    {language === "en" ? category.nameEn : (category.nameAr || category.nameEn)}
+                  </p>
                 </Link>
               ))}
             </div>
-            <div className="mt-8 pt-4 border-t border-border flex justify-center">
-              <Button variant="link" asChild className="uppercase tracking-widest text-xs font-semibold text-primary">
-                <Link href="/categories" onClick={() => setShowMegaMenu(false)}>
-                  View All Categories →
-                </Link>
-              </Button>
+            <div className="mt-8 pt-6 border-t border-black/6 text-center">
+              <Link
+                href="/categories"
+                onClick={() => setShowMegaMenu(false)}
+                className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/50 hover:text-foreground transition-colors"
+              >
+                View All Categories →
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Search bar */}
-        <div
-          className={`overflow-hidden transition-all duration-300 bg-background ${
-            searchOpen ? "max-h-20 border-t border-border/50 shadow-md" : "max-h-0"
-          }`}
-        >
-          <form onSubmit={handleSearch} className="container mx-auto px-4 py-4">
-            <div className="relative max-w-3xl mx-auto">
-              <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+        {/* Search overlay */}
+        <div className={`overflow-hidden transition-all duration-300 bg-white ${searchOpen ? "max-h-24 border-t border-black/6" : "max-h-0"}`}>
+          <form onSubmit={handleSearch} className="max-w-screen-xl mx-auto px-6 py-5">
+            <div className="relative max-w-2xl mx-auto">
+              <Search className="absolute start-0 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
               <input
                 ref={searchRef}
                 type="search"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t("nav.searchPlaceholder")}
-                className="w-full bg-muted/50 border-0 rounded-none py-3.5 ps-12 pe-24 text-base focus:outline-none focus:ring-1 focus:ring-primary focus:bg-background transition-colors"
+                className="w-full bg-transparent border-0 border-b border-black/15 py-2 ps-8 pe-24 text-sm focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30"
               />
               <button
                 type="submit"
-                className="absolute end-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 hover:bg-primary/90 transition-colors uppercase tracking-wider"
+                className="absolute end-0 top-1/2 -translate-y-1/2 text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/50 hover:text-foreground transition-colors"
               >
                 {t("nav.searchBtn")}
               </button>
@@ -269,99 +249,70 @@ export function Navbar() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <>
-          <div
-            className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm md:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="fixed top-0 left-0 bottom-0 w-4/5 max-w-sm z-[70] bg-background border-r border-border shadow-2xl md:hidden flex flex-col animate-in slide-in-from-left duration-300">
-            <div className="p-5 border-b border-border flex items-center justify-between">
-              <span className="font-serif text-2xl font-bold tracking-tight text-primary">Velora</span>
-              <button onClick={() => setMobileOpen(false)} className="p-2 text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
+          <div className="fixed inset-0 z-[60] bg-black/50 md:hidden" onClick={() => setMobileOpen(false)} />
+          <div className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-xs z-[70] bg-white border-r border-black/8 shadow-2xl md:hidden flex flex-col">
+            <div className="h-16 px-5 border-b border-black/8 flex items-center justify-between">
+              <span className="font-serif text-xl font-bold text-foreground">Velora</span>
+              <button onClick={() => setMobileOpen(false)} className="w-8 h-8 flex items-center justify-center text-foreground/40 hover:text-foreground">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto">
-              <nav className="p-4 space-y-1">
+
+            <div className="flex-1 overflow-y-auto py-4">
+              {[
+                { href: "/", label: t("nav.home") },
+                { href: "/products", label: t("nav.shop") },
+                { href: "/categories", label: t("nav.categories") },
+              ].map(({ href, label }) => (
                 <Link
-                  href="/"
-                  className="flex items-center justify-between p-4 text-base font-medium hover:bg-muted transition-colors"
-                  onClick={() => setMobileOpen(false)}
+                  key={href}
+                  href={href}
+                  className="flex items-center justify-between px-5 py-4 text-[11px] font-semibold tracking-[0.14em] uppercase text-foreground/70 hover:text-foreground hover:bg-secondary transition-colors"
                 >
-                  {t("nav.home")}
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  {label}
+                  <ChevronRight className="w-3.5 h-3.5 text-foreground/30" />
                 </Link>
+              ))}
+
+              {categories?.slice(0, 6).map(cat => (
                 <Link
-                  href="/products"
-                  className="flex items-center justify-between p-4 text-base font-medium hover:bg-muted transition-colors"
-                  onClick={() => setMobileOpen(false)}
+                  key={cat.id}
+                  href={`/products?categoryId=${cat.id}`}
+                  className="flex items-center justify-between px-8 py-3 text-[10px] font-medium tracking-[0.12em] uppercase text-foreground/50 hover:text-foreground transition-colors"
                 >
-                  {t("nav.shop")}
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  {language === "en" ? cat.nameEn : (cat.nameAr || cat.nameEn)}
                 </Link>
-                <Link
-                  href="/categories"
-                  className="flex items-center justify-between p-4 text-base font-medium hover:bg-muted transition-colors"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {t("nav.categories")}
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </Link>
-              </nav>
+              ))}
             </div>
 
-            <div className="p-4 border-t border-border bg-muted/10 space-y-4">
-              <div className="flex items-center justify-between px-2">
-                <span className="text-sm font-medium">Language</span>
-                <button
-                  className="flex items-center gap-2 text-sm font-bold text-primary tracking-wider uppercase"
-                  onClick={() => { setLanguage(language === "en" ? "ar" : "en"); setMobileOpen(false); }}
-                >
-                  <Globe className="w-4 h-4" />
-                  {language === "en" ? "عربى" : "English"}
-                </button>
-              </div>
-
-              <div className="border-t border-border/50 pt-4 space-y-2">
-                {user ? (
-                  <>
-                    <p className="text-xs text-muted-foreground px-2 mb-3">
-                      {t("nav.signedInAs")} <span className="font-semibold text-foreground">{user.name}</span>
-                    </p>
-                    <Button variant="outline" className="w-full justify-start h-12 rounded-none" asChild>
-                      <Link href={getDashboardLink()} onClick={() => setMobileOpen(false)}>
-                        <User className="me-3 h-4 w-4" />
-                        {t("nav.dashboard")}
-                      </Link>
-                    </Button>
-                    {user.role === "customer" && (
-                      <Button variant="outline" className="w-full justify-start h-12 rounded-none" asChild>
-                        <Link href="/dashboard/customer?tab=wishlist" onClick={() => setMobileOpen(false)}>
-                          <Heart className="me-3 h-4 w-4" />
-                          {t("nav.wishlist")}
-                        </Link>
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start h-12 rounded-none text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="me-3 h-4 w-4" />
-                      {t("btn.logout")}
-                    </Button>
-                  </>
-                ) : (
-                  <div className="flex gap-3 pt-2">
-                    <Button variant="outline" className="flex-1 rounded-none h-12 uppercase tracking-widest text-xs" asChild>
-                      <Link href="/login" onClick={() => setMobileOpen(false)}>{t("nav.login")}</Link>
-                    </Button>
-                    <Button className="flex-1 rounded-none h-12 uppercase tracking-widest text-xs" asChild>
-                      <Link href="/register" onClick={() => setMobileOpen(false)}>{t("nav.register")}</Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
+            <div className="border-t border-black/8 p-5 space-y-3">
+              <button
+                className="flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/50 hover:text-foreground transition-colors"
+                onClick={() => { setLanguage(language === "en" ? "ar" : "en"); setMobileOpen(false); }}
+              >
+                <Globe className="w-3.5 h-3.5" />
+                {language === "en" ? "عربى" : "English"}
+              </button>
+              {user ? (
+                <div className="space-y-2 pt-2 border-t border-black/6">
+                  <p className="text-[10px] tracking-wide text-foreground/40">Signed in as <span className="font-semibold text-foreground">{user.name}</span></p>
+                  <Link href={getDashboardLink()} className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-foreground/70 hover:text-foreground py-2 transition-colors" onClick={() => setMobileOpen(false)}>
+                    <User className="w-3.5 h-3.5" /> {t("nav.dashboard")}
+                  </Link>
+                  <button onClick={handleLogout} className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-destructive/70 hover:text-destructive transition-colors py-2">
+                    <LogOut className="w-3.5 h-3.5" /> {t("btn.logout")}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2 pt-2 border-t border-black/6">
+                  <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 h-10 border border-foreground flex items-center justify-center text-[10px] font-bold tracking-[0.15em] uppercase hover:bg-foreground hover:text-background transition-colors">
+                    {t("nav.login")}
+                  </Link>
+                  <Link href="/register" onClick={() => setMobileOpen(false)} className="flex-1 h-10 bg-foreground text-background flex items-center justify-center text-[10px] font-bold tracking-[0.15em] uppercase hover:bg-foreground/80 transition-colors">
+                    {t("nav.register")}
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </>

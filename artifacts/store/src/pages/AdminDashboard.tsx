@@ -859,7 +859,7 @@ function AdminReviewsTab() {
                     <td className="px-4 py-3 text-xs text-muted-foreground max-w-[200px] truncate">{r.comment ?? "—"}</td>
                     <td className="px-4 py-3">
                       {r.verifiedPurchase ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <CheckCircle2 className="w-4 h-4 text-[#C9A227]" />
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
                       )}

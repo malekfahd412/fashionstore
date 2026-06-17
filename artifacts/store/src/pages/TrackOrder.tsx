@@ -77,7 +77,7 @@ function StatusBadge({ status }: { status: string }) {
     packed: "bg-teal-50 text-teal-700 border-teal-200",
     shipped: "bg-purple-50 text-purple-700 border-purple-200",
     out_for_delivery: "bg-orange-50 text-orange-700 border-orange-200",
-    delivered: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    delivered: "bg-[#C9A227]/8 text-[#9a7a1a] border-[#C9A227]/20",
     cancelled: "bg-red-50 text-red-700 border-red-200",
   };
   return (

@@ -57,20 +57,56 @@ export function Footer() {
   const socials = [
     { label: "IG", href: settings.social_instagram },
     { label: "FB", href: settings.social_facebook },
-    { label: "TW", href: settings.social_twitter },
-    { label: "TK", href: settings.social_tiktok },
+    { label: "X",  href: settings.social_twitter  },
+    { label: "TK", href: settings.social_tiktok   },
   ].filter(s => s.href);
 
   return (
-    <footer className="bg-foreground text-background py-12 mt-auto">
-      <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-2">
-          <h3 className="font-serif text-2xl font-bold mb-4">Velora</h3>
-          <p className="text-background/70 text-sm mb-4">{t("footer.tagline")}</p>
+    <footer className="bg-[#111111] text-white/70 mt-auto">
+      {/* Newsletter strip */}
+      <div className="border-b border-white/8">
+        <div className="max-w-screen-xl mx-auto px-6 py-12 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+          <div>
+            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-white/40 mb-2">{t("footer.newsletter")}</p>
+            <h3 className="font-serif text-2xl md:text-3xl font-bold text-white">{t("home.joinCommunity")}</h3>
+            <p className="text-sm text-white/50 mt-2 max-w-sm">{t("footer.newsletterDesc")}</p>
+          </div>
+          <form onSubmit={handleSubscribe} className="flex gap-0 max-w-sm w-full md:w-auto">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder={t("footer.emailPlaceholder")}
+              required
+              className="flex-1 bg-white/8 border border-white/15 border-r-0 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-white/40 transition-colors min-w-0"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-white text-[#111111] px-6 py-3 text-[10px] font-bold tracking-[0.18em] uppercase hover:bg-white/90 transition-colors disabled:opacity-60 shrink-0 whitespace-nowrap"
+            >
+              {loading ? "..." : t("footer.subscribe")}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Main columns */}
+      <div className="max-w-screen-xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10">
+        {/* Brand */}
+        <div className="col-span-2 lg:col-span-2">
+          <h2 className="font-serif text-3xl font-bold text-white mb-4">Velora</h2>
+          <p className="text-sm text-white/40 leading-relaxed mb-6 max-w-xs">{t("footer.tagline")}</p>
           {socials.length > 0 && (
-            <div className="flex gap-3">
-              {socials.map((s) => (
-                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="w-8 h-8 border border-background/30 flex items-center justify-center hover:bg-background/10 transition-colors text-xs font-medium text-background/70 hover:text-white">
+            <div className="flex gap-2">
+              {socials.map(s => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 border border-white/15 flex items-center justify-center text-[10px] font-bold text-white/40 hover:text-white hover:border-white/40 transition-colors"
+                >
                   {s.label}
                 </a>
               ))}
@@ -78,60 +114,64 @@ export function Footer() {
           )}
         </div>
 
+        {/* Shop */}
         <div>
-          <h4 className="font-bold mb-4 uppercase tracking-wider text-sm">{t("footer.shop")}</h4>
-          <ul className="space-y-2 text-sm text-background/70">
-            <li><Link href="/products" className="hover:text-white transition-colors">{t("footer.allProducts")}</Link></li>
-            <li><Link href="/categories" className="hover:text-white transition-colors">{t("footer.categories")}</Link></li>
-            <li><Link href="/products?featured=true" className="hover:text-white transition-colors">{t("footer.featured")}</Link></li>
-            <li><Link href="/about" className="hover:text-white transition-colors">{t("footer.about")}</Link></li>
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-white mb-5">{t("footer.shop")}</p>
+          <ul className="space-y-3">
+            {[
+              { to: "/products", label: t("footer.allProducts") },
+              { to: "/categories", label: t("footer.categories") },
+              { to: "/products?featured=true", label: t("footer.featured") },
+              { to: "/about", label: t("footer.about") },
+            ].map(({ to, label }) => (
+              <li key={to}>
+                <Link href={to} className="text-sm text-white/40 hover:text-white transition-colors">{label}</Link>
+              </li>
+            ))}
           </ul>
         </div>
 
+        {/* Support */}
         <div>
-          <h4 className="font-bold mb-4 uppercase tracking-wider text-sm">{t("footer.support")}</h4>
-          <ul className="space-y-2 text-sm text-background/70">
-            <li><Link href="/contact" className="hover:text-white transition-colors">{t("footer.contactUs")}</Link></li>
-            <li><Link href="/faq" className="hover:text-white transition-colors">{t("footer.faq")}</Link></li>
-            <li><Link href="/returns" className="hover:text-white transition-colors">{t("footer.returns")}</Link></li>
-            <li><Link href="/shipping-policy" className="hover:text-white transition-colors">{t("footer.shippingPolicy")}</Link></li>
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-white mb-5">{t("footer.support")}</p>
+          <ul className="space-y-3">
+            {[
+              { to: "/contact", label: t("footer.contactUs") },
+              { to: "/faq", label: t("footer.faq") },
+              { to: "/returns", label: t("footer.returns") },
+              { to: "/shipping-policy", label: t("footer.shippingPolicy") },
+            ].map(({ to, label }) => (
+              <li key={to}>
+                <Link href={to} className="text-sm text-white/40 hover:text-white transition-colors">{label}</Link>
+              </li>
+            ))}
           </ul>
         </div>
 
+        {/* Legal */}
         <div>
-          <h4 className="font-bold mb-4 uppercase tracking-wider text-sm">{t("footer.legal")}</h4>
-          <ul className="space-y-2 text-sm text-background/70 mb-6">
-            <li><Link href="/privacy-policy" className="hover:text-white transition-colors">{t("footer.privacyPolicy")}</Link></li>
-            <li><Link href="/terms" className="hover:text-white transition-colors">{t("footer.terms")}</Link></li>
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-white mb-5">{t("footer.legal")}</p>
+          <ul className="space-y-3">
+            {[
+              { to: "/privacy-policy", label: t("footer.privacyPolicy") },
+              { to: "/terms", label: t("footer.terms") },
+            ].map(({ to, label }) => (
+              <li key={to}>
+                <Link href={to} className="text-sm text-white/40 hover:text-white transition-colors">{label}</Link>
+              </li>
+            ))}
           </ul>
-
-          <h4 className="font-bold mb-3 uppercase tracking-wider text-sm">{t("footer.newsletter")}</h4>
-          <p className="text-background/70 text-xs mb-3">{t("footer.newsletterDesc")}</p>
-          <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t("footer.emailPlaceholder")}
-              required
-              className="bg-background/10 border border-background/20 text-white placeholder:text-background/50 px-3 py-2 text-sm w-full focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
-            >
-              {loading ? t("footer.subscribing") : t("footer.subscribe")}
-            </button>
-          </form>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 mt-10 pt-8 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-background/50">
-        <p>&copy; {new Date().getFullYear()} Velora. {t("footer.allRightsReserved")}</p>
-        <div className="flex gap-4">
-          <Link href="/privacy-policy" className="hover:text-background/80 transition-colors">{t("footer.privacy")}</Link>
-          <Link href="/terms" className="hover:text-background/80 transition-colors">{t("footer.termsShort")}</Link>
+      {/* Bottom bar */}
+      <div className="border-t border-white/8">
+        <div className="max-w-screen-xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[11px] text-white/25">&copy; {new Date().getFullYear()} Velora. {t("footer.allRightsReserved")}</p>
+          <div className="flex gap-6">
+            <Link href="/privacy-policy" className="text-[11px] text-white/25 hover:text-white/60 transition-colors">{t("footer.privacy")}</Link>
+            <Link href="/terms" className="text-[11px] text-white/25 hover:text-white/60 transition-colors">{t("footer.termsShort")}</Link>
+          </div>
         </div>
       </div>
     </footer>

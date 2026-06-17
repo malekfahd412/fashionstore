@@ -74,7 +74,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }: {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-sm">{review.userName ?? t("product.anonymous")}</span>
             {review.verifiedPurchase && (
-              <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <span className="flex items-center gap-1 text-xs text-[#9a7a1a] bg-[#C9A227]/8 px-2 py-0.5">
                 <CheckCircle2 className="w-3 h-3" /> {t("reviews.verifiedPurchase")}
               </span>
             )}
@@ -637,11 +637,11 @@ export default function ProductDetails() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="flex-1 h-14 text-sm rounded-none uppercase tracking-widest border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+                    className="flex-1 h-14 text-sm rounded-none uppercase tracking-widest border-[#C9A227] text-[#C9A227] hover:bg-[#C9A227]/5"
                     onClick={() => unsubscribeMutation.mutate()}
                     disabled={unsubscribeMutation.isPending}
                   >
-                    <Bell className="w-4 h-4 mr-2 fill-emerald-600" />
+                    <Bell className="w-4 h-4 mr-2 fill-[#C9A227]" />
                     {unsubscribeMutation.isPending ? "..." : "Notified ✓"}
                   </Button>
                 ) : (

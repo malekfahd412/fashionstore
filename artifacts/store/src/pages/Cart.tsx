@@ -203,7 +203,7 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("common.shipping")}</span>
-                  <span className="text-emerald-600 font-bold uppercase tracking-widest">{t("common.free")}</span>
+                  <span className="text-[#C9A227] font-bold uppercase tracking-widest">{t("common.free")}</span>
                 </div>
               </div>
 
@@ -341,9 +341,9 @@ export default function Cart() {
                 <Tag className="h-4 w-4 text-muted-foreground" /> {t("cart.haveCoupon")}
               </p>
               {coupon ? (
-                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 px-4 py-3">
-                  <span className="text-sm font-bold text-emerald-800 uppercase tracking-widest">{coupon.code} {t("cart.applied")}</span>
-                  <button onClick={handleRemoveCoupon} className="text-emerald-600 hover:text-emerald-900 transition-colors">
+                <div className="flex items-center justify-between bg-[#C9A227]/8 border border-[#C9A227]/25 px-4 py-3">
+                  <span className="text-sm font-bold text-[#9a7a1a] uppercase tracking-widest">{coupon.code} {t("cart.applied")}</span>
+                  <button onClick={handleRemoveCoupon} className="text-[#C9A227] hover:text-[#9a7a1a] transition-colors">
                     <X className="h-5 w-5" />
                   </button>
                 </div>
@@ -378,7 +378,7 @@ export default function Cart() {
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t("common.shipping")}</span>
-                <span className="text-emerald-600 font-bold uppercase tracking-widest">{t("common.free")}</span>
+                <span className="text-[#C9A227] font-bold uppercase tracking-widest">{t("common.free")}</span>
               </div>
             </div>
 

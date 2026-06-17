@@ -1,365 +1,347 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useListBanners, useGetFeaturedProducts, useGetNewArrivals, useListCategories, useGetBestSellers } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSEO } from "@/hooks/useSEO";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Truck, RotateCcw, ShieldCheck, CreditCard, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronDown } from "lucide-react";
+import ProductCard, { ProductCardSkeleton } from "@/components/ProductCard";
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} className={`w-4 h-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
-      ))}
-    </div>
-  );
-}
-
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 type FaqItem = { id: number; questionEn: string; questionAr: string; answerEn: string; answerAr: string };
+
+function SectionLabel({ children, light }: { children: React.ReactNode; light?: boolean }) {
+  return <p className={`text-[10px] font-bold tracking-[0.25em] uppercase mb-4 ${light ? "text-white/35" : "text-foreground/38"}`}>{children}</p>;
+}
 
 export default function Home() {
   const { language, t } = useLanguage();
-  useSEO({ title: "Fashion for the Modern World", description: "Discover curated fashion collections at Velora. Shop new arrivals, featured pieces, and exclusive styles." });
-  const { data: banners } = useListBanners();
-  const { data: featured } = useGetFeaturedProducts();
-  const { data: newArrivals } = useGetNewArrivals();
-  const { data: bestSellers } = useGetBestSellers({ query: { queryKey: [] } });
+  useSEO({ title: "Home", description: "Discover curated fashion collections at Velora." });
+
+  const { data: bannersRaw } = useListBanners();
+  const { data: featured, isLoading: featuredLoading } = useGetFeaturedProducts();
+  const { data: newArrivals, isLoading: newLoading } = useGetNewArrivals();
+  const { data: bestSellers, isLoading: bestLoading } = useGetBestSellers({ query: { queryKey: [] } });
   const { data: categories } = useListCategories();
   const { data: faqs = [] } = useQuery<FaqItem[]>({
-    queryKey: ["faqs-public", "all"],
-    queryFn: () => fetch("/api/faq").then(r => r.json()) as Promise<FaqItem[]>,
-    staleTime: 5 * 60_000,
+    queryKey: ["faqs"],
+    queryFn: () => fetch(`${BASE}/api/faq`).then(r => r.json()) as Promise<FaqItem[]>,
+    staleTime: 300_000,
   });
 
-  const activeBanners = banners?.filter(b => b.active).sort((a, b) => a.sortOrder - b.sortOrder) || [];
-  const [bannerIdx, setBannerIdx] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (activeBanners.length <= 1) return;
-    const timer = setInterval(() => setBannerIdx(i => (i + 1) % activeBanners.length), 5000);
-    return () => clearInterval(timer);
-  }, [activeBanners.length]);
-
-  const currentBanner = activeBanners[bannerIdx];
-
-  const TRUST_ITEMS = [
-    { icon: Truck, title: t("home.trust.freeShipping"), subtitle: t("home.trust.freeShippingDesc") },
-    { icon: RotateCcw, title: t("home.trust.easyReturns"), subtitle: t("home.trust.easyReturnsDesc") },
-    { icon: ShieldCheck, title: t("home.trust.securePayment"), subtitle: t("home.trust.securePaymentDesc") },
-    { icon: CreditCard, title: t("home.trust.multiplePayment"), subtitle: t("home.trust.multiplePaymentDesc") },
-  ];
-
+  const banners = (bannersRaw ?? []).filter(b => b.active);
+  const hero = banners[0];
 
   return (
-    <div className="flex flex-col gap-16 pb-24">
-      {/* ── Hero Section ───────────────────────────────────────────────── */}
-      <section className="relative h-[85vh] w-full bg-secondary overflow-hidden">
-        {currentBanner ? (
-          <div className="absolute inset-0">
-            <img
-              src={currentBanner.imageUrl}
-              alt={language === "en" ? currentBanner.titleEn : currentBanner.titleAr}
-              className="w-full h-full object-cover transition-opacity duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4">
-              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-4 opacity-80">{t("home.newCollection")}</p>
-              <h1 className="font-serif text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg leading-tight">
-                {language === "en" ? currentBanner.titleEn : currentBanner.titleAr}
-              </h1>
-              <p className="text-lg md:text-2xl mb-10 font-light drop-shadow-md max-w-2xl opacity-90">
-                {language === "en" ? currentBanner.subtitleEn : currentBanner.subtitleAr}
-              </p>
-              {currentBanner.linkUrl && (
-                <Button size="lg" className="bg-white text-black hover:bg-white/90 rounded-none px-10 py-6 text-base font-semibold tracking-widest uppercase" asChild>
-                  <Link href={currentBanner.linkUrl}>{t("home.shopNow")}</Link>
-                </Button>
-              )}
-            </div>
-            {activeBanners.length > 1 && (
-              <>
-                <button onClick={() => setBannerIdx(i => (i - 1 + activeBanners.length) % activeBanners.length)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition-colors">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button onClick={() => setBannerIdx(i => (i + 1) % activeBanners.length)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition-colors">
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                  {activeBanners.map((_, i) => (
-                    <button key={i} onClick={() => setBannerIdx(i)}
-                      className={`w-2 h-2 rounded-full transition-all ${i === bannerIdx ? "bg-white w-6" : "bg-white/50"}`} />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+    <div className="bg-white">
+
+      {/* ── HERO ──────────────────────────────────────────── */}
+      <section className="relative h-[90dvh] min-h-[540px] max-h-[900px] overflow-hidden bg-[#111111]">
+        {hero?.imageUrl ? (
+          <img
+            src={hero.imageUrl}
+            alt={language === "en" ? hero.titleEn : (hero.titleAr ?? hero.titleEn)}
+            className="absolute inset-0 w-full h-full object-cover opacity-72"
+            loading="eager"
+          />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center p-4">
-              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-6 text-primary/60">{t("home.newCollection")}</p>
-              <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 text-primary">Velora</h1>
-              <p className="text-lg text-primary/70 mb-10 max-w-md mx-auto">{t("home.curatedFashion")}</p>
-              <Button size="lg" className="rounded-none px-10 py-6 text-base font-semibold tracking-widest uppercase" asChild>
-                <Link href="/products">{t("home.exploreCollection")}</Link>
-              </Button>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] via-[#232323] to-[#111111]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-black/0" />
+
+        <div className="absolute inset-0 flex flex-col items-start justify-end px-8 md:px-16 pb-16 md:pb-24 max-w-screen-xl mx-auto left-0 right-0">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-white/45 mb-4">
+              {t("home.newCollection")}
+            </p>
+            <h1 className="font-serif text-5xl md:text-7xl lg:text-[5.5rem] font-bold text-white leading-[0.9] mb-6">
+              {hero
+                ? (language === "en" ? hero.titleEn : (hero.titleAr ?? hero.titleEn))
+                : t("home.heroTitle")}
+            </h1>
+            {hero && (hero.subtitleEn || hero.subtitleAr) && (
+              <p className="text-base text-white/55 mb-10 max-w-sm leading-relaxed">
+                {language === "en" ? (hero.subtitleEn ?? "") : (hero.subtitleAr ?? hero.subtitleEn ?? "")}
+              </p>
+            )}
+            <div className="flex items-center gap-6 flex-wrap">
+              <Link
+                href={hero?.linkUrl ?? "/products"}
+                className="inline-flex items-center gap-2.5 bg-white text-[#111111] px-8 py-4 text-[10px] font-bold tracking-[0.22em] uppercase hover:bg-white/88 transition-colors"
+              >
+                {t("home.shopNow")}
+                <ChevronRight className="w-3 h-3" />
+              </Link>
+              <Link
+                href="/categories"
+                className="text-[10px] font-bold tracking-[0.22em] uppercase text-white/55 hover:text-white transition-colors border-b border-white/25 pb-0.5"
+              >
+                {t("home.exploreCategories")}
+              </Link>
             </div>
+          </div>
+        </div>
+
+        {banners.length > 1 && (
+          <div className="absolute bottom-8 right-8 flex gap-1.5">
+            {banners.map((_, i) => (
+              <div key={i} className={`h-[2px] transition-all duration-300 ${i === 0 ? "w-6 bg-white" : "w-2 bg-white/28"}`} />
+            ))}
           </div>
         )}
       </section>
 
-      {/* ── Trust Indicators ────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {TRUST_ITEMS.map(({ icon: Icon, title, subtitle }) => (
-            <div key={title} className="flex flex-col items-center text-center p-5 border border-border hover:border-primary/30 transition-colors">
-              <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center mb-3">
-                <Icon className="w-6 h-6 text-primary" />
-              </div>
-              <p className="font-semibold text-sm">{title}</p>
-              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+      {/* ── TRUST BAR ─────────────────────────────────────── */}
+      <section className="border-y border-black/6 bg-[#F5F5F5]">
+        <div className="max-w-screen-xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 divide-x divide-black/6">
+          {[t("home.trust1"), t("home.trust2"), t("home.trust3"), t("home.trust4")].map((text, i) => (
+            <div key={i} className="text-center py-4 px-4">
+              <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-foreground/42">{text}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Shop by Category ────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">{t("home.browse")}</p>
-            <h2 className="font-serif text-3xl font-bold">{t("home.shopByCategory")}</h2>
-          </div>
-          <Link href="/categories" className="text-sm font-medium underline underline-offset-4 hover:text-primary">
-            {t("home.viewAll")}
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-          {categories?.slice(0, 4).map(category => (
-            <Link key={category.id} href={`/products?categoryId=${category.id}`} className="group block">
-              <div className="aspect-[3/4] overflow-hidden bg-muted mb-4 relative">
-                {category.imageUrl ? (
-                  <img src={category.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">{t("product.noImage")}</div>
-                )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </div>
-              <h3 className="text-base font-medium text-center uppercase tracking-wider group-hover:text-primary transition-colors">
-                {language === "en" ? category.nameEn : category.nameAr}
-              </h3>
+      {/* ── CATEGORIES GRID ───────────────────────────────── */}
+      {(categories ?? []).length > 0 && (
+        <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <SectionLabel>{t("home.shopBy")}</SectionLabel>
+              <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold">{t("home.categories")}</h2>
+            </div>
+            <Link href="/categories" className="hidden md:flex items-center gap-1 text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/38 hover:text-foreground transition-colors">
+              {t("home.viewAll")} <ChevronRight className="w-3 h-3" />
             </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ── New Arrivals ─────────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">{t("home.freshIn")}</p>
-            <h2 className="font-serif text-3xl font-bold">{t("home.newArrivals")}</h2>
           </div>
-          <Link href="/products?sort=newest" className="text-sm font-medium underline underline-offset-4 hover:text-primary">
-            {t("home.viewAll")}
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8">
-          {newArrivals?.slice(0, 8).map(product => (
-            <Link key={product.id} href={`/products/${product.id}`} className="group">
-              <div className="aspect-[3/4] overflow-hidden bg-muted mb-4 relative">
-                {product.images?.[0] ? (
-                  <img src={product.images[0].imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : null}
-                {product.salePrice && (
-                  <div className="absolute top-2 left-2 bg-destructive text-white text-xs px-2 py-1 font-bold">{t("home.saleBadge")}</div>
-                )}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3">
-                  <p className="text-white text-xs font-medium text-center uppercase tracking-wide">{t("home.quickView")}</p>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
-                  {language === "en" ? product.nameEn : product.nameAr}
-                </h3>
-                <div className="flex items-center gap-2 text-sm">
-                  {product.salePrice ? (
-                    <>
-                      <span className="font-bold text-destructive">{Number(product.salePrice).toLocaleString()} EGP</span>
-                      <span className="line-through text-muted-foreground">{Number(product.price).toLocaleString()} EGP</span>
-                    </>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {(categories ?? []).slice(0, 8).map((cat, i) => (
+              <Link key={cat.id} href={`/products?categoryId=${cat.id}`} className="group relative overflow-hidden bg-[#F5F5F5]">
+                <div className={`${i === 0 ? "aspect-[3/5]" : "aspect-[3/4]"} overflow-hidden`}>
+                  {cat.imageUrl ? (
+                    <img
+                      src={cat.imageUrl}
+                      alt={language === "en" ? cat.nameEn : (cat.nameAr ?? cat.nameEn)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      loading="lazy"
+                    />
                   ) : (
-                    <span className="font-bold">{Number(product.price).toLocaleString()} EGP</span>
+                    <div className="w-full h-full bg-[#E8E8E8]" />
                   )}
                 </div>
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 flex items-end p-5">
+                  <div>
+                    <p className="text-white font-serif text-xl font-bold leading-tight">
+                      {language === "en" ? cat.nameEn : (cat.nameAr ?? cat.nameEn)}
+                    </p>
+                    <p className="text-white/55 text-[10px] tracking-[0.2em] uppercase font-semibold mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {t("home.shopNow")} →
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-6 text-center md:hidden">
+            <Link href="/categories" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/38 hover:text-foreground transition-colors border-b border-current pb-0.5">
+              {t("home.viewAll")}
             </Link>
-          ))}
-        </div>
-        <div className="mt-12 text-center">
-          <Button variant="outline" className="rounded-none border-primary text-primary px-10 py-5 uppercase tracking-widest text-sm font-semibold" asChild>
-            <Link href="/products">{t("home.viewAllProducts")}</Link>
-          </Button>
+          </div>
+        </section>
+      )}
+
+      {/* ── NEW ARRIVALS ──────────────────────────────────── */}
+      <section className="py-20 md:py-28 bg-[#F9F9F9]">
+        <div className="max-w-screen-xl mx-auto px-6">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <SectionLabel>{t("home.justIn")}</SectionLabel>
+              <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold">{t("home.newArrivals")}</h2>
+            </div>
+            <Link href="/products?sortBy=newest" className="hidden md:flex items-center gap-1 text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/38 hover:text-foreground transition-colors">
+              {t("home.viewAll")} <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-10">
+            {newLoading
+              ? Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
+              : (newArrivals ?? []).slice(0, 8).map(p => (
+                  <ProductCard key={p.id} id={p.id} nameEn={p.nameEn} nameAr={p.nameAr} price={p.price} salePrice={p.salePrice} imageUrl={p.images?.[0]?.imageUrl} variants={p.variants} averageRating={p.averageRating} reviewCount={p.reviewCount} />
+                ))
+            }
+          </div>
+          <div className="mt-12 text-center">
+            <Link href="/products?sortBy=newest" className="inline-flex items-center gap-2 border border-foreground/25 px-10 py-4 text-[10px] font-bold tracking-[0.22em] uppercase hover:bg-foreground hover:text-background hover:border-foreground transition-colors">
+              {t("home.viewAllNew")}
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* ── Best Sellers ──────────────────────────────────────────────────── */}
-      {(bestSellers?.length ?? 0) > 0 && (
-        <section className="bg-secondary/50 py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-10">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{t("home.mostLoved")}</p>
-              <h2 className="font-serif text-3xl font-bold">{t("home.bestSellers")}</h2>
+      {/* ── EDITORIAL SPLIT (banner 2) ────────────────────── */}
+      {banners[1] && (
+        <section className="grid md:grid-cols-2 min-h-[480px]">
+          <div className="relative overflow-hidden bg-[#111111] min-h-[300px] md:min-h-0">
+            {banners[1].imageUrl && (
+              <img src={banners[1].imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-65" loading="lazy" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
+          </div>
+          <div className="bg-[#F5F5F5] flex flex-col justify-center px-10 md:px-14 py-14 md:py-20">
+            <SectionLabel>{t("home.editorial")}</SectionLabel>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold mb-5 leading-snug">
+              {language === "en" ? banners[1].titleEn : (banners[1].titleAr ?? banners[1].titleEn)}
+            </h2>
+            {banners[1].subtitleEn && (
+              <p className="text-foreground/52 text-sm leading-relaxed mb-8 max-w-sm">
+                {language === "en" ? banners[1].subtitleEn : (banners[1].subtitleAr ?? banners[1].subtitleEn)}
+              </p>
+            )}
+            <Link
+              href={banners[1].linkUrl ?? "/products"}
+              className="self-start inline-flex items-center gap-2 bg-[#111111] text-white px-8 py-4 text-[10px] font-bold tracking-[0.22em] uppercase hover:bg-[#111111]/82 transition-colors"
+            >
+              {t("home.discoverMore")}
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ── BEST SELLERS ──────────────────────────────────── */}
+      <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <SectionLabel>{t("home.trending")}</SectionLabel>
+            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold">{t("home.bestSellers")}</h2>
+          </div>
+          <Link href="/products?sortBy=bestseller" className="hidden md:flex items-center gap-1 text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/38 hover:text-foreground transition-colors">
+            {t("home.viewAll")} <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-10">
+          {bestLoading
+            ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+            : (bestSellers ?? []).slice(0, 4).map(p => (
+                <ProductCard key={p.id} id={p.id} nameEn={p.nameEn} nameAr={p.nameAr} price={p.price} salePrice={p.salePrice} imageUrl={p.images?.[0]?.imageUrl} variants={p.variants} averageRating={p.averageRating} reviewCount={p.reviewCount} />
+              ))
+          }
+        </div>
+      </section>
+
+      {/* ── FEATURED (dark background) ────────────────────── */}
+      {(featured ?? []).length > 0 && (
+        <section className="py-20 md:py-28 bg-[#111111]">
+          <div className="max-w-screen-xl mx-auto px-6">
+            <div className="flex items-end justify-between mb-10">
+              <div>
+                <SectionLabel light>{t("home.curated")}</SectionLabel>
+                <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-white">{t("home.featured")}</h2>
+              </div>
+              <Link href="/products?featured=true" className="hidden md:flex items-center gap-1 text-[10px] font-bold tracking-[0.2em] uppercase text-white/28 hover:text-white transition-colors">
+                {t("home.viewAll")} <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8">
-              {bestSellers?.slice(0, 4).map(product => (
-                <Link key={product.id} href={`/products/${product.id}`} className="group">
-                  <div className="aspect-[3/4] overflow-hidden bg-muted mb-4 relative">
-                    {product.images?.[0] ? (
-                      <img src={product.images[0].imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : null}
-                    <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 font-bold uppercase tracking-wide">
-                      {t("home.bestSellerBadge")}
-                    </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-10">
+              {featuredLoading
+                ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+                : (featured ?? []).slice(0, 4).map(p => (
+                    <ProductCard key={p.id} id={p.id} nameEn={p.nameEn} nameAr={p.nameAr} price={p.price} salePrice={p.salePrice} imageUrl={p.images?.[0]?.imageUrl} variants={p.variants} averageRating={p.averageRating} reviewCount={p.reviewCount} />
+                  ))
+              }
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── FULL-WIDTH BANNER 3 ───────────────────────────── */}
+      {banners[2] && (
+        <section className="relative h-[55vh] min-h-[360px] overflow-hidden bg-[#111111]">
+          {banners[2].imageUrl && (
+            <img src={banners[2].imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50" loading="lazy" />
+          )}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-white/38 mb-4">{t("home.limitedEdition")}</p>
+            <h2 className="font-serif text-4xl md:text-6xl font-bold text-white mb-6 max-w-xl leading-tight">
+              {language === "en" ? banners[2].titleEn : (banners[2].titleAr ?? banners[2].titleEn)}
+            </h2>
+            <Link
+              href={banners[2].linkUrl ?? "/products"}
+              className="inline-flex items-center gap-2 border border-white text-white px-10 py-4 text-[10px] font-bold tracking-[0.22em] uppercase hover:bg-white hover:text-[#111111] transition-colors"
+            >
+              {t("home.shopCollection")}
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ── FAQ ───────────────────────────────────────────── */}
+      {faqs.length > 0 && (
+        <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-12">
+              <SectionLabel>{t("home.faqLabel")}</SectionLabel>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold">{t("home.faqTitle")}</h2>
+            </div>
+            <div className="divide-y divide-black/8">
+              {faqs.map(faq => (
+                <div key={faq.id}>
+                  <button
+                    className="w-full flex items-center justify-between py-5 text-left gap-4"
+                    onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
+                  >
+                    <span className="font-medium text-sm leading-snug">
+                      {language === "en" ? faq.questionEn : faq.questionAr}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-foreground/40 shrink-0 transition-transform duration-300 ${openFaq === faq.id ? "rotate-180" : ""}`} />
+                  </button>
+                  <div className={`overflow-hidden transition-all duration-300 ${openFaq === faq.id ? "max-h-96 pb-5" : "max-h-0"}`}>
+                    <p className="text-sm text-foreground/55 leading-relaxed">
+                      {language === "en" ? faq.answerEn : faq.answerAr}
+                    </p>
                   </div>
-                  <h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
-                    {language === "en" ? product.nameEn : product.nameAr}
-                  </h3>
-                  <p className="font-bold mt-1">
-                    {product.salePrice
-                      ? `${Number(product.salePrice).toLocaleString()} EGP`
-                      : `${Number(product.price).toLocaleString()} EGP`}
-                  </p>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* ── Featured Products ────────────────────────────────────────────── */}
-      {(featured?.length ?? 0) > 0 && (
-        <section className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{t("home.curatedForYou")}</p>
-            <h2 className="font-serif text-3xl font-bold">{t("home.featuredCollection")}</h2>
+      {/* ── NEWSLETTER ────────────────────────────────────── */}
+      <section className="py-20 md:py-24 border-t border-black/6">
+        <div className="max-w-screen-xl mx-auto px-6">
+          <div className="max-w-xl mx-auto text-center">
+            <SectionLabel>{t("home.exclusive")}</SectionLabel>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold mb-3">{t("home.joinCommunity")}</h2>
+            <p className="text-foreground/48 text-sm mt-2 mb-8 leading-relaxed">{t("home.newsletterDesc")}</p>
+            <form
+              className="flex gap-0 max-w-sm mx-auto"
+              onSubmit={e => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const inp = form.elements.namedItem("nl_email") as HTMLInputElement;
+                void fetch(`${BASE}/api/newsletter/subscribe`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email: inp.value }),
+                }).then(() => { inp.value = ""; });
+              }}
+            >
+              <input
+                name="nl_email"
+                type="email"
+                required
+                placeholder={t("footer.emailPlaceholder")}
+                className="flex-1 border border-black/14 border-r-0 px-4 py-3.5 text-sm focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/28 min-w-0"
+              />
+              <button type="submit" className="bg-[#111111] text-white px-6 py-3.5 text-[10px] font-bold tracking-[0.18em] uppercase hover:bg-[#111111]/80 transition-colors shrink-0">
+                {t("footer.subscribe")}
+              </button>
+            </form>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-8">
-            {featured?.slice(0, 6).map(product => (
-              <Link key={product.id} href={`/products/${product.id}`} className="group">
-                <div className="aspect-[3/4] overflow-hidden bg-muted mb-4">
-                  {product.images?.[0] ? (
-                    <img src={product.images[0].imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : null}
-                </div>
-                <h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
-                  {language === "en" ? product.nameEn : product.nameAr}
-                </h3>
-                <p className="font-bold mt-1 text-sm">
-                  {product.salePrice ? (
-                    <>
-                      <span className="text-destructive">{Number(product.salePrice).toLocaleString()} EGP</span>
-                      <span className="line-through text-muted-foreground ms-2 font-normal">{Number(product.price).toLocaleString()} EGP</span>
-                    </>
-                  ) : (
-                    `${Number(product.price).toLocaleString()} EGP`
-                  )}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-
-      {/* ── Newsletter ───────────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4">
-        <div className="border border-border bg-secondary/30 p-10 md:p-16 text-center max-w-2xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">{t("home.stayInLoop")}</p>
-          <h2 className="font-serif text-3xl font-bold mb-3">{t("home.joinCommunity")}</h2>
-          <p className="text-muted-foreground mb-8 text-sm">{t("home.newsletterDesc")}</p>
-          <NewsletterForm />
         </div>
       </section>
-
-      {/* ── FAQ Preview ──────────────────────────────────────────────────── */}
-      {faqs.length > 0 && (
-        <section className="container mx-auto px-4 max-w-2xl">
-          <div className="text-center mb-8">
-            <h2 className="font-serif text-2xl font-bold">{t("home.faq")}</h2>
-          </div>
-          <div className="space-y-3">
-            {faqs.slice(0, 3).map((faq) => {
-              const q = language === "ar" ? faq.questionAr || faq.questionEn : faq.questionEn;
-              const a = language === "ar" ? faq.answerAr || faq.answerEn : faq.answerEn;
-              return (
-                <details key={faq.id} className="group border border-border">
-                  <summary className="flex items-center justify-between px-5 py-4 cursor-pointer font-medium text-sm list-none select-none">
-                    {q}
-                    <span className="ms-4 shrink-0 text-muted-foreground group-open:rotate-45 transition-transform">+</span>
-                  </summary>
-                  <div className="px-5 pb-4 text-sm text-muted-foreground border-t border-border pt-3">{a}</div>
-                </details>
-              );
-            })}
-          </div>
-          <div className="text-center mt-6">
-            <Link href="/faq" className="text-sm text-primary underline underline-offset-4 hover:opacity-80">
-              {t("home.viewAllFaqs")}
-            </Link>
-          </div>
-        </section>
-      )}
     </div>
-  );
-}
-
-function NewsletterForm() {
-  const { t } = useLanguage();
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email) return;
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/newsletter/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) {
-        setStatus("success");
-        setEmail("");
-      } else {
-        setStatus("error");
-      }
-    } catch {
-      setStatus("error");
-    }
-  }
-
-  if (status === "success") {
-    return <p className="text-primary font-semibold">{t("home.subscribed")}</p>;
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
-      <input
-        type="email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        placeholder={t("home.enterEmail")}
-        required
-        className="flex-1 border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
-      />
-      <Button type="submit" disabled={status === "loading"} className="rounded-none px-6 shrink-0">
-        {status === "loading" ? t("btn.subscribing") : t("btn.subscribe")}
-      </Button>
-    </form>
   );
 }

@@ -62,10 +62,10 @@ function PaymentStatusBadge({ paymentStatus, orderStatus }: { paymentStatus?: st
   const { t } = useTranslation();
   if (paymentStatus === "cod") {
     return orderStatus === "delivered"
-      ? <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-none">{t("dash.codPaid")}</span>
+      ? <span className="text-[10px] font-bold uppercase tracking-widest text-[#9a7a1a] bg-[#C9A227]/8 border border-[#C9A227]/20 px-2 py-1 rounded-none">{t("dash.codPaid")}</span>
       : <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted border border-border px-2 py-1 rounded-none">{t("dash.payOnDelivery")}</span>;
   }
-  if (paymentStatus === "paid") return <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-none">{t("dash.paid")}</span>;
+  if (paymentStatus === "paid") return <span className="text-[10px] font-bold uppercase tracking-widest text-[#9a7a1a] bg-[#C9A227]/8 border border-[#C9A227]/20 px-2 py-1 rounded-none">{t("dash.paid")}</span>;
   if (paymentStatus === "failed") return <span className="text-[10px] font-bold uppercase tracking-widest text-destructive bg-destructive/10 border border-destructive/20 px-2 py-1 rounded-none">{t("dash.paymentFailed")}</span>;
   return <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-none">{t("dash.paymentPending")}</span>;
 }
@@ -795,7 +795,7 @@ export default function CustomerDashboard() {
                         </div>
                         {c.discountType && c.discountValue && (
                           <div className="space-y-2">
-                            <p className="font-bold text-emerald-600 text-lg">
+                            <p className="font-bold text-[#C9A227] text-lg">
                               {c.discountType === "percentage" ? `${c.discountValue}% OFF` : `${Number(c.discountValue).toLocaleString()} EGP OFF`}
                             </p>
                             {c.endDate && <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Valid until {format(new Date(c.endDate), "MMM dd, yyyy")}</p>}
@@ -804,7 +804,7 @@ export default function CustomerDashboard() {
                         <div className="mt-4 pt-4 border-t border-border flex gap-2">
                           {c.active === false && <span className="text-[10px] font-bold uppercase tracking-widest bg-muted px-2 py-1">Inactive</span>}
                           {c.endDate && new Date(c.endDate) < new Date() && <span className="text-[10px] font-bold uppercase tracking-widest bg-destructive/10 text-destructive border border-destructive/20 px-2 py-1">Expired</span>}
-                          {c.active !== false && (!c.endDate || new Date(c.endDate) > new Date()) && <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1">Active</span>}
+                          {c.active !== false && (!c.endDate || new Date(c.endDate) > new Date()) && <span className="text-[10px] font-bold uppercase tracking-widest bg-[#C9A227]/8 text-[#9a7a1a] border border-[#C9A227]/20 px-2 py-1">Active</span>}
                         </div>
                       </div>
                     ))}
@@ -965,7 +965,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
                       {review.productNameEn ?? `Product #${review.productId}`}
                     </Link>
                     {review.verifiedPurchase && (
-                      <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1">
+                      <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#9a7a1a] bg-[#C9A227]/8 border border-[#C9A227]/20 px-2 py-1">
                         <CheckCircle2 className="w-3 h-3" /> {t("reviews.verifiedPurchase") || "Verified Purchase"}
                       </span>
                     )}
