@@ -1,0 +1,421 @@
+VELORA UI REDESIGN V3
+
+
+
+IMPORTANT:
+
+The previous redesign was not sufficient.
+
+
+
+The site still looks like a standard React ecommerce template.
+
+
+
+I want a COMPLETE VISUAL REBUILD.
+
+
+
+Do not add features.
+
+Do not modify backend APIs.
+
+Do not touch database code.
+
+
+
+Only redesign the frontend UI.
+
+
+
+Target style:
+
+
+
+* Zara
+
+* COS
+
+* Massimo Dutti
+
+* Mango
+
+* H&M Premium
+
+
+
+Requirements:
+
+
+
+HOME PAGE
+
+
+
+Remove generic ecommerce layout.
+
+
+
+Create:
+
+
+
+1. Full-screen cinematic hero
+
+2. Large editorial banners
+
+3. Magazine-style sections
+
+4. Split image/text sections
+
+5. Premium category showcase
+
+6. Featured collections section
+
+7. Luxury typography hierarchy
+
+8. Smooth animations
+
+
+
+PRODUCT LISTING
+
+
+
+Replace grid styling completely.
+
+
+
+Add:
+
+
+
+* Premium hover effects
+
+* Large image cards
+
+* Cleaner filters
+
+* Better spacing
+
+* Fashion-focused layout
+
+
+
+PRODUCT DETAILS
+
+
+
+Redesign from scratch.
+
+
+
+Need:
+
+
+
+* Large image gallery
+
+* Sticky purchase section
+
+* Premium size selector
+
+* Premium color selector
+
+* Better reviews layout
+
+* Better related products section
+
+
+
+CART
+
+
+
+Redesign completely.
+
+
+
+Need:
+
+
+
+* Modern slide cart
+
+* Luxury order summary
+
+* Better quantity controls
+
+* Better empty state
+
+
+
+CHECKOUT
+
+
+
+Redesign as modern luxury checkout.
+
+
+
+Need:
+
+
+
+* Progress indicator
+
+* Better cards
+
+* Better payment selection
+
+* Better mobile UX
+
+
+
+CUSTOMER DASHBOARD
+
+
+
+Redesign all tabs.
+
+
+
+Need:
+
+
+
+* Premium sidebar
+
+* Better cards
+
+* Better tables
+
+* Better order timeline
+
+
+
+ADMIN DASHBOARD
+
+
+
+Keep functionality.
+
+
+
+Only improve styling:
+
+
+
+* Better layout
+
+* Better spacing
+
+* Better tables
+
+* Better charts
+
+* Better navigation
+
+
+
+DESIGN SYSTEM
+
+
+
+Typography:
+
+
+
+* Playfair Display
+
+* Inter
+
+
+
+Colors:
+
+
+
+Primary:
+
+#111111
+
+
+
+Secondary:
+
+#F5F5F5
+
+
+
+Accent:
+
+#C9A227
+
+
+
+Avoid:
+
+
+
+* Generic Tailwind appearance
+
+* Generic shadcn appearance
+
+* Rounded cartoon UI
+
+* Bright ecommerce colors
+
+
+
+Target result:
+
+
+
+The website should feel like a premium fashion brand worth millions of dollars.
+
+
+
+Deliverables:
+
+
+
+1. Before/After screenshots
+
+2. List of modified files
+
+3. Build passes
+
+4. TypeScript errors = 0
+
+5. No backend modifications
+
+6. No API modifications
+
+STOP DESIGN MOCKUPS ONLY.
+
+
+
+You are NOT allowed to use canvas or mockups anymore.
+
+
+
+You must implement the design directly in the REAL CODEBASE.
+
+
+
+RULES:
+
+
+
+* Edit actual React files only
+
+* No visual canvas
+
+* No mockups
+
+* No previews
+
+* No descriptions of design
+
+
+
+You must now APPLY the luxury redesign into production code.
+
+
+
+FILES TO MODIFY:
+
+
+
+1. Home.tsx → full redesign (editorial layout)
+
+2. ProductDetails.tsx → sticky gallery + luxury layout
+
+3. Products.tsx → masonry / premium grid
+
+4. CartDrawer.tsx → luxury slide cart
+
+5. Checkout.tsx → minimal luxury checkout
+
+6. CustomerDashboard.tsx → editorial dashboard
+
+
+
+DESIGN SYSTEM (STRICT):
+
+
+
+Typography:
+
+
+
+* Playfair Display for headings
+
+* Inter for body
+
+
+
+Colors:
+
+
+
+* #111111 (primary black)
+
+* #FFFFFF (white)
+
+* #C9A227 (gold accent)
+
+
+
+UI RULES:
+
+
+
+* No default shadcn UI look
+
+* No basic ecommerce template look
+
+* No generic cards
+
+* No blue buttons
+
+* No rounded "app UI" feel
+
+
+
+LAYOUT STYLE:
+
+
+
+* Zara / COS / Massimo Dutti level
+
+* Large imagery
+
+* Minimal text
+
+* Strong spacing
+
+* Editorial layout
+
+
+
+OUTPUT REQUIREMENTS:
+
+
+
+* Must modify real code files only
+
+* Must show changed file diffs
+
+* Must ensure TypeScript = 0 errors
+
+* Must ensure app builds successfully
+
+* No mockups, no canvas, no previews
+
+
+
+GOAL:
+
+The live website must visually change immediately after build.

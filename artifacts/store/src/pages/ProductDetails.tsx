@@ -504,13 +504,13 @@ export default function ProductDetails() {
                     <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-[#111111]">{t("common.color")}</p>
                     {selectedColor && <span className="text-[9px] tracking-[0.2em] uppercase text-black/40 font-medium">{selectedColor}</span>}
                   </div>
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="flex flex-wrap gap-2">
                     {colors.map(color => (
                       <button
                         key={color}
                         onClick={() => handleColorSelect(color)}
                         title={color}
-                        className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${selectedColor === color ? "border-[#111111] scale-110 ring-2 ring-[#111111]/20 ring-offset-1" : "border-black/15 hover:border-black/40 hover:scale-105"}`}
+                        className={`w-9 h-9 relative transition-all duration-200 ${selectedColor === color ? "ring-2 ring-[#111111] ring-offset-2" : "ring-1 ring-black/15 hover:ring-black/40"}`}
                         style={{ backgroundColor: color.toLowerCase() }}
                       >
                         <span className="sr-only">{color}</span>
@@ -636,7 +636,7 @@ export default function ProductDetails() {
       </div>
 
       {/* ── Reviews ──────────────────────────────────────────────────────── */}
-      <section id="reviews-section" className="border-t border-black/6 bg-[#F7F6F4]">
+      <section id="reviews-section" className="border-t border-black/6 bg-[#F5F4F2]">
         <div className="max-w-screen-xl mx-auto px-6 md:px-10 py-20 md:py-28">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
             <div>

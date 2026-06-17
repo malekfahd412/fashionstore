@@ -68,35 +68,34 @@
 }
 
 :root {
-  --button-outline: rgba(0,0,0,.12);
-  --badge-outline: rgba(0,0,0,.06);
+  --button-outline: rgba(0,0,0,.10);
+  --badge-outline: rgba(0,0,0,.05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0,.03);
-  --elevate-2: rgba(0,0,0,.07);
+  --elevate-1: rgba(0,0,0,.02);
+  --elevate-2: rgba(0,0,0,.05);
 
-  /* VELORA V3 — Maison editorial palette */
-  --background: 0 0% 100%;         /* pure white */
-  --foreground: 0 0% 7%;           /* #111111 */
-  --border: 0 0% 88%;              /* #E0E0E0 */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 7%;
+  --border: 0 0% 90%;
 
   --card: 0 0% 100%;
   --card-foreground: 0 0% 7%;
-  --card-border: 0 0% 88%;
+  --card-border: 0 0% 90%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 7%;
-  --popover-border: 0 0% 88%;
+  --popover-border: 0 0% 90%;
 
-  --primary: 0 0% 7%;              /* #111111 — buttons, links */
+  --primary: 0 0% 7%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 96%;           /* #F5F5F5 */
+  --secondary: 0 0% 95%;
   --secondary-foreground: 0 0% 7%;
 
-  --muted: 0 0% 96%;
+  --muted: 0 0% 95%;
   --muted-foreground: 0 0% 45%;
 
-  --accent: 46 67% 47%;            /* #C9A227 gold */
+  --accent: 46 67% 47%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
@@ -107,10 +106,10 @@
 
   --sidebar: 0 0% 100%;
   --sidebar-foreground: 0 0% 7%;
-  --sidebar-border: 0 0% 88%;
+  --sidebar-border: 0 0% 90%;
   --sidebar-primary: 0 0% 7%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 96%;
+  --sidebar-accent: 0 0% 95%;
   --sidebar-accent-foreground: 0 0% 7%;
   --sidebar-ring: 0 0% 7%;
 
@@ -128,6 +127,8 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .dark {
@@ -149,7 +150,7 @@ html {
   --popover-foreground: 0 0% 96%;
   --popover-border: 0 0% 18%;
 
-  --primary: 46 67% 47%;           /* gold as primary in dark */
+  --primary: 46 67% 47%;
   --primary-foreground: 0 0% 7%;
 
   --secondary: 0 0% 12%;
@@ -189,8 +190,92 @@ html {
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    letter-spacing: 0.01em;
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
   }
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Luxury editorial utilities ──────────────────────────────────────── */
+.velora-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(17,17,17,0.28);
+}
+
+.velora-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+.velora-btn-primary {
+  background: #111111;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding: 1rem 2.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.velora-btn-primary:hover {
+  background: #C9A227;
+}
+
+.velora-btn-outline {
+  background: transparent;
+  color: #111111;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding: 1rem 2.5rem;
+  border: 1px solid rgba(17,17,17,0.2);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.velora-btn-outline:hover {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+}
+
+/* Animated underline for links */
+.velora-link {
+  position: relative;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(17,17,17,0.35);
+  text-decoration: none;
+  padding-bottom: 2px;
+}
+.velora-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #111111;
+  transition: width 0.3s ease;
+}
+.velora-link:hover { color: #111111; }
+.velora-link:hover::after { width: 100%; }
