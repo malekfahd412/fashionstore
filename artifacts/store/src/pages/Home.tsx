@@ -100,7 +100,7 @@ export default function Home() {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
-              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-6 text-primary/60">{t("home.newCollection")} 2025</p>
+              <p className="text-xs uppercase tracking-[0.3em] font-medium mb-6 text-primary/60">{t("home.newCollection")}</p>
               <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 text-primary">Velora</h1>
               <p className="text-lg text-primary/70 mb-10 max-w-md mx-auto">{t("home.curatedFashion")}</p>
               <Button size="lg" className="rounded-none px-10 py-6 text-base font-semibold tracking-widest uppercase" asChild>
