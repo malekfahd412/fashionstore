@@ -1,0 +1,233 @@
+# VELORA — Real-Time UI Synchronization & Cache Audit
+
+## Objective
+
+The application currently requires a manual browser refresh before changes appear.
+
+Example issues:
+
+* Add to cart → cart count does not update until refresh
+* Remove from cart → item remains visible until refresh
+* Add to wishlist → wishlist count updates only after refresh
+* Notifications require refresh
+* Settings changes require refresh
+* Dashboard statistics require refresh
+* Orders require refresh
+* Reviews may require refresh
+
+The database is updating correctly.
+
+The issue is frontend cache/state synchronization.
+
+---
+
+## T001 — Full React Query Audit
+
+Inspect the entire frontend.
+
+Find every:
+
+* useQuery
+* useMutation
+* queryClient usage
+* invalidateQueries usage
+* refetchQueries usage
+* setQueryData usage
+
+Identify mutations that do not invalidate related queries.
+
+Fix all of them.
+
+---
+
+## T002 — Cart Instant Updates
+
+When:
+
+* add to cart
+* update quantity
+* remove item
+* clear cart
+
+Immediately update:
+
+* cart page
+* navbar cart counter
+* checkout page
+
+without page refresh.
+
+Implement:
+
+queryClient.invalidateQueries()
+
+or
+
+queryClient.setQueryData()
+
+where appropriate.
+
+---
+
+## T003 — Wishlist Instant Updates
+
+When:
+
+* add wishlist item
+* remove wishlist item
+
+Immediately update:
+
+* wishlist page
+* wishlist count
+* product cards
+
+without refresh.
+
+---
+
+## T004 — Notifications Real-Time Refresh
+
+After:
+
+* creating notification
+* marking read
+* deleting notification
+
+refresh notification queries automatically.
+
+---
+
+## T005 — Reviews Synchronization
+
+After:
+
+* create review
+* edit review
+* delete review
+
+refresh:
+
+* product review list
+* review statistics
+* customer dashboard review tab
+* admin reviews tab
+
+immediately.
+
+---
+
+## T006 — Settings Synchronization
+
+After saving settings:
+
+* Admin Settings
+* Security Settings
+* Store Settings
+* Payment Settings
+
+UI must reflect the new values immediately.
+
+No browser refresh allowed.
+
+---
+
+## T007 — Dashboard Synchronization
+
+Admin Dashboard:
+
+* revenue
+* orders
+* users
+* products
+* analytics
+
+must refresh automatically after relevant mutations.
+
+Vendor Dashboard:
+
+* products
+* revenue
+* orders
+
+must refresh automatically.
+
+Customer Dashboard:
+
+* orders
+* reviews
+* wishlist
+* notifications
+* payment history
+
+must refresh automatically.
+
+---
+
+## T008 — Replace Manual Reloads
+
+Search the codebase for:
+
+window.location.reload
+location.reload
+
+Remove them.
+
+Replace with proper React Query cache updates.
+
+The application should never depend on browser refreshes.
+
+---
+
+## T009 — Optimistic Updates
+
+Implement optimistic updates for:
+
+* cart
+* wishlist
+* notifications
+* reviews
+
+Users should see changes instantly before the server response returns.
+
+Rollback on API failure.
+
+---
+
+## T010 — Final Verification
+
+Test all major flows:
+
+* Register
+* Login
+* Add to cart
+* Remove from cart
+* Checkout
+* Create order
+* Add review
+* Wishlist actions
+* Notifications
+* Settings save
+
+Verify that every UI update appears immediately.
+
+No manual refresh should be required anywhere in the application.
+
+---
+
+## Deliverables
+
+At the end provide:
+
+1. Every query key audited
+2. Every mutation fixed
+3. Every invalidateQueries added
+4. Every setQueryData added
+5. Any remaining pages that still require work
+6. TypeScript result
+7. Build result
+8. Runtime result
+
+Do NOT add new features.
+
+Focus only on real-time synchronization, cache correctness, and removing the need for browser refreshes.
