@@ -36,12 +36,35 @@ export default function Cart() {
 
   const handleUpdateQuantity = (variantId: number, quantity: number) => {
     if (quantity < 1) return;
-    updateMutation.mutate({ variantId, data: { quantity } }, { onSuccess: invalidateCart });
+    const cartKey = getGetCartQueryKey();
+    qc.cancelQueries({ queryKey: cartKey });
+    const previous = qc.getQueryData(cartKey);
+    qc.setQueryData(cartKey, (old: { items: { variantId: number; quantity: number; price: string | number; salePrice?: string | number | null }[]; subtotal: number } | undefined) => {
+      if (!old) return old;
+      const items = old.items.map(item => item.variantId === variantId ? { ...item, quantity } : item);
+      const subtotal = items.reduce((acc, item) => acc + (Number(item.salePrice || item.price) * item.quantity), 0);
+      return { ...old, items, subtotal };
+    });
+    updateMutation.mutate({ variantId, data: { quantity } }, {
+      onError: () => { qc.setQueryData(cartKey, previous); },
+      onSettled: invalidateCart,
+    });
   };
 
   const handleRemove = (variantId: number) => {
+    const cartKey = getGetCartQueryKey();
+    qc.cancelQueries({ queryKey: cartKey });
+    const previous = qc.getQueryData(cartKey);
+    qc.setQueryData(cartKey, (old: { items: { variantId: number; quantity: number; price: string | number; salePrice?: string | number | null }[]; subtotal: number } | undefined) => {
+      if (!old) return old;
+      const items = old.items.filter(item => item.variantId !== variantId);
+      const subtotal = items.reduce((acc, item) => acc + (Number(item.salePrice || item.price) * item.quantity), 0);
+      return { ...old, items, subtotal };
+    });
     removeMutation.mutate({ variantId }, {
-      onSuccess: () => { invalidateCart(); toast({ title: t("btn.remove") }); }
+      onError: () => { qc.setQueryData(cartKey, previous); },
+      onSuccess: () => toast({ title: t("btn.remove") }),
+      onSettled: invalidateCart,
     });
   };
 

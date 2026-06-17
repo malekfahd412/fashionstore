@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/lib/adminFetch";
 import { format } from "date-fns";
+import { getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getListOrdersQueryKey } from "@workspace/api-client-react";
 
 type OrderItem = {
   id: number;
@@ -129,7 +130,12 @@ export default function AdminOrdersTab() {
       adminFetch(`/api/orders/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
     onMutate: ({ id }) => setUpdatingId(id),
     onSettled: () => setUpdatingId(null),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-orders"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetOrderStatusBreakdownQueryKey() });
+      qc.invalidateQueries({ queryKey: getListOrdersQueryKey({ limit: 10 }) });
+    },
   });
 
   const total = data?.total ?? 0;

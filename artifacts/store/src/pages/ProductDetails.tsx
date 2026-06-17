@@ -4,6 +4,7 @@ import {
   useGetProduct, useGetRelatedProducts, useAddToCart, useAddToWishlist, useRemoveFromWishlist, useGetWishlist,
   useCreateReview, useUpdateReview, useDeleteReview,
   getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey, getGetCartQueryKey,
+  getGetMyReviewsQueryKey, getAdminListReviewsQueryKey,
 } from "@workspace/api-client-react";
 import type { ProductReviewsResponse } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -150,6 +151,8 @@ export default function ProductDetails() {
   const invalidateReviews = () => {
     qc.invalidateQueries({ queryKey: ["product-reviews", productId] });
     qc.invalidateQueries({ queryKey: getGetProductQueryKey(productId) });
+    qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
+    qc.invalidateQueries({ queryKey: getAdminListReviewsQueryKey() });
   };
 
   const openWriteReview = () => {
@@ -286,19 +289,26 @@ export default function ProductDetails() {
     if (!user) {
       toast({ title: t("product.signInToSave") }); return;
     }
+    const wKey = getGetWishlistQueryKey();
     if (isWishlisted) {
+      const previous = qc.getQueryData(wKey);
+      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) =>
+        old ? old.filter(w => w.productId !== productId) : []
+      );
       removeWishlistMutation.mutate({ productId }, {
-        onSuccess: () => {
-          toast({ title: t("product.removedFromWishlist") });
-          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
-        },
+        onError: () => { qc.setQueryData(wKey, previous); },
+        onSuccess: () => toast({ title: t("product.removedFromWishlist") }),
+        onSettled: () => { qc.invalidateQueries({ queryKey: wKey }); },
       });
     } else {
+      const previous = qc.getQueryData(wKey);
+      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) =>
+        old ? [...old, { productId }] : [{ productId }]
+      );
       addWishlistMutation.mutate({ productId }, {
-        onSuccess: () => {
-          toast({ title: t("product.savedToWishlist") });
-          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
-        },
+        onError: () => { qc.setQueryData(wKey, previous); },
+        onSuccess: () => toast({ title: t("product.savedToWishlist") }),
+        onSettled: () => { qc.invalidateQueries({ queryKey: wKey }); },
       });
     }
   };

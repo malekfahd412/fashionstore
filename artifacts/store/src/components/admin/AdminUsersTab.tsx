@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/lib/adminFetch";
 import { format } from "date-fns";
+import { getGetAnalyticsSummaryQueryKey } from "@workspace/api-client-react";
 
 type UserRow = {
   id: number;
@@ -80,12 +81,20 @@ export default function AdminUsersTab({ defaultRole = "all" }: { defaultRole?: s
   const updateRole = useMutation({
     mutationFn: ({ id, role }: { id: number; role: string }) =>
       adminFetch(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-users"] }); setConfirmRole(null); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
+      setConfirmRole(null);
+    },
   });
 
   const deleteUser = useMutation({
     mutationFn: (id: number) => adminFetch(`/api/users/${id}`, { method: "DELETE" }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-users"] }); setConfirmDelete(null); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
+      setConfirmDelete(null);
+    },
   });
 
   const total = data?.total ?? 0;

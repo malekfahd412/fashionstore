@@ -72,19 +72,26 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
       toast({ title: t("product.signInToSave") });
       return;
     }
+    const wKey = getGetWishlistQueryKey();
     if (isWishlisted) {
+      const previous = qc.getQueryData(wKey);
+      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) =>
+        old ? old.filter(w => w.productId !== id) : []
+      );
       removeWishlistMutation.mutate({ productId: id }, {
-        onSuccess: () => {
-          toast({ title: t("product.removedFromWishlist") });
-          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
-        },
+        onError: () => { qc.setQueryData(wKey, previous); },
+        onSuccess: () => toast({ title: t("product.removedFromWishlist") }),
+        onSettled: () => { qc.invalidateQueries({ queryKey: wKey }); },
       });
     } else {
+      const previous = qc.getQueryData(wKey);
+      qc.setQueryData(wKey, (old: { productId: number }[] | undefined) =>
+        old ? [...old, { productId: id }] : [{ productId: id }]
+      );
       addWishlistMutation.mutate({ productId: id }, {
-        onSuccess: () => {
-          toast({ title: t("product.savedToWishlist") });
-          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
-        },
+        onError: () => { qc.setQueryData(wKey, previous); },
+        onSuccess: () => toast({ title: t("product.savedToWishlist") }),
+        onSettled: () => { qc.invalidateQueries({ queryKey: wKey }); },
       });
     }
   };

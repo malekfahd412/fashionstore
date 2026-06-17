@@ -214,6 +214,7 @@ export default function VendorDashboard() {
                         toast({ title: "Product created!" });
                         setIsCreateProductOpen(false);
                         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey({ vendorId: user?.id }) });
+                        queryClient.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
                       },
                       onError: (err: Error) => setProductFormError(err.message),
                     });
@@ -321,6 +322,7 @@ export default function VendorDashboard() {
                         toast({ title: "Product updated!" });
                         setIsEditProductOpen(false);
                         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey({ vendorId: user?.id }) });
+                        queryClient.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
                       },
                       onError: (err: Error) => setEditFormError(err.message),
                     });
