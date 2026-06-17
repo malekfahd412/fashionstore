@@ -114,97 +114,108 @@ export default function Cart() {
   if (!user) {
     if (guest.items.length === 0) {
       return (
-        <div className="container mx-auto px-4 py-32 text-center max-w-lg">
-          <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground/40 mb-6" />
-          <h1 className="font-serif text-4xl font-bold mb-4">{t("cart.empty")}</h1>
-          <p className="text-muted-foreground mb-8">{t("cart.emptyDesc")}</p>
-          <Button size="lg" className="w-full rounded-none uppercase tracking-widest h-14" asChild>
+        <div className="container mx-auto px-4 py-32 text-center max-w-xl">
+          <ShoppingBag className="h-20 w-20 mx-auto text-muted-foreground/30 mb-8" />
+          <h1 className="font-serif text-5xl font-bold mb-6">{t("cart.empty")}</h1>
+          <p className="text-lg text-muted-foreground mb-10">{t("cart.emptyDesc")}</p>
+          <Button size="lg" className="w-full md:w-auto px-12 rounded-none uppercase tracking-widest h-14" asChild>
             <Link href="/products">{t("btn.startShopping")}</Link>
           </Button>
         </div>
       );
     }
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex items-baseline justify-between mb-10">
-          <h1 className="font-serif text-4xl font-bold">{t("cart.title")}</h1>
-          <span className="text-muted-foreground text-sm">
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex items-baseline justify-between mb-12 border-b border-border pb-6">
+          <h1 className="font-serif text-4xl md:text-5xl font-bold">{t("cart.title")}</h1>
+          <span className="text-muted-foreground text-sm uppercase tracking-widest font-bold">
             {guest.totalItems} {guest.totalItems === 1 ? t("common.item") : t("common.items")}
           </span>
         </div>
-        <div className="mb-6 border border-primary/20 bg-primary/5 px-5 py-3 flex items-center gap-3">
-          <LogIn className="w-4 h-4 text-primary shrink-0" />
-          <p className="text-sm">
-            {t("cart.guestBanner")}{" "}
-            <Link href="/login" className="font-medium underline">{t("cart.loginToSave")}</Link>{" "}
-            {t("cart.loginToSaveDesc")}
-          </p>
+        
+        <div className="mb-10 bg-primary text-primary-foreground p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <LogIn className="w-5 h-5 shrink-0" />
+            <p className="text-sm font-medium">
+              {t("cart.guestBanner")}{" "}
+              <Link href="/login" className="underline underline-offset-4 font-bold hover:text-primary-foreground/80">{t("cart.loginToSave")}</Link>
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col lg:flex-row gap-12">
-          <div className="lg:w-2/3 space-y-6">
+
+        <div className="flex flex-col lg:flex-row gap-16">
+          <div className="lg:w-2/3 space-y-8">
             {guest.items.map(item => (
-              <div key={item.variantId} className="flex gap-6 border-b border-border pb-6">
-                <div className="w-24 md:w-32 aspect-[3/4] bg-muted shrink-0 overflow-hidden">
-                  {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
+              <div key={item.variantId} className="flex gap-6 pb-8 border-b border-border group">
+                <div className="w-32 md:w-40 aspect-[3/4] bg-muted shrink-0 overflow-hidden relative">
+                  {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
                 </div>
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col pt-2">
                   <div className="flex justify-between mb-2">
-                    <Link href={`/products/${item.productId}`} className="font-medium hover:underline text-lg line-clamp-2">
+                    <Link href={`/products/${item.productId}`} className="font-serif text-xl font-bold hover:text-primary transition-colors line-clamp-2 pr-4">
                       {language === 'en' ? item.nameEn : item.nameAr}
                     </Link>
-                    <div className="text-right shrink-0 ms-4">
+                    <div className="text-right shrink-0">
                       {item.salePrice ? (
-                        <><div className="font-bold text-destructive">{item.salePrice} EGP</div><div className="text-sm line-through text-muted-foreground">{item.price} EGP</div></>
+                        <><div className="font-bold text-destructive text-lg">{item.salePrice} EGP</div><div className="text-sm line-through text-muted-foreground">{item.price} EGP</div></>
                       ) : (
-                        <div className="font-bold">{item.price} EGP</div>
+                        <div className="font-bold text-lg">{item.price} EGP</div>
                       )}
                     </div>
                   </div>
-                  <div className="text-sm text-muted-foreground mb-auto">
-                    <span className="me-4">{t("common.color")}: {item.color}</span>
-                    <span>{t("common.size")}: {item.size}</span>
+                  
+                  <div className="text-sm text-muted-foreground mb-auto space-y-1">
+                    {item.color && <p><span className="uppercase tracking-widest text-xs font-bold mr-2 text-foreground">{t("common.color")}:</span> {item.color}</p>}
+                    {item.size && <p><span className="uppercase tracking-widest text-xs font-bold mr-2 text-foreground">{t("common.size")}:</span> {item.size}</p>}
                   </div>
-                  <div className="flex justify-between items-end mt-4">
-                    <div className="flex items-center border border-border w-24 md:w-32 h-10">
-                      <button className="flex-1 hover:bg-muted h-full transition-colors" onClick={() => guest.updateItem(item.variantId, item.quantity - 1)} disabled={item.quantity <= 1}>−</button>
-                      <div className="flex-1 text-center font-medium">{item.quantity}</div>
-                      <button className="flex-1 hover:bg-muted h-full transition-colors" onClick={() => guest.updateItem(item.variantId, item.quantity + 1)}>+</button>
+
+                  <div className="flex justify-between items-end mt-6">
+                    <div className="flex items-center border border-border w-32 h-12">
+                      <button className="w-12 hover:bg-muted h-full transition-colors flex items-center justify-center" onClick={() => guest.updateItem(item.variantId, item.quantity - 1)} disabled={item.quantity <= 1}>−</button>
+                      <div className="flex-1 text-center font-bold text-sm">{item.quantity}</div>
+                      <button className="w-12 hover:bg-muted h-full transition-colors flex items-center justify-center" onClick={() => guest.updateItem(item.variantId, item.quantity + 1)}>+</button>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" onClick={() => guest.removeItem(item.variantId)}>
-                      <Trash2 className="h-4 w-4 me-2" /> {t("btn.remove")}
-                    </Button>
+                    <button className="text-xs uppercase tracking-widest font-bold text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2 pb-1" onClick={() => guest.removeItem(item.variantId)}>
+                      <Trash2 className="h-4 w-4" /> {t("btn.remove")}
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
-            <div className="mt-6 flex justify-between items-center">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
-                <Link href="/products">{t("btn.continueShopping")}</Link>
-              </Button>
-              <Button variant="outline" size="sm" onClick={guest.clear} className="text-muted-foreground">{t("btn.clearCart")}</Button>
+            <div className="mt-8 flex justify-between items-center">
+              <Link href="/products" className="text-sm uppercase tracking-widest font-bold border-b border-foreground pb-1 hover:text-muted-foreground hover:border-muted-foreground transition-colors">
+                {t("btn.continueShopping")}
+              </Link>
+              <button onClick={guest.clear} className="text-sm uppercase tracking-widest font-bold text-muted-foreground hover:text-destructive transition-colors">
+                {t("btn.clearCart")}
+              </button>
             </div>
           </div>
+
           <div className="lg:w-1/3">
-            <div className="bg-muted/30 p-8 border border-border sticky top-24 space-y-6">
-              <h2 className="font-serif text-2xl font-bold border-b border-border pb-4">{t("cart.orderSummary")}</h2>
-              <div className="space-y-3">
+            <div className="bg-muted/10 p-8 border border-border sticky top-32 space-y-8">
+              <h2 className="font-serif text-2xl font-bold uppercase tracking-widest border-b border-border pb-6">{t("cart.orderSummary")}</h2>
+              
+              <div className="space-y-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("common.subtotal")} ({guest.totalItems} {guest.totalItems === 1 ? t("common.item") : t("common.items")})</span>
-                  <span>{guest.subtotal.toFixed(2)} EGP</span>
+                  <span className="text-muted-foreground">{t("common.subtotal")}</span>
+                  <span className="font-medium">{guest.subtotal.toFixed(2)} EGP</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("common.shipping")}</span>
-                  <span className="text-green-600 font-medium">{t("common.free")}</span>
+                  <span className="text-emerald-600 font-bold uppercase tracking-widest">{t("common.free")}</span>
                 </div>
               </div>
-              <div className="border-t border-border pt-4">
+
+              <div className="border-t border-border pt-6">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-xl">{t("common.total")}</span>
-                  <span className="font-bold text-2xl">{guest.subtotal.toFixed(2)} EGP</span>
+                  <span className="font-bold uppercase tracking-widest">{t("common.total")}</span>
+                  <span className="font-serif text-3xl font-bold">{guest.subtotal.toFixed(2)} EGP</span>
                 </div>
               </div>
-              <Button size="lg" className="w-full rounded-none uppercase tracking-widest h-14 text-lg" asChild>
-                <Link href="/login"><LogIn className="h-4 w-4 me-2" /> {t("btn.loginToCheckout")}</Link>
+
+              <Button size="lg" className="w-full rounded-none uppercase tracking-widest h-16 text-sm font-bold mt-4" asChild>
+                <Link href="/login">{t("btn.loginToCheckout")}</Link>
               </Button>
             </div>
           </div>
@@ -214,16 +225,16 @@ export default function Cart() {
   }
 
   if (isLoading) {
-    return <div className="container mx-auto px-4 py-16 text-center">{t("common.loading")}</div>;
+    return <div className="container mx-auto px-4 py-32 text-center text-muted-foreground uppercase tracking-widest font-bold">{t("common.loading")}</div>;
   }
 
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-32 text-center max-w-lg">
-        <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground/40 mb-6" />
-        <h1 className="font-serif text-4xl font-bold mb-4">{t("cart.empty")}</h1>
-        <p className="text-muted-foreground mb-8">{t("cart.emptyDesc")}</p>
-        <Button size="lg" className="w-full rounded-none uppercase tracking-widest h-14" asChild>
+      <div className="container mx-auto px-4 py-32 text-center max-w-xl">
+        <ShoppingBag className="h-20 w-20 mx-auto text-muted-foreground/30 mb-8" />
+        <h1 className="font-serif text-5xl font-bold mb-6">{t("cart.empty")}</h1>
+        <p className="text-lg text-muted-foreground mb-10">{t("cart.emptyDesc")}</p>
+        <Button size="lg" className="w-full md:w-auto px-12 rounded-none uppercase tracking-widest h-14" asChild>
           <Link href="/products">{t("btn.startShopping")}</Link>
         </Button>
       </div>
@@ -244,146 +255,143 @@ export default function Cart() {
   const checkoutUrl = coupon ? `/checkout?coupon=${encodeURIComponent(coupon.code)}` : "/checkout";
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="flex items-baseline justify-between mb-10">
-        <h1 className="font-serif text-4xl font-bold">{t("cart.title")}</h1>
-        <span className="text-muted-foreground text-sm">
+    <div className="container mx-auto px-4 py-16">
+      <div className="flex items-baseline justify-between mb-12 border-b border-border pb-6">
+        <h1 className="font-serif text-4xl md:text-5xl font-bold">{t("cart.title")}</h1>
+        <span className="text-muted-foreground text-sm uppercase tracking-widest font-bold">
           {totalItems} {totalItems === 1 ? t("common.item") : t("common.items")}
         </span>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-12">
+      <div className="flex flex-col lg:flex-row gap-16">
         {/* Cart Items */}
-        <div className="lg:w-2/3">
-          <div className="space-y-6">
-            {cart.items.map(item => (
-              <div key={item.variantId} className="flex gap-6 border-b border-border pb-6">
-                <div className="w-24 md:w-32 aspect-[3/4] bg-muted shrink-0 overflow-hidden">
-                  {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
+        <div className="lg:w-2/3 space-y-8">
+          {cart.items.map(item => (
+            <div key={item.variantId} className="flex gap-6 pb-8 border-b border-border group">
+              <div className="w-32 md:w-40 aspect-[3/4] bg-muted shrink-0 overflow-hidden relative">
+                {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+              </div>
+              <div className="flex-1 flex flex-col pt-2">
+                <div className="flex justify-between mb-2">
+                  <Link href={`/products/${item.productId}`} className="font-serif text-xl font-bold hover:text-primary transition-colors line-clamp-2 pr-4">
+                    {language === 'en' ? item.nameEn : (item.nameAr || item.nameEn)}
+                  </Link>
+                  <div className="text-right shrink-0">
+                    {item.salePrice ? (
+                      <>
+                        <div className="font-bold text-destructive text-lg">{Number(item.salePrice).toLocaleString()} EGP</div>
+                        <div className="text-sm line-through text-muted-foreground">{Number(item.price).toLocaleString()} EGP</div>
+                      </>
+                    ) : (
+                      <div className="font-bold text-lg">{Number(item.price).toLocaleString()} EGP</div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-col">
-                  <div className="flex justify-between mb-2">
-                    <Link href={`/products/${item.productId}`} className="font-medium hover:underline text-lg line-clamp-2">
-                      {language === 'en' ? item.nameEn : item.nameAr}
-                    </Link>
-                    <div className="text-right shrink-0 ms-4">
-                      {item.salePrice ? (
-                        <>
-                          <div className="font-bold text-destructive">{item.salePrice} EGP</div>
-                          <div className="text-sm line-through text-muted-foreground">{item.price} EGP</div>
-                        </>
-                      ) : (
-                        <div className="font-bold">{item.price} EGP</div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-auto">
-                    <span className="me-4">{t("common.color")}: {item.color}</span>
-                    <span>{t("common.size")}: {item.size}</span>
-                  </div>
+                
+                <div className="text-sm text-muted-foreground mb-auto space-y-1">
+                  {item.color && <p><span className="uppercase tracking-widest text-xs font-bold mr-2 text-foreground">{t("common.color")}:</span> {item.color}</p>}
+                  {item.size && <p><span className="uppercase tracking-widest text-xs font-bold mr-2 text-foreground">{t("common.size")}:</span> {item.size}</p>}
+                </div>
 
-                  <div className="flex justify-between items-end mt-4">
-                    <div className="flex items-center border border-border w-24 md:w-32 h-10">
-                      <button
-                        className="flex-1 hover:bg-muted h-full transition-colors"
-                        onClick={() => handleUpdateQuantity(item.variantId, item.quantity - 1)}
-                        disabled={updateMutation.isPending || item.quantity <= 1}
-                      >−</button>
-                      <div className="flex-1 text-center font-medium">{item.quantity}</div>
-                      <button
-                        className="flex-1 hover:bg-muted h-full transition-colors"
-                        onClick={() => handleUpdateQuantity(item.variantId, item.quantity + 1)}
-                        disabled={updateMutation.isPending}
-                      >+</button>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => handleRemove(item.variantId)}
-                      disabled={removeMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4 me-2" />
-                      {t("btn.remove")}
-                    </Button>
+                <div className="flex justify-between items-end mt-6">
+                  <div className="flex items-center border border-border w-32 h-12">
+                    <button
+                      className="w-12 hover:bg-muted h-full transition-colors flex items-center justify-center"
+                      onClick={() => handleUpdateQuantity(item.variantId, item.quantity - 1)}
+                      disabled={updateMutation.isPending || item.quantity <= 1}
+                    >−</button>
+                    <div className="flex-1 text-center font-bold text-sm">{item.quantity}</div>
+                    <button
+                      className="w-12 hover:bg-muted h-full transition-colors flex items-center justify-center"
+                      onClick={() => handleUpdateQuantity(item.variantId, item.quantity + 1)}
+                      disabled={updateMutation.isPending}
+                    >+</button>
                   </div>
+                  <button
+                    className="text-xs uppercase tracking-widest font-bold text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2 pb-1 disabled:opacity-50"
+                    onClick={() => handleRemove(item.variantId)}
+                    disabled={removeMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t("btn.remove")}
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
 
-          <div className="mt-6 flex justify-between items-center">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
-              <Link href="/products">{t("btn.continueShopping")}</Link>
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleClear} disabled={clearMutation.isPending} className="text-muted-foreground">
+          <div className="mt-8 flex justify-between items-center">
+            <Link href="/products" className="text-sm uppercase tracking-widest font-bold border-b border-foreground pb-1 hover:text-muted-foreground hover:border-muted-foreground transition-colors">
+              {t("btn.continueShopping")}
+            </Link>
+            <button onClick={handleClear} disabled={clearMutation.isPending} className="text-sm uppercase tracking-widest font-bold text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50">
               {t("btn.clearCart")}
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Order Summary */}
         <div className="lg:w-1/3">
-          <div className="bg-muted/30 p-8 border border-border sticky top-24 space-y-6">
-            <h2 className="font-serif text-2xl font-bold border-b border-border pb-4">{t("cart.orderSummary")}</h2>
+          <div className="bg-muted/10 p-8 border border-border sticky top-32 space-y-8">
+            <h2 className="font-serif text-2xl font-bold uppercase tracking-widest border-b border-border pb-6">{t("cart.orderSummary")}</h2>
 
             {/* Coupon */}
-            <div>
-              <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
-                <Tag className="h-3.5 w-3.5" /> {t("cart.haveCoupon")}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                <Tag className="h-4 w-4 text-muted-foreground" /> {t("cart.haveCoupon")}
               </p>
               {coupon ? (
-                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded px-3 py-2">
-                  <span className="text-sm font-medium text-green-700">{coupon.code} {t("cart.applied")}</span>
-                  <button onClick={handleRemoveCoupon} className="text-green-600 hover:text-green-800 ms-2">
-                    <X className="h-4 w-4" />
+                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 px-4 py-3">
+                  <span className="text-sm font-bold text-emerald-800 uppercase tracking-widest">{coupon.code} {t("cart.applied")}</span>
+                  <button onClick={handleRemoveCoupon} className="text-emerald-600 hover:text-emerald-900 transition-colors">
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-0">
                   <Input
                     placeholder={t("cart.enterCode")}
                     value={couponInput}
                     onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
                     onKeyDown={e => e.key === "Enter" && handleApplyCoupon()}
-                    className="uppercase text-sm h-9"
+                    className="uppercase text-sm h-12 rounded-none border-r-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-muted-foreground/50 font-bold tracking-widest"
                   />
-                  <Button size="sm" variant="outline" onClick={handleApplyCoupon} disabled={couponLoading || !couponInput.trim()}>
-                    {couponLoading ? "…" : t("btn.apply")}
+                  <Button size="sm" variant="outline" onClick={handleApplyCoupon} disabled={couponLoading || !couponInput.trim()} className="h-12 rounded-none uppercase tracking-widest text-xs font-bold px-6">
+                    {couponLoading ? "..." : t("btn.apply")}
                   </Button>
                 </div>
               )}
-              {couponError && <p className="text-xs text-destructive mt-1">{couponError}</p>}
+              {couponError && <p className="text-xs text-destructive font-bold uppercase tracking-widest mt-2">{couponError}</p>}
             </div>
 
             {/* Totals */}
-            <div className="space-y-3">
+            <div className="space-y-4 pt-4 border-t border-border">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("common.subtotal")} ({totalItems} {totalItems === 1 ? t("common.item") : t("common.items")})</span>
-                <span>{subtotal.toFixed(2)} EGP</span>
+                <span className="text-muted-foreground">{t("common.subtotal")}</span>
+                <span className="font-medium">{subtotal.toFixed(2)} EGP</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between text-sm text-green-600 font-medium">
-                  <span>{t("common.discount")}</span>
+                <div className="flex justify-between text-sm text-destructive font-bold">
+                  <span className="uppercase tracking-widest">{t("common.discount")}</span>
                   <span>−{discount.toFixed(2)} EGP</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t("common.shipping")}</span>
-                <span className="text-green-600 font-medium">{t("common.free")}</span>
+                <span className="text-emerald-600 font-bold uppercase tracking-widest">{t("common.free")}</span>
               </div>
             </div>
 
-            <div className="border-t border-border pt-4">
+            <div className="border-t border-foreground pt-6 mt-6">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-xl">{t("common.total")}</span>
-                <span className="font-bold text-2xl">{total.toFixed(2)} EGP</span>
+                <span className="font-bold uppercase tracking-widest">{t("common.total")}</span>
+                <span className="font-serif text-3xl font-bold">{total.toFixed(2)} EGP</span>
               </div>
             </div>
 
             <Button
               size="lg"
-              className="w-full rounded-none uppercase tracking-widest h-14 text-lg"
+              className="w-full rounded-none uppercase tracking-widest h-16 text-sm font-bold mt-4 hover:bg-primary/90 transition-colors"
               onClick={() => setLocation(checkoutUrl)}
             >
               {t("btn.proceedToCheckout")}

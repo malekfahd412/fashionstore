@@ -1,6 +1,7 @@
 import React from "react";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
+import CartDrawer from "@/components/CartDrawer";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
       <Navbar />
+      <CartDrawer />
       <main id="main-content" className="flex-1 flex flex-col">
         {children}
       </main>

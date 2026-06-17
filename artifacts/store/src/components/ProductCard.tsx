@@ -7,6 +7,7 @@ import { useAddToWishlist, useRemoveFromWishlist, useAddToCart, getGetWishlistQu
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGuestCart } from "@/hooks/useGuestCart";
 import { useToast } from "@/hooks/use-toast";
+import { useCartDrawer } from "@/contexts/CartDrawerContext";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -37,9 +38,9 @@ export interface ProductCardProps {
 export function ProductCardSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="aspect-[3/4] bg-muted mb-4" />
-      <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-      <div className="h-4 bg-muted rounded w-1/3" />
+      <div className="aspect-[3/4] bg-muted mb-4 overflow-hidden" />
+      <div className="h-4 bg-muted rounded-none w-3/4 mb-2" />
+      <div className="h-4 bg-muted rounded-none w-1/3" />
     </div>
   );
 }
@@ -50,6 +51,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
   const { toast } = useToast();
   const qc = useQueryClient();
   const guestCart = useGuestCart();
+  const { openCart } = useCartDrawer();
   const [isHovered, setIsHovered] = useState(false);
 
   const { data: wishlist } = useQuery({
@@ -118,7 +120,10 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
       });
       addToCartMutation.mutate({ data: { variantId: v.id, quantity: 1 } }, {
         onError: () => { qc.setQueryData(cartKey, previous); },
-        onSuccess: () => toast({ title: t("product.addedToCart") }),
+        onSuccess: () => {
+          toast({ title: t("product.addedToCart") });
+          openCart();
+        },
         onSettled: () => { qc.invalidateQueries({ queryKey: cartKey }); },
       });
     } else {
@@ -136,6 +141,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
         quantity: 1,
       });
       toast({ title: t("product.addedToCart") });
+      openCart();
     }
   };
 
@@ -151,7 +157,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
   return (
     <Link href={`/products/${id}`} className="group block">
       <div
-        className="relative aspect-[3/4] overflow-hidden bg-muted mb-3"
+        className="relative aspect-[3/4] overflow-hidden bg-muted mb-4"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -163,54 +169,54 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">{t("product.noImage")}</div>
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs bg-muted/50">{t("product.noImage")}</div>
         )}
+        
+        <div className={`absolute inset-0 bg-black/10 transition-opacity duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
 
-        {/* Sale badge */}
         {savePct && (
-          <div className="absolute top-2 left-2 bg-destructive text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
-            -{savePct}%
+          <div className="absolute top-3 left-3 bg-destructive text-white text-[11px] font-bold px-3 py-1 uppercase tracking-widest shadow-sm">
+            SALE {savePct}%
           </div>
         )}
 
-        {/* Wishlist button */}
         <button
           onClick={handleWishlist}
-          className={`absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-white shadow-sm transition-all duration-200 ${
-            isHovered || isWishlisted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
+          className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-md hover:scale-110 transition-all duration-300 ${
+            isHovered || isWishlisted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
           }`}
           aria-label={isWishlisted ? t("product.removedFromWishlist") : t("product.savedToWishlist")}
         >
           <Heart
-            className={`w-4 h-4 transition-colors ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`}
+            className={`w-4 h-4 transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-foreground"}`}
           />
         </button>
 
-        {/* Quick add (single-variant only) */}
         {canQuickAdd && (
           <div
-            className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${
-              isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+            className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-300 ${
+              isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
             }`}
           >
             <button
               onClick={handleQuickAdd}
-              className="w-full bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest py-3 flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
+              className="w-full bg-background/95 backdrop-blur text-foreground text-xs font-bold uppercase tracking-widest py-3.5 flex items-center justify-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors shadow-lg"
             >
-              <ShoppingBag className="w-3.5 h-3.5" />
+              <ShoppingBag className="w-4 h-4" />
               {t("btn.quickAdd")}
             </button>
           </div>
         )}
       </div>
 
-      <div className="space-y-1">
-        <h3 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors leading-tight">
+      <div className="space-y-1.5 px-1">
+        <h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
           {displayName}
         </h3>
+        
         {hasRating && (
-          <div className="flex items-center gap-1">
-            <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1 mt-0.5">
+            <div className="flex items-center">
               {[1, 2, 3, 4, 5].map(i => (
                 <Star
                   key={i}
@@ -218,12 +224,13 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
                 />
               ))}
             </div>
-            <span className="text-xs text-muted-foreground">
-              {averageRating!.toFixed(1)} ({reviewCount})
+            <span className="text-xs text-muted-foreground ml-1">
+              ({reviewCount})
             </span>
           </div>
         )}
-        <div className="flex items-center gap-2 text-sm">
+        
+        <div className="flex items-center gap-3 text-sm mt-1">
           {displaySalePrice ? (
             <>
               <span className="font-bold text-destructive">{displaySalePrice} EGP</span>

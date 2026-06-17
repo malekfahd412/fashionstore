@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { CartDrawerProvider } from "@/contexts/CartDrawerContext";
 import { Layout } from "@/components/layout/Layout";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -103,12 +104,14 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <LanguageProvider>
-            <TooltipProvider>
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <Router />
-              </WouterRouter>
-              <Toaster />
-            </TooltipProvider>
+            <CartDrawerProvider>
+              <TooltipProvider>
+                <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                  <Router />
+                </WouterRouter>
+                <Toaster />
+              </TooltipProvider>
+            </CartDrawerProvider>
           </LanguageProvider>
         </AuthProvider>
       </QueryClientProvider>
