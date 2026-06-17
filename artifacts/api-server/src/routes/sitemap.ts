@@ -5,7 +5,7 @@ import { eq, desc } from "drizzle-orm";
 const router: IRouter = Router();
 
 router.get("/sitemap.xml", async (_req, res): Promise<void> => {
-  const BASE_URL = process.env.PUBLIC_URL ?? "https://luxe-fashion.replit.app";
+  const BASE_URL = process.env.PUBLIC_URL ?? `https://${process.env.REPLIT_DEV_DOMAIN ?? "localhost:5000"}`;
 
   const [products, categories] = await Promise.all([
     db.select({ id: productsTable.id, updatedAt: productsTable.updatedAt })

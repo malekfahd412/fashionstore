@@ -15,8 +15,8 @@ export default function Returns() {
       ar: { title: "المنتجات غير القابلة للإرجاع", body: "لا يمكن إرجاع المنتجات التالية: الملابس الداخلية وملابس السباحة (لأسباب صحية)، المجوهرات المثقوبة، منتجات البيع النهائي، وبطاقات الهدايا." },
     },
     {
-      en: { title: "How to Return", body: "1. Contact our support team at support@luxefashion.com with your order number and reason for return.\n2. We will provide return instructions and a shipping label within 24 hours.\n3. Pack items securely and drop off at the nearest courier.\n4. Refunds are processed within 5-7 business days of receiving the return." },
-      ar: { title: "كيفية الإرجاع", body: "1. تواصل مع فريق الدعم على support@luxefashion.com مع رقم طلبك وسبب الإرجاع.\n2. سنوفر تعليمات الإرجاع وملصق الشحن خلال 24 ساعة.\n3. احزم المنتجات بأمان وأودعها لدى أقرب ساعي.\n4. تتم معالجة المبالغ المستردة خلال 5-7 أيام عمل من استلام المرتجع." },
+      en: { title: "How to Return", body: "1. Contact our support team via the Contact Us page with your order number and reason for return.\n2. We will provide return instructions and a shipping label within 24 hours.\n3. Pack items securely and drop off at the nearest courier.\n4. Refunds are processed within 5-7 business days of receiving the return." },
+      ar: { title: "كيفية الإرجاع", body: "1. تواصل مع فريق الدعم عبر صفحة اتصل بنا مع رقم طلبك وسبب الإرجاع.\n2. سنوفر تعليمات الإرجاع وملصق الشحن خلال 24 ساعة.\n3. احزم المنتجات بأمان وأودعها لدى أقرب ساعي.\n4. تتم معالجة المبالغ المستردة خلال 5-7 أيام عمل من استلام المرتجع." },
     },
     {
       en: { title: "Exchanges", body: "We offer free exchanges for the wrong size or colour within 14 days of delivery. Contact us and we'll arrange pickup and delivery of the replacement." },

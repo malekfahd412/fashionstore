@@ -1,15 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+interface PublicSettings {
+  social_instagram?: string;
+  social_facebook?: string;
+  social_twitter?: string;
+  social_tiktok?: string;
+}
+
 export function Footer() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<PublicSettings>({});
+
+  useEffect(() => {
+    void fetch(`${BASE}/api/settings`)
+      .then(r => r.json() as Promise<PublicSettings>)
+      .then(data => setSettings(data))
+      .catch(() => {});
+  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,19 +54,28 @@ export function Footer() {
     }
   };
 
+  const socials = [
+    { label: "IG", href: settings.social_instagram },
+    { label: "FB", href: settings.social_facebook },
+    { label: "TW", href: settings.social_twitter },
+    { label: "TK", href: settings.social_tiktok },
+  ].filter(s => s.href);
+
   return (
     <footer className="bg-foreground text-background py-12 mt-auto">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
         <div className="lg:col-span-2">
           <h3 className="font-serif text-2xl font-bold mb-4">Velora</h3>
           <p className="text-background/70 text-sm mb-4">{t("footer.tagline")}</p>
-          <div className="flex gap-3">
-            {["IG", "FB", "TW", "TK"].map((s) => (
-              <a key={s} href="#" className="w-8 h-8 border border-background/30 flex items-center justify-center hover:bg-background/10 transition-colors text-xs font-medium text-background/70 hover:text-white">
-                {s}
-              </a>
-            ))}
-          </div>
+          {socials.length > 0 && (
+            <div className="flex gap-3">
+              {socials.map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="w-8 h-8 border border-background/30 flex items-center justify-center hover:bg-background/10 transition-colors text-xs font-medium text-background/70 hover:text-white">
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
