@@ -105,7 +105,7 @@ export async function sendOrderPlacedWhatsApp(
   const url = appUrl() ? `\n\nTrack: ${appUrl()}/order/${orderId}/tracking` : "";
   await send(
     phone,
-    `✅ *${storeName()}* — Order #${orderId} Confirmed!\n\nThank you for your order. Total: $${total.toFixed(2)}.${url}`,
+    `✅ *${storeName()}* — Order #${orderId} Confirmed!\n\nThank you for your order. Total: ${total.toFixed(2)} EGP.${url}`,
   );
 }
 

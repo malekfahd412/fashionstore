@@ -110,7 +110,7 @@ export async function sendOrderConfirmationEmail(
     <tr>
       <td style="padding:8px 0;border-bottom:1px solid #eee">${i.nameEn}</td>
       <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:center">${i.quantity}</td>
-      <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right">$${(i.price * i.quantity).toFixed(2)}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right">${(i.price * i.quantity).toFixed(2)} EGP</td>
     </tr>
   `).join("");
 
@@ -130,7 +130,7 @@ export async function sendOrderConfirmationEmail(
       <tfoot>
         <tr>
           <td colspan="2" style="padding:12px 0;font-weight:bold">Total</td>
-          <td style="padding:12px 0;font-weight:bold;text-align:right">$${total.toFixed(2)}</td>
+          <td style="padding:12px 0;font-weight:bold;text-align:right">${total.toFixed(2)} EGP</td>
         </tr>
       </tfoot>
     </table>
@@ -180,7 +180,7 @@ export async function sendVendorNewOrderEmail(
     <div style="background:#f9f9f9;padding:20px;margin:20px 0">
       <p style="margin:0 0 8px"><strong>Order:</strong> #${orderId}</p>
       <p style="margin:0 0 8px"><strong>Items:</strong> ${itemCount}</p>
-      <p style="margin:0"><strong>Total:</strong> $${total.toFixed(2)}</p>
+      <p style="margin:0"><strong>Total:</strong> ${total.toFixed(2)} EGP</p>
     </div>
     <div style="text-align:center">
       <a href="${APP_URL()}/dashboard/vendor" style="${btnStyle}">VIEW ORDER</a>
@@ -278,7 +278,7 @@ export async function sendPaymentSuccessEmail(
     <div style="background:#f9f9f9;padding:20px;margin:20px 0">
       <p style="margin:0 0 8px"><strong>Order:</strong> #${orderId}</p>
       <p style="margin:0 0 8px"><strong>Payment Method:</strong> ${methodLabel}</p>
-      <p style="margin:0"><strong>Amount Paid:</strong> $${total.toFixed(2)}</p>
+      <p style="margin:0"><strong>Amount Paid:</strong> ${total.toFixed(2)} EGP</p>
     </div>
     <p style="line-height:1.7;color:#444">We're now processing your order and will notify you when it ships.</p>
     <div style="text-align:center">
@@ -296,7 +296,7 @@ export async function sendPaymentFailedEmail(
   await send(email, `Payment Failed — Order #${orderId}`, wrap(`
     <h2 style="font-size:22px;font-weight:400;margin:0 0 8px;color:#b91c1c">Payment Failed</h2>
     <p style="color:#888;margin:0 0 24px">Order #${orderId}</p>
-    <p style="line-height:1.7;color:#444">Hi ${name}, unfortunately your payment of <strong>$${total.toFixed(2)}</strong> for order #${orderId} could not be processed.</p>
+    <p style="line-height:1.7;color:#444">Hi ${name}, unfortunately your payment of <strong>${total.toFixed(2)} EGP</strong> for order #${orderId} could not be processed.</p>
     <p style="line-height:1.7;color:#444">Your order has been placed but payment is still pending. Please try paying again or use a different payment method.</p>
     <div style="background:#fff5f5;padding:20px;margin:20px 0;border-left:3px solid #b91c1c">
       <p style="margin:0;font-size:14px;color:#b91c1c">Common reasons: insufficient funds, card declined, or session timeout.</p>

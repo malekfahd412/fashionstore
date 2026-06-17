@@ -16,3 +16,4 @@
 - [Payment history endpoint](payment-history.md) — GET /payments/my returns { paymob: PaymobEntry[], manual: ManualEntry[] }; paymob uses amountCents (not amount); joins with ordersTable to scope to user; manual joins include orderTotal from ordersTable.
 - [Contact reply flow](contact-reply.md) — POST /admin/contact-messages/:id/reply sends email via sendContactReply then updates status="replied"; email send is non-blocking void IIFE; reply UI in AdminContactMessagesTab has replyText/replying/replySuccess state.
 - [useSEO hook](seo-hook.md) — artifacts/store/src/hooks/useSEO.ts; updates document.title to `${title} — Velora` and meta description; restores on unmount; call unconditionally (Rules of Hooks) — pass undefined title for dynamic data loaded async.
+- [Currency is EGP everywhere](egp-currency.md) — all price displays, chart axes/tooltips, email bodies, WhatsApp messages, and notification strings use EGP (not $); grep `\$\${` to catch regressions.

@@ -228,7 +228,7 @@
   "auth.emailPlaceholder": "أدخل بريدك الإلكتروني",
   "auth.password": "كلمة المرور",
   "auth.passwordPlaceholder": "أدخل كلمة المرور",
-  "auth.newPasswordPlaceholder": "أنشئ كلمة مرور (٦ أحرف على الأقل)",
+  "auth.newPasswordPlaceholder": "أنشئ كلمة مرور (٨ أحرف على الأقل)",
   "auth.confirmPassword": "تأكيد كلمة المرور",
   "auth.confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
   "auth.fullName": "الاسم الكامل",
@@ -499,5 +499,40 @@
   "dash.paymentType.paymob": "بطاقة (Paymob)",
   "dash.paymentType.manual": "تحويل يدوي",
   "dash.paymentRef": "مرجع #",
-  "dash.paymentNote": "ملاحظة"
+  "dash.paymentNote": "ملاحظة",
+
+  "dash.tab.overview": "نظرة عامة",
+  "dash.tab.orders": "الطلبات",
+  "dash.tab.tracking": "تتبع الطلبات",
+  "dash.tab.addresses": "العناوين",
+  "dash.tab.wishlist": "المفضلة",
+  "dash.tab.myReviews": "تقييماتي",
+  "dash.tab.support": "الدعم",
+  "dash.tab.notifications": "الإشعارات",
+  "dash.tab.security": "الأمان",
+  "dash.tab.profile": "الملف الشخصي",
+
+  "dash.searchOrders": "البحث في الطلبات…",
+  "dash.trackBtn": "تتبع",
+  "dash.orderPlacedLabel": "تم الطلب",
+  "dash.deliveredLabel": "تم التسليم",
+
+  "dash.emailNote": "لا يمكن تغيير البريد الإلكتروني بعد التسجيل.",
+  "dash.emailPref.orderUpdates": "تحديثات الطلبات",
+  "dash.emailPref.orderUpdatesDesc": "إشعارات الشحن والتسليم وتغييرات الحالة",
+  "dash.emailPref.promotions": "العروض والتخفيضات",
+  "dash.emailPref.promotionsDesc": "التخفيضات والوصولات الجديدة والصفقات الحصرية",
+  "dash.emailPref.securityAlerts": "تنبيهات الأمان",
+  "dash.emailPref.securityAlertsDesc": "تسجيل دخول من أجهزة جديدة وتحذيرات الحساب",
+
+  "dash.noReviewsHint": "تسوق وراجع مشترياتك لرؤيتها هنا.",
+
+  "dash.openTicket": "فتح تذكرة",
+  "dash.ticketCategory": "الفئة",
+  "dash.ticketSubject": "الموضوع",
+  "dash.ticketSubjectPlaceholder": "وصف مختصر لمشكلتك…",
+  "dash.ticketMessage": "الرسالة",
+  "dash.ticketMessagePlaceholder": "اشرح مشكلتك بالتفصيل…",
+  "dash.ticketRequired": "الموضوع والرسالة مطلوبان",
+  "dash.ticketOpened2": "تم الفتح"
 }

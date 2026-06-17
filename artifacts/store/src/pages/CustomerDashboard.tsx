@@ -1055,7 +1055,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
                   className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">{t("reviews.comment")}</label>
+                <label className="text-sm font-medium mb-2 block">{t("reviews.commentLabel")}</label>
                 <textarea rows={4} maxLength={2000} value={editForm.comment}
                   onChange={e => setEditForm(f => ({ ...f, comment: e.target.value }))}
                   className="w-full border border-border px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-none" />

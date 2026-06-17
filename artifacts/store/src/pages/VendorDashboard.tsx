@@ -4,9 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
-  useGetVendorSummary, useListProducts, useListOrders, useGetSalesTimeline, useGetTopProducts, useCreateProduct, useListCategories,
+  useGetVendorSummary, useListProducts, useListOrders, useGetSalesTimeline, useGetTopProducts,
+  useCreateProduct, useUpdateProduct, useListCategories,
   getGetVendorSummaryQueryKey, getListProductsQueryKey, getListOrdersQueryKey, getGetSalesTimelineQueryKey, getGetTopProductsQueryKey,
 } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -19,8 +21,10 @@ export default function VendorDashboard() {
   const [, setLocation] = useLocation();
   const { language } = useLanguage();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("overview");
+
   const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
   const [productForm, setProductForm] = useState({
     nameEn: "", nameAr: "", descriptionEn: "", descriptionAr: "",
@@ -28,6 +32,14 @@ export default function VendorDashboard() {
     images: [""], variants: [{ color: "", size: "", stockQuantity: "0" }],
   });
   const [productFormError, setProductFormError] = useState("");
+
+  const [isEditProductOpen, setIsEditProductOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({
+    nameEn: "", nameAr: "", descriptionEn: "", descriptionAr: "",
+    price: "", salePrice: "", categoryId: "", active: true, images: [""],
+  });
+  const [editFormError, setEditFormError] = useState("");
 
   const { data: categories } = useListCategories();
   const { data: summary } = useGetVendorSummary({ query: { enabled: !!user, queryKey: getGetVendorSummaryQueryKey() } });
@@ -37,6 +49,7 @@ export default function VendorDashboard() {
   const { data: topProducts } = useGetTopProducts({ query: { enabled: !!user, queryKey: getGetTopProductsQueryKey() } });
 
   const createProductMutation = useCreateProduct();
+  const updateProductMutation = useUpdateProduct();
 
   useEffect(() => {
     if (!user) setLocation("/login?from=/dashboard/vendor");
@@ -57,6 +70,23 @@ export default function VendorDashboard() {
     shipped: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
   };
 
+  function openEditDialog(product: NonNullable<typeof productsData>["products"][number]) {
+    setEditingProductId(product.id);
+    setEditForm({
+      nameEn: product.nameEn,
+      nameAr: product.nameAr,
+      descriptionEn: product.descriptionEn ?? "",
+      descriptionAr: product.descriptionAr ?? "",
+      price: String(product.price),
+      salePrice: product.salePrice ? String(product.salePrice) : "",
+      categoryId: String(product.categoryId),
+      active: product.active ?? true,
+      images: product.images?.length ? product.images.map((img: any) => img.imageUrl) : [""],
+    });
+    setEditFormError("");
+    setIsEditProductOpen(true);
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex justify-between items-center">
@@ -64,6 +94,8 @@ export default function VendorDashboard() {
           <h1 className="font-serif text-3xl font-bold mb-1">Vendor Portal</h1>
           <p className="text-muted-foreground">{user.name}</p>
         </div>
+
+        {/* ── Create Product Dialog ── */}
         <Dialog open={isCreateProductOpen} onOpenChange={(open) => {
           setIsCreateProductOpen(open);
           if (!open) {
@@ -181,12 +213,120 @@ export default function VendorDashboard() {
                       onSuccess: () => {
                         toast({ title: "Product created!" });
                         setIsCreateProductOpen(false);
+                        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey({ vendorId: user?.id }) });
                       },
                       onError: (err: Error) => setProductFormError(err.message),
                     });
                   }}
                 >
                   {createProductMutation.isPending ? "Creating…" : "Create Product"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Edit Product Dialog ── */}
+        <Dialog open={isEditProductOpen} onOpenChange={(open) => {
+          setIsEditProductOpen(open);
+          if (!open) { setEditingProductId(null); setEditFormError(""); }
+        }}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Name (English) *</label>
+                  <input value={editForm.nameEn} onChange={e => setEditForm(f => ({ ...f, nameEn: e.target.value }))}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Name (Arabic) *</label>
+                  <input value={editForm.nameAr} onChange={e => setEditForm(f => ({ ...f, nameAr: e.target.value }))} dir="rtl"
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Description (EN)</label>
+                  <textarea value={editForm.descriptionEn} onChange={e => setEditForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Description (AR)</label>
+                  <textarea value={editForm.descriptionAr} onChange={e => setEditForm(f => ({ ...f, descriptionAr: e.target.value }))} rows={2} dir="rtl"
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Price (EGP) *</label>
+                  <input type="number" min="0" step="0.01" value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Sale Price (EGP)</label>
+                  <input type="number" min="0" step="0.01" value={editForm.salePrice} onChange={e => setEditForm(f => ({ ...f, salePrice: e.target.value }))} placeholder="Leave blank if no sale"
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">Category *</label>
+                  <select value={editForm.categoryId} onChange={e => setEditForm(f => ({ ...f, categoryId: e.target.value }))}
+                    className="w-full border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option value="">Select category…</option>
+                    {categories?.map(c => <option key={c.id} value={c.id}>{c.nameEn}</option>)}
+                  </select>
+                </div>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="checkbox" checked={editForm.active} onChange={e => setEditForm(f => ({ ...f, active: e.target.checked }))} className="w-4 h-4" />
+                <span className="font-medium">Active (visible in store)</span>
+              </label>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Images (URLs)</label>
+                  <button type="button" onClick={() => setEditForm(f => ({ ...f, images: [...f.images, ""] }))} className="text-xs text-primary hover:underline">+ Add Image</button>
+                </div>
+                {editForm.images.map((url, idx) => (
+                  <div key={idx} className="flex gap-2 items-center mb-1.5">
+                    <input value={url} onChange={e => setEditForm(f => { const imgs = [...f.images]; imgs[idx] = e.target.value; return { ...f, images: imgs }; })} placeholder="https://…"
+                      className="flex-1 border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    {editForm.images.length > 1 && (
+                      <button type="button" onClick={() => setEditForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))} className="text-red-500 font-bold px-1 text-sm">✕</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {editFormError && <p className="text-sm text-destructive">{editFormError}</p>}
+              <div className="flex gap-3 justify-end pt-2 border-t">
+                <Button variant="outline" onClick={() => setIsEditProductOpen(false)}>Cancel</Button>
+                <Button
+                  disabled={updateProductMutation.isPending || !editForm.nameEn || !editForm.nameAr || !editForm.price || !editForm.categoryId || !editingProductId}
+                  onClick={() => {
+                    if (!editingProductId) return;
+                    setEditFormError("");
+                    updateProductMutation.mutate({
+                      id: editingProductId,
+                      data: {
+                        nameEn: editForm.nameEn,
+                        nameAr: editForm.nameAr,
+                        descriptionEn: editForm.descriptionEn || null,
+                        descriptionAr: editForm.descriptionAr || null,
+                        price: Number(editForm.price),
+                        salePrice: editForm.salePrice ? Number(editForm.salePrice) : null,
+                        categoryId: Number(editForm.categoryId),
+                        active: editForm.active,
+                        images: editForm.images.filter(Boolean),
+                      } as unknown as Parameters<typeof updateProductMutation.mutate>[0]["data"],
+                    }, {
+                      onSuccess: () => {
+                        toast({ title: "Product updated!" });
+                        setIsEditProductOpen(false);
+                        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey({ vendorId: user?.id }) });
+                      },
+                      onError: (err: Error) => setEditFormError(err.message),
+                    });
+                  }}
+                >
+                  {updateProductMutation.isPending ? "Saving…" : "Save Changes"}
                 </Button>
               </div>
             </div>
@@ -206,7 +346,7 @@ export default function VendorDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="border border-border p-6 bg-card">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
-              <p className="text-3xl font-bold">${summary?.totalRevenue?.toFixed(2) || "0.00"}</p>
+              <p className="text-3xl font-bold">{Number(summary?.totalRevenue || 0).toFixed(2)} EGP</p>
             </div>
             <div className="border border-border p-6 bg-card">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Orders</h3>
@@ -231,10 +371,10 @@ export default function VendorDashboard() {
                     <AreaChart data={salesTimeline}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="date" tickFormatter={(val) => format(new Date(val), "MMM dd")} />
-                      <YAxis />
+                      <YAxis tickFormatter={(val) => `${val} EGP`} />
                       <Tooltip
                         labelFormatter={(val) => format(new Date(val), "MMM dd, yyyy")}
-                        formatter={(val: number) => [`$${Number(val).toFixed(2)}`, "Revenue"]}
+                        formatter={(val: number) => [`${Number(val).toFixed(2)} EGP`, "Revenue"]}
                       />
                       <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.2} />
                     </AreaChart>
@@ -258,7 +398,7 @@ export default function VendorDashboard() {
                       <p className="text-sm text-muted-foreground">{product.totalSold} units sold</p>
                     </div>
                     <div className="text-right font-bold shrink-0">
-                      ${product.revenue.toFixed(2)}
+                      {product.revenue.toFixed(2)} EGP
                     </div>
                   </div>
                 ))}
@@ -291,7 +431,7 @@ export default function VendorDashboard() {
                         <span className="line-clamp-1">{language === 'en' ? product.nameEn : product.nameAr}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-medium">${product.price}</td>
+                    <td className="px-6 py-4 font-medium">{Number(product.price).toFixed(2)} EGP</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 text-xs rounded-full ${product.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
                         {product.active ? 'Active' : 'Draft'}
@@ -299,7 +439,7 @@ export default function VendorDashboard() {
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">{format(new Date(product.createdAt), "MMM dd, yyyy")}</td>
                     <td className="px-6 py-4">
-                      <Button variant="ghost" size="sm">Edit</Button>
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(product)}>Edit</Button>
                     </td>
                   </tr>
                 ))}
@@ -338,7 +478,7 @@ export default function VendorDashboard() {
                         {order.createdAt ? format(new Date(order.createdAt), "MMM dd, yyyy") : "—"}
                       </td>
                       <td className="px-6 py-4">{order.items?.length ?? "—"}</td>
-                      <td className="px-6 py-4 font-bold">${Number(order.total ?? 0).toFixed(2)}</td>
+                      <td className="px-6 py-4 font-bold">{Number(order.total ?? 0).toFixed(2)} EGP</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${statusColors[order.status] ?? "bg-muted text-muted-foreground"}`}>
                           {order.status}
@@ -362,10 +502,10 @@ export default function VendorDashboard() {
                   <AreaChart data={salesTimeline}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="date" tickFormatter={(val) => format(new Date(val), "MMM dd")} />
-                    <YAxis tickFormatter={(val) => `$${val}`} />
+                    <YAxis tickFormatter={(val) => `${val} EGP`} />
                     <Tooltip
                       labelFormatter={(val) => format(new Date(val), "MMM dd, yyyy")}
-                      formatter={(val: number) => [`$${Number(val).toFixed(2)}`, "Revenue"]}
+                      formatter={(val: number) => [`${Number(val).toFixed(2)} EGP`, "Revenue"]}
                     />
                     <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.15} strokeWidth={2} />
                   </AreaChart>

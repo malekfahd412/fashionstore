@@ -213,7 +213,7 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
       await tx.insert(notificationsTable).values({
         userId: req.user!.id,
         title: "Order Placed",
-        message: `Your order #${newOrder.id} has been placed successfully. Total: $${totalPrice.toFixed(2)}`,
+        message: `Your order #${newOrder.id} has been placed successfully. Total: ${totalPrice.toFixed(2)} EGP`,
       });
 
       return newOrder;

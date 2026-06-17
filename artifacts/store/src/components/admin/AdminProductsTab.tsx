@@ -406,10 +406,10 @@ export default function AdminProductsTab() {
                       <td className="px-3 py-3 font-bold whitespace-nowrap">
                         {product.salePrice ? (
                           <>
-                            <span className="text-primary">${product.salePrice.toFixed(2)}</span>
-                            <span className="text-xs text-muted-foreground line-through ml-1">${product.price.toFixed(2)}</span>
+                            <span className="text-primary">{product.salePrice.toFixed(2)} EGP</span>
+                            <span className="text-xs text-muted-foreground line-through ml-1">{product.price.toFixed(2)} EGP</span>
                           </>
-                        ) : `$${product.price.toFixed(2)}`}
+                        ) : `${product.price.toFixed(2)} EGP`}
                       </td>
                       <td className="px-3 py-3 text-center">{product.variants.length}</td>
                       <td className="px-3 py-3">

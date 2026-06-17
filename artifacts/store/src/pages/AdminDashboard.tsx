@@ -183,7 +183,7 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             <h1 className="text-3xl font-bold font-serif">Platform Overview</h1>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard label="Total Revenue" value={`$${summary?.totalRevenue?.toFixed(2) ?? "0.00"}`} sub={`${(summary?.revenueGrowth ?? 0) >= 0 ? '↑' : '↓'} ${Math.abs(summary?.revenueGrowth ?? 0)}% vs last month`} subColor={(summary?.revenueGrowth ?? 0) >= 0 ? 'text-green-600' : 'text-red-500'} />
+              <StatCard label="Total Revenue" value={`${summary?.totalRevenue?.toFixed(2) ?? "0.00"} EGP`} sub={`${(summary?.revenueGrowth ?? 0) >= 0 ? '↑' : '↓'} ${Math.abs(summary?.revenueGrowth ?? 0)}% vs last month`} subColor={(summary?.revenueGrowth ?? 0) >= 0 ? 'text-green-600' : 'text-red-500'} />
               <StatCard label="Total Orders" value={summary?.totalOrders ?? 0} sub={`${summary?.pendingOrders ?? 0} pending`} />
               <StatCard label="Customers" value={summary?.totalCustomers ?? 0} />
               <StatCard label="Active Products" value={summary?.totalProducts ?? 0} sub={`${summary?.lowStockCount ?? 0} low stock`} subColor="text-amber-500" />
@@ -198,8 +198,8 @@ export default function AdminDashboard() {
                       <AreaChart data={salesTimeline}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
                         <XAxis dataKey="date" tickFormatter={(val) => format(new Date(val + "T00:00"), "MMM d")} tick={{ fontSize: 11 }} />
-                        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
-                        <RechartsTooltip formatter={(v: number) => [`$${v.toFixed(2)}`, "Revenue"]} labelFormatter={(val) => format(new Date(val + "T00:00"), "MMM dd, yyyy")} />
+                        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${v} EGP`} />
+                        <RechartsTooltip formatter={(v: number) => [`${v.toFixed(2)} EGP`, "Revenue"]} labelFormatter={(val) => format(new Date(val + "T00:00"), "MMM dd, yyyy")} />
                         <Area type="monotone" dataKey="revenue" stroke="#065f46" fill="#065f46" fillOpacity={0.15} strokeWidth={2} />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -268,10 +268,10 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold font-serif">Business Intelligence</h1>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard label="Today's Revenue" value={`$${bi?.dailyRevenue?.toFixed(2) ?? "0.00"}`} />
-              <StatCard label="This Week" value={`$${bi?.weeklyRevenue?.toFixed(2) ?? "0.00"}`} />
-              <StatCard label="This Month" value={`$${bi?.monthlyRevenue?.toFixed(2) ?? "0.00"}`} />
-              <StatCard label="Avg Order Value" value={`$${bi?.averageOrderValue?.toFixed(2) ?? "0.00"}`} />
+              <StatCard label="Today's Revenue" value={`${bi?.dailyRevenue?.toFixed(2) ?? "0.00"} EGP`} />
+              <StatCard label="This Week" value={`${bi?.weeklyRevenue?.toFixed(2) ?? "0.00"} EGP`} />
+              <StatCard label="This Month" value={`${bi?.monthlyRevenue?.toFixed(2) ?? "0.00"} EGP`} />
+              <StatCard label="Avg Order Value" value={`${bi?.averageOrderValue?.toFixed(2) ?? "0.00"} EGP`} />
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

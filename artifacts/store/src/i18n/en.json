@@ -228,7 +228,7 @@
   "auth.emailPlaceholder": "Enter your email",
   "auth.password": "Password",
   "auth.passwordPlaceholder": "Enter your password",
-  "auth.newPasswordPlaceholder": "Create a password (min. 6 characters)",
+  "auth.newPasswordPlaceholder": "Create a password (min. 8 characters)",
   "auth.confirmPassword": "Confirm Password",
   "auth.confirmPasswordPlaceholder": "Re-enter your password",
   "auth.fullName": "Full Name",
@@ -499,5 +499,40 @@
   "dash.paymentType.paymob": "Card (Paymob)",
   "dash.paymentType.manual": "Manual Transfer",
   "dash.paymentRef": "Ref #",
-  "dash.paymentNote": "Note"
+  "dash.paymentNote": "Note",
+
+  "dash.tab.overview": "Overview",
+  "dash.tab.orders": "Orders",
+  "dash.tab.tracking": "Order Tracking",
+  "dash.tab.addresses": "Addresses",
+  "dash.tab.wishlist": "Wishlist",
+  "dash.tab.myReviews": "My Reviews",
+  "dash.tab.support": "Support",
+  "dash.tab.notifications": "Notifications",
+  "dash.tab.security": "Security",
+  "dash.tab.profile": "Profile",
+
+  "dash.searchOrders": "Search orders…",
+  "dash.trackBtn": "Track",
+  "dash.orderPlacedLabel": "Placed",
+  "dash.deliveredLabel": "Delivered",
+
+  "dash.emailNote": "Email cannot be changed after registration.",
+  "dash.emailPref.orderUpdates": "Order Updates",
+  "dash.emailPref.orderUpdatesDesc": "Shipping, delivery and status change notifications",
+  "dash.emailPref.promotions": "Promotions & Offers",
+  "dash.emailPref.promotionsDesc": "Sales, new arrivals, and exclusive deals",
+  "dash.emailPref.securityAlerts": "Security Alerts",
+  "dash.emailPref.securityAlertsDesc": "New device logins and account warnings",
+
+  "dash.noReviewsHint": "Shop and review your purchases to see them here.",
+
+  "dash.openTicket": "Open a Ticket",
+  "dash.ticketCategory": "Category",
+  "dash.ticketSubject": "Subject",
+  "dash.ticketSubjectPlaceholder": "Briefly describe your issue…",
+  "dash.ticketMessage": "Message",
+  "dash.ticketMessagePlaceholder": "Describe your issue in detail…",
+  "dash.ticketRequired": "Subject and message are required",
+  "dash.ticketOpened2": "Opened"
 }

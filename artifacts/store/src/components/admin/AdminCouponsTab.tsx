@@ -235,10 +235,10 @@ export default function AdminCouponsTab() {
                       <td className="px-4 py-3 font-mono font-bold">{c.code}</td>
                       <td className="px-4 py-3 capitalize">{c.discountType}</td>
                       <td className="px-4 py-3 font-bold">
-                        {c.discountType === "percentage" ? `${c.discountValue}%` : `$${c.discountValue.toFixed(2)}`}
+                        {c.discountType === "percentage" ? `${c.discountValue}%` : `${c.discountValue.toFixed(2)} EGP`}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {c.minOrderValue ? `$${c.minOrderValue}` : "—"}
+                        {c.minOrderValue ? `${c.minOrderValue} EGP` : "—"}
                       </td>
                       <td className="px-4 py-3">
                         <span className={c.usageLimit && c.usageCount >= c.usageLimit ? "text-red-600 font-bold" : ""}>
