@@ -248,7 +248,7 @@ export default function AdminDashboard() {
                         <td className="px-4 py-3 font-bold">#{o.id}</td>
                         <td className="px-4 py-3">{o.userName || `User ${o.userId}`}</td>
                         <td className="px-4 py-3 text-muted-foreground">{format(new Date(o.createdAt), "MMM d, yyyy")}</td>
-                        <td className="px-4 py-3 font-bold">${o.totalPrice.toFixed(2)}</td>
+                        <td className="px-4 py-3 font-bold">{o.totalPrice.toFixed(2)} EGP</td>
                         <td className="px-4 py-3"><span className="px-2 py-1 bg-muted text-xs uppercase tracking-wide">{o.status}</span></td>
                       </tr>
                     ))}
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
                         <span>{c.nameEn}</span>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold">${c.revenue.toFixed(0)}</div>
+                        <div className="font-bold">{c.revenue.toFixed(0)} EGP</div>
                         <div className="text-xs text-muted-foreground">{c.totalSold} sold</div>
                       </div>
                     </div>
@@ -325,7 +325,7 @@ export default function AdminDashboard() {
                         <div className="text-xs text-muted-foreground">{v.productCount} products · {v.totalSold} sold</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold">${v.revenue.toFixed(0)}</div>
+                        <div className="font-bold">{v.revenue.toFixed(0)} EGP</div>
                       </div>
                     </div>
                   ))}

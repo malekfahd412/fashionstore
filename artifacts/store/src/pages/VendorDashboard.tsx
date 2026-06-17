@@ -44,7 +44,7 @@ export default function VendorDashboard() {
   const { data: categories } = useListCategories();
   const { data: summary } = useGetVendorSummary({ query: { enabled: !!user, queryKey: getGetVendorSummaryQueryKey() } });
   const { data: productsData } = useListProducts({ vendorId: user?.id }, { query: { enabled: !!user, queryKey: getListProductsQueryKey({ vendorId: user?.id }) } });
-  const { data: ordersData } = useListOrders({ userId: user?.id }, { query: { enabled: !!user, queryKey: getListOrdersQueryKey({ userId: user?.id }) } });
+  const { data: ordersData } = useListOrders({ vendorId: user?.id }, { query: { enabled: !!user, queryKey: getListOrdersQueryKey({ vendorId: user?.id }) } });
   const { data: salesTimeline } = useGetSalesTimeline({ period: 'month' }, { query: { enabled: !!user, queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) } });
   const { data: topProducts } = useGetTopProducts({ query: { enabled: !!user, queryKey: getGetTopProductsQueryKey() } });
 
@@ -478,7 +478,7 @@ export default function VendorDashboard() {
                         {order.createdAt ? format(new Date(order.createdAt), "MMM dd, yyyy") : "—"}
                       </td>
                       <td className="px-6 py-4">{order.items?.length ?? "—"}</td>
-                      <td className="px-6 py-4 font-bold">{Number(order.total ?? 0).toFixed(2)} EGP</td>
+                      <td className="px-6 py-4 font-bold">{Number(order.totalPrice ?? 0).toFixed(2)} EGP</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${statusColors[order.status] ?? "bg-muted text-muted-foreground"}`}>
                           {order.status}

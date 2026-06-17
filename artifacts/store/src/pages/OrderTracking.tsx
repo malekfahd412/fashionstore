@@ -347,7 +347,7 @@ export default function OrderTracking() {
                 </p>
               </div>
               <p className="text-sm font-semibold flex-shrink-0">
-                ${(item.price * item.quantity).toFixed(2)}
+                {(item.price * item.quantity).toFixed(2)} EGP
               </p>
             </div>
           ))}
@@ -357,12 +357,12 @@ export default function OrderTracking() {
           {order.discount > 0 && (
             <div className="flex justify-between text-muted-foreground">
               <span>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</span>
-              <span className="text-green-600">−${Number(order.discount).toFixed(2)}</span>
+              <span className="text-green-600">−{Number(order.discount).toFixed(2)} EGP</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-base pt-1 border-t border-border">
             <span>Total</span>
-            <span>${Number(order.totalPrice).toFixed(2)}</span>
+            <span>{Number(order.totalPrice).toFixed(2)} EGP</span>
           </div>
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground capitalize">

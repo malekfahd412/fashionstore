@@ -549,6 +549,7 @@ export const GetRelatedProductsResponse = zod.array(GetRelatedProductsResponseIt
 export const ListOrdersQueryParams = zod.object({
   "status": zod.coerce.string().optional(),
   "userId": zod.coerce.number().optional(),
+  "vendorId": zod.coerce.number().optional(),
   "page": zod.coerce.number().optional(),
   "limit": zod.coerce.number().optional()
 })

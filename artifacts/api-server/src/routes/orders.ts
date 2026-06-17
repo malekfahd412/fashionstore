@@ -105,11 +105,28 @@ async function enrichOrder(order: typeof ordersTable.$inferSelect) {
 
 router.get("/orders", requireAuth, async (req, res): Promise<void> => {
   const query = ListOrdersQueryParams.safeParse(req.query);
-  const { status, userId, page = 1, limit = 20 } = query.success ? query.data : {};
+  const { status, userId, vendorId, page = 1, limit = 20 } = query.success ? query.data : {};
   const conditions: SQL[] = [];
   if (req.user!.role === "customer") conditions.push(eq(ordersTable.userId, req.user!.id));
   else if (userId) conditions.push(eq(ordersTable.userId, Number(userId)));
   if (status) conditions.push(eq(ordersTable.status, status));
+
+  // Vendor filter: only return orders that contain at least one item from that vendor's products
+  const effectiveVendorId = vendorId ?? (req.user!.role === "vendor" ? undefined : undefined);
+  if (effectiveVendorId) {
+    const vendorOrderIds = await db
+      .selectDistinct({ orderId: orderItemsTable.orderId })
+      .from(orderItemsTable)
+      .innerJoin(productVariantsTable, eq(orderItemsTable.productVariantId, productVariantsTable.id))
+      .innerJoin(productsTable, eq(productVariantsTable.productId, productsTable.id))
+      .where(eq(productsTable.vendorId, effectiveVendorId));
+    const ids = vendorOrderIds.map(r => r.orderId);
+    if (ids.length === 0) {
+      res.json({ orders: [], total: 0, page: Number(page), limit: Number(limit) });
+      return;
+    }
+    conditions.push(inArray(ordersTable.id, ids));
+  }
 
   const [orders, total] = await Promise.all([
     db.select().from(ordersTable)

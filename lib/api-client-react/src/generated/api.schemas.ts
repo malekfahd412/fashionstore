@@ -722,6 +722,7 @@ limit?: number;
 export type ListOrdersParams = {
 status?: string;
 userId?: number;
+vendorId?: number;
 page?: number;
 limit?: number;
 };

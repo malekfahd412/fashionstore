@@ -76,8 +76,8 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
             <div><span className="text-muted-foreground">Date:</span> <strong>{format(new Date(order.createdAt), "MMM d, yyyy HH:mm")}</strong></div>
             <div><span className="text-muted-foreground">Payment:</span> <strong className="capitalize">{order.paymentMethod}</strong></div>
             {order.couponCode && <div><span className="text-muted-foreground">Coupon:</span> <strong>{order.couponCode}</strong></div>}
-            {order.discount && order.discount > 0 && <div><span className="text-muted-foreground">Discount:</span> <strong className="text-green-600">-${order.discount.toFixed(2)}</strong></div>}
-            <div><span className="text-muted-foreground">Total:</span> <strong className="text-lg">${order.totalPrice.toFixed(2)}</strong></div>
+            {order.discount && order.discount > 0 && <div><span className="text-muted-foreground">Discount:</span> <strong className="text-green-600">-{order.discount.toFixed(2)} EGP</strong></div>}
+            <div><span className="text-muted-foreground">Total:</span> <strong className="text-lg">{order.totalPrice.toFixed(2)} EGP</strong></div>
           </div>
           <div className="border-t border-border pt-4">
             <h4 className="font-semibold mb-3">Items ({order.items.length})</h4>
@@ -95,7 +95,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                       {[item.color, item.size].filter(Boolean).join(" / ")} × {item.quantity}
                     </div>
                   </div>
-                  <div className="font-bold">${(item.price * item.quantity).toFixed(2)}</div>
+                  <div className="font-bold">{(item.price * item.quantity).toFixed(2)} EGP</div>
                 </div>
               ))}
             </div>
@@ -185,7 +185,7 @@ export default function AdminOrdersTab() {
                       <td className="px-4 py-3">{order.userName || `User ${order.userId}`}</td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">{format(new Date(order.createdAt), "MMM d, yyyy")}</td>
                       <td className="px-4 py-3 text-center">{order.items.length}</td>
-                      <td className="px-4 py-3 font-bold">${order.totalPrice.toFixed(2)}</td>
+                      <td className="px-4 py-3 font-bold">{order.totalPrice.toFixed(2)} EGP</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 text-xs font-medium capitalize rounded-sm ${STATUS_COLORS[order.status] ?? "bg-muted"}`}>
                           {order.status}
