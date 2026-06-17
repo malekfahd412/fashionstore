@@ -1999,6 +1999,14 @@ components:
           type: ["string", "null"]
         discount:
           type: ["number", "null"]
+        shippingName:
+          type: ["string", "null"]
+        shippingAddress:
+          type: ["string", "null"]
+        shippingCity:
+          type: ["string", "null"]
+        shippingPhone:
+          type: ["string", "null"]
         items:
           type: array
           items:
@@ -2013,6 +2021,14 @@ components:
         paymentMethod:
           type: string
         couponCode:
+          type: string
+        shippingName:
+          type: string
+        shippingAddress:
+          type: string
+        shippingCity:
+          type: string
+        shippingPhone:
           type: string
         items:
           type: array

@@ -38,6 +38,7 @@ export default function VendorDashboard() {
   const [editForm, setEditForm] = useState({
     nameEn: "", nameAr: "", descriptionEn: "", descriptionAr: "",
     price: "", salePrice: "", categoryId: "", active: true, images: [""],
+    variants: [{ color: "", size: "", stockQuantity: "0" }],
   });
   const [editFormError, setEditFormError] = useState("");
 
@@ -58,9 +59,7 @@ export default function VendorDashboard() {
   if (!user) return null;
   if (user.role !== "vendor") return <AccessDenied reason="vendor_required" redirectTo="/dashboard/vendor" />;
 
-  const orders = Array.isArray(ordersData)
-    ? ordersData
-    : (ordersData as any)?.orders ?? [];
+  const orders = (ordersData as { orders?: unknown[] } | undefined)?.orders ?? [];
 
   const statusColors: Record<string, string> = {
     delivered: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
@@ -81,7 +80,14 @@ export default function VendorDashboard() {
       salePrice: product.salePrice ? String(product.salePrice) : "",
       categoryId: String(product.categoryId),
       active: product.active ?? true,
-      images: product.images?.length ? product.images.map((img: any) => img.imageUrl) : [""],
+      images: product.images?.length ? product.images.map((img: { imageUrl: string }) => img.imageUrl) : [""],
+      variants: product.variants?.length
+        ? product.variants.map((v: { color?: string | null; size?: string | null; stockQuantity?: number | null }) => ({
+            color: v.color ?? "",
+            size: v.size ?? "",
+            stockQuantity: String(v.stockQuantity ?? 0),
+          }))
+        : [{ color: "", size: "", stockQuantity: "0" }],
     });
     setEditFormError("");
     setIsEditProductOpen(true);
@@ -296,6 +302,25 @@ export default function VendorDashboard() {
                   </div>
                 ))}
               </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Variants (Color / Size / Stock)</label>
+                  <button type="button" onClick={() => setEditForm(f => ({ ...f, variants: [...f.variants, { color: "", size: "", stockQuantity: "0" }] }))} className="text-xs text-primary hover:underline">+ Add Variant</button>
+                </div>
+                {editForm.variants.map((v, idx) => (
+                  <div key={idx} className="flex gap-2 items-center mb-1.5">
+                    <input value={v.color} onChange={e => setEditForm(f => { const vs = f.variants.map((x, i) => i === idx ? { ...x, color: e.target.value } : x); return { ...f, variants: vs }; })} placeholder="Color"
+                      className="flex-1 border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    <input value={v.size} onChange={e => setEditForm(f => { const vs = f.variants.map((x, i) => i === idx ? { ...x, size: e.target.value } : x); return { ...f, variants: vs }; })} placeholder="Size"
+                      className="flex-1 border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    <input type="number" min="0" value={v.stockQuantity} onChange={e => setEditForm(f => { const vs = f.variants.map((x, i) => i === idx ? { ...x, stockQuantity: e.target.value } : x); return { ...f, variants: vs }; })} placeholder="Stock"
+                      className="w-20 border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    {editForm.variants.length > 1 && (
+                      <button type="button" onClick={() => setEditForm(f => ({ ...f, variants: f.variants.filter((_, i) => i !== idx) }))} className="text-red-500 font-bold px-1 text-sm">✕</button>
+                    )}
+                  </div>
+                ))}
+              </div>
               {editFormError && <p className="text-sm text-destructive">{editFormError}</p>}
               <div className="flex gap-3 justify-end pt-2 border-t">
                 <Button variant="outline" onClick={() => setIsEditProductOpen(false)}>Cancel</Button>
@@ -316,6 +341,7 @@ export default function VendorDashboard() {
                         categoryId: Number(editForm.categoryId),
                         active: editForm.active,
                         images: editForm.images.filter(Boolean),
+                        variants: editForm.variants.filter(v => v.color || v.size).map(v => ({ color: v.color, size: v.size, stockQuantity: Number(v.stockQuantity) })),
                       } as unknown as Parameters<typeof updateProductMutation.mutate>[0]["data"],
                     }, {
                       onSuccess: () => {

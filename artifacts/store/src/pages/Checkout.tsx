@@ -211,6 +211,10 @@ export default function Checkout() {
           data: {
             paymentMethod: paymentMethod,
             couponCode: couponApplied && couponCode ? couponCode : undefined,
+            shippingName: `${billing.firstName} ${billing.lastName}`.trim(),
+            shippingAddress: billing.address,
+            shippingCity: billing.city,
+            shippingPhone: billing.phone,
             items: orderItems,
           }
         }, {

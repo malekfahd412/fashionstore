@@ -18,6 +18,14 @@ export interface Order {
   couponCode?: string | null;
   /** @nullable */
   discount?: number | null;
+  /** @nullable */
+  shippingName?: string | null;
+  /** @nullable */
+  shippingAddress?: string | null;
+  /** @nullable */
+  shippingCity?: string | null;
+  /** @nullable */
+  shippingPhone?: string | null;
   items?: OrderItem[];
   createdAt: string;
 }

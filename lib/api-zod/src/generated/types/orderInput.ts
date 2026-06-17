@@ -10,5 +10,9 @@ import type { OrderItemInput } from './orderItemInput';
 export interface OrderInput {
   paymentMethod: string;
   couponCode?: string;
+  shippingName?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingPhone?: string;
   items: OrderItemInput[];
 }

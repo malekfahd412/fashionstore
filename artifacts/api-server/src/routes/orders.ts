@@ -152,7 +152,7 @@ router.get("/orders/:id", requireAuth, async (req, res): Promise<void> => {
 router.post("/orders", requireAuth, async (req, res): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const { paymentMethod, couponCode, items } = parsed.data;
+  const { paymentMethod, couponCode, items, shippingName, shippingAddress, shippingCity, shippingPhone } = parsed.data;
   if (!items || items.length === 0) { res.status(400).json({ error: "Order must contain at least one item" }); return; }
   if (items.length > 20) { res.status(400).json({ error: "Order cannot exceed 20 distinct items" }); return; }
 
@@ -216,6 +216,10 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
         paymentMethod,
         couponCode: couponCode ?? null,
         discount: String(discount),
+        shippingName: shippingName ?? null,
+        shippingAddress: shippingAddress ?? null,
+        shippingCity: shippingCity ?? null,
+        shippingPhone: shippingPhone ?? null,
         status: "new",
       }).returning();
 
@@ -363,8 +367,8 @@ router.get("/orders/:id/invoice", requireAuth, async (req, res): Promise<void> =
         .from(productsTable).where(inArray(productsTable.id, productIds))
     : [];
 
-  // Shipping address not stored per-order in this schema — skip
-  const shippingAddr = "";
+  const shippingAddr = [order.shippingName, order.shippingAddress, order.shippingCity]
+    .filter(Boolean).join(", ");
 
   const variantMap = new Map(variants.map(v => [v.id, v]));
   const productMap = new Map(products.map(p => [p.id, p]));

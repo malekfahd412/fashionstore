@@ -37,6 +37,10 @@ type Order = {
   paymentMethod: string;
   couponCode: string | null;
   discount: number;
+  shippingName: string | null;
+  shippingAddress: string | null;
+  shippingCity: string | null;
+  shippingPhone: string | null;
   createdAt: string;
   updatedAt: string;
   paidAt: string | null;
@@ -243,6 +247,19 @@ export default function OrderTracking() {
         <div className="border border-primary/20 bg-primary/5 px-5 py-3 mb-6 flex items-start gap-3">
           <Package className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="text-sm"><span className="font-medium">Tracking note:</span> {order.trackingNote}</p>
+        </div>
+      )}
+
+      {(order.shippingAddress || order.shippingName) && (
+        <div className="border border-border px-5 py-4 mb-6 flex items-start gap-3">
+          <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+          <div className="text-sm space-y-0.5">
+            <p className="font-medium text-foreground">Shipping Address</p>
+            {order.shippingName && <p className="text-muted-foreground">{order.shippingName}</p>}
+            {order.shippingAddress && <p className="text-muted-foreground">{order.shippingAddress}</p>}
+            {order.shippingCity && <p className="text-muted-foreground">{order.shippingCity}</p>}
+            {order.shippingPhone && <p className="text-muted-foreground">{order.shippingPhone}</p>}
+          </div>
         </div>
       )}
 
