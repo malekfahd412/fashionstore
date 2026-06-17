@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetMyReviews, useUpdateReview, useDeleteReview, getGetMyReviewsQueryKey } from "@workspace/api-client-react";
+import { useGetMyReviews, useUpdateReview, useDeleteReview, getGetMyReviewsQueryKey, getAdminListReviewsQueryKey, getGetProductQueryKey } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import SecurityCenterTab from "@/components/SecurityCenterTab";
@@ -953,12 +953,18 @@ function MyReviewsTab({ userId }: { userId: number }) {
   const updateMutation = useUpdateReview();
   const deleteMutation = useDeleteReview();
 
-  const [editTarget, setEditTarget] = useState<{ id: number; rating: number; title: string; comment: string } | null>(null);
+  const [editTarget, setEditTarget] = useState<{ id: number; productId: number; rating: number; title: string; comment: string } | null>(null);
   const [editForm, setEditForm] = useState({ rating: 0, title: "", comment: "" });
   const [hovered, setHovered] = useState(0);
 
-  const openEdit = (r: { id: number; rating: number; title?: string | null; comment?: string | null }) => {
-    setEditTarget({ id: r.id, rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
+  const invalidateReviews = (productId: number) => {
+    qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
+    qc.invalidateQueries({ queryKey: getAdminListReviewsQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetProductQueryKey(productId) });
+  };
+
+  const openEdit = (r: { id: number; productId: number; rating: number; title?: string | null; comment?: string | null }) => {
+    setEditTarget({ id: r.id, productId: r.productId, rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
     setEditForm({ rating: r.rating, title: r.title ?? "", comment: r.comment ?? "" });
   };
 
@@ -971,17 +977,17 @@ function MyReviewsTab({ userId }: { userId: number }) {
         onSuccess: () => {
           toast({ title: t("dash.reviewUpdated") });
           setEditTarget(null);
-          qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
+          invalidateReviews(editTarget.productId);
         },
       }
     );
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number, productId: number) => {
     deleteMutation.mutate({ id }, {
       onSuccess: () => {
         toast({ title: t("dash.reviewDeleted") });
-        qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
+        invalidateReviews(productId);
       },
     });
   };
@@ -1026,7 +1032,7 @@ function MyReviewsTab({ userId }: { userId: number }) {
                     <PenLine className="w-3.5 h-3.5 mr-1" /> {t("dash.addr.edit")}
                   </Button>
                   <Button size="sm" variant="ghost" className="h-8 px-3 text-destructive hover:text-destructive rounded-none"
-                    onClick={() => handleDelete(review.id)} disabled={deleteMutation.isPending}>
+                    onClick={() => handleDelete(review.id, review.productId)} disabled={deleteMutation.isPending}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
