@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/lib/adminFetch";
+import { getGetAnalyticsSummaryQueryKey, getGetVendorSummaryQueryKey } from "@workspace/api-client-react";
 
 type Variant = { id?: number; color: string; size: string; stockQuantity: number };
 type ProductImage = { id?: number; imageUrl: string; isPrimary: boolean };
@@ -288,23 +289,29 @@ export default function AdminProductsTab() {
   });
   const vendors = vendorData?.users ?? [];
 
+  const invalidateProductRelated = () => {
+    qc.invalidateQueries({ queryKey: ["admin-products"] });
+    qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
+  };
+
   const createProduct = useMutation({
     mutationFn: (body: ReturnType<typeof formToBody>) =>
       adminFetch("/api/products", { method: "POST", body: JSON.stringify(body) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-products"] }); setEditTarget(null); setFormError(""); },
+    onSuccess: () => { invalidateProductRelated(); setEditTarget(null); setFormError(""); },
     onError: (e: Error) => setFormError(e.message),
   });
 
   const updateProduct = useMutation({
     mutationFn: ({ id, body }: { id: number; body: Partial<ReturnType<typeof formToBody>> }) =>
       adminFetch(`/api/products/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-products"] }); setEditTarget(null); setFormError(""); },
+    onSuccess: () => { invalidateProductRelated(); setEditTarget(null); setFormError(""); },
     onError: (e: Error) => setFormError(e.message),
   });
 
   const deleteProduct = useMutation({
     mutationFn: (id: number) => adminFetch(`/api/products/${id}`, { method: "DELETE" }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-products"] }); setDeleteTarget(null); },
+    onSuccess: () => { invalidateProductRelated(); setDeleteTarget(null); },
   });
 
   const toggleActive = (p: Product) => updateProduct.mutate({ id: p.id, body: { active: !p.active } });

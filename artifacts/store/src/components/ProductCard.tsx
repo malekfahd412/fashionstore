@@ -104,11 +104,22 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
     if (!canQuickAdd) return;
     const v = variants![0];
     if (user) {
+      const cartKey = getGetCartQueryKey();
+      qc.cancelQueries({ queryKey: cartKey });
+      const previous = qc.getQueryData(cartKey);
+      qc.setQueryData(cartKey, (old: { items: { variantId: number; quantity: number; price: string | number; salePrice?: string | number | null }[]; subtotal: number } | undefined) => {
+        if (!old) return old;
+        const existing = old.items.find(i => i.variantId === v.id);
+        const items = existing
+          ? old.items.map(i => i.variantId === v.id ? { ...i, quantity: i.quantity + 1 } : i)
+          : [...old.items, { variantId: v.id, quantity: 1, price, salePrice: salePrice ?? null, nameEn, nameAr: nameAr ?? nameEn, imageUrl: imageUrl ?? null, color: null, size: null }];
+        const subtotal = items.reduce((acc, i) => acc + (Number(i.salePrice || i.price) * i.quantity), 0);
+        return { ...old, items, subtotal };
+      });
       addToCartMutation.mutate({ data: { variantId: v.id, quantity: 1 } }, {
-        onSuccess: () => {
-          toast({ title: t("product.addedToCart") });
-          qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
-        },
+        onError: () => { qc.setQueryData(cartKey, previous); },
+        onSuccess: () => toast({ title: t("product.addedToCart") }),
+        onSettled: () => { qc.invalidateQueries({ queryKey: cartKey }); },
       });
     } else {
       guestCart.addItem({

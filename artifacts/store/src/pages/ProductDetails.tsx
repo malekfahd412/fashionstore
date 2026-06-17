@@ -277,11 +277,32 @@ export default function ProductDetails() {
       toast({ title: t("product.addedToCart") });
       return;
     }
+    const cartKey = getGetCartQueryKey();
+    qc.cancelQueries({ queryKey: cartKey });
+    const previous = qc.getQueryData(cartKey);
+    qc.setQueryData(cartKey, (old: { items: { variantId: number; quantity: number; price: string | number; salePrice?: string | number | null }[]; subtotal: number } | undefined) => {
+      if (!old) return old;
+      const existing = old.items.find(i => i.variantId === variantId);
+      const items = existing
+        ? old.items.map(i => i.variantId === variantId ? { ...i, quantity: i.quantity + quantity } : i)
+        : [...old.items, {
+            variantId,
+            quantity,
+            price: Number(product.price),
+            salePrice: product.salePrice ? Number(product.salePrice) : null,
+            nameEn: product.nameEn,
+            nameAr: product.nameAr,
+            imageUrl: product.images?.[0]?.imageUrl ?? null,
+            color: selectedVariant?.color ?? null,
+            size: selectedVariant?.size ?? null,
+          }];
+      const subtotal = items.reduce((acc, i) => acc + (Number(i.salePrice || i.price) * i.quantity), 0);
+      return { ...old, items, subtotal };
+    });
     addToCartMutation.mutate({ data: { variantId, quantity } }, {
-      onSuccess: () => {
-        toast({ title: t("product.addedToCart") });
-        qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
-      },
+      onError: () => { qc.setQueryData(cartKey, previous); },
+      onSuccess: () => toast({ title: t("product.addedToCart") }),
+      onSettled: () => { qc.invalidateQueries({ queryKey: cartKey }); },
     });
   };
 

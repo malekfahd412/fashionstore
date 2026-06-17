@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getGetPublicSettingsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,6 +142,7 @@ const SETTING_SECTIONS = [
 
 export default function SettingsPanel() {
   const { toast } = useToast();
+  const qc = useQueryClient();
   const [settings, setSettings] = useState<Settings>({});
   const [activeSection, setActiveSection] = useState("general");
   const [saving, setSaving] = useState(false);
@@ -166,6 +169,8 @@ export default function SettingsPanel() {
       const updated = await apiFetch<Settings>("/api/settings", "PATCH", patch);
       setSettings(updated);
       toast({ title: "Settings saved" });
+      qc.invalidateQueries({ queryKey: getGetPublicSettingsQueryKey() });
+      qc.invalidateQueries({ queryKey: ["manual-payment-settings"] });
     } catch {
       toast({ title: "Failed to save settings", variant: "destructive" });
     } finally {
@@ -179,6 +184,8 @@ export default function SettingsPanel() {
       const result = await apiFetch<Settings>("/api/settings/seed", "POST");
       setSettings(result);
       toast({ title: "Default settings seeded" });
+      qc.invalidateQueries({ queryKey: getGetPublicSettingsQueryKey() });
+      qc.invalidateQueries({ queryKey: ["manual-payment-settings"] });
     } catch {
       toast({ title: "Failed to seed settings", variant: "destructive" });
     } finally {
