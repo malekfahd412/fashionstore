@@ -1,0 +1,345 @@
+PROJECT: VELORA COMPLETE LUXURY FASHION UI REBUILD
+
+DO NOT MODIFY BACKEND.
+DO NOT MODIFY DATABASE.
+DO NOT MODIFY API CONTRACTS.
+
+THIS TASK IS PURELY UI/UX.
+
+The current UI still feels like a standard dashboard/shop template.
+
+I want a COMPLETE VISUAL REBUILD of the entire storefront.
+
+====================================================
+BRAND IDENTITY
+==============
+
+Brand Name: VELORA
+
+Style:
+Luxury Fashion
+Premium Clothing
+Editorial Magazine
+High-End Boutique
+
+Inspiration:
+Zara
+Massimo Dutti
+COS
+Farfetch
+Saint Laurent
+Aesop
+
+Feeling:
+Elegant
+Minimal
+Premium
+Modern
+Expensive
+
+====================================================
+COLOR SYSTEM
+============
+
+LIGHT MODE
+
+Background:
+#F8F6F2
+
+Cards:
+#FFFFFF
+
+Primary Text:
+#111111
+
+Secondary Text:
+#6B6B6B
+
+Borders:
+#E7E3DB
+
+Accent:
+#111111
+
+Hover Accent:
+#000000
+
+====================================================
+
+DARK MODE
+
+Background:
+#000000
+
+Cards:
+#111111
+
+Primary Text:
+#FFFFFF
+
+Secondary Text:
+#B5B5B5
+
+Borders:
+#262626
+
+Luxury Gold Accent:
+#C9A227
+
+All important buttons, highlights,
+links and active states use gold.
+
+====================================================
+TYPOGRAPHY
+==========
+
+Headings:
+Playfair Display
+
+Body:
+Inter
+
+Rules:
+
+Huge editorial headings.
+
+Lots of whitespace.
+
+Large margins.
+
+Minimal text.
+
+Premium feeling.
+
+====================================================
+NAVBAR
+======
+
+Rebuild completely.
+
+Transparent over hero.
+
+Blur on scroll.
+
+Mega menu categories.
+
+Luxury search box.
+
+Animated cart button.
+
+Animated wishlist button.
+
+Theme switcher.
+
+Sticky behavior.
+
+Desktop + Mobile optimized.
+
+====================================================
+HOME PAGE
+=========
+
+Completely redesign.
+
+SECTION 1:
+Full-screen luxury hero.
+
+Large typography.
+
+Single CTA.
+
+Cinematic background.
+
+SECTION 2:
+Featured Categories
+
+Large image cards.
+
+Magazine layout.
+
+SECTION 3:
+Best Sellers
+
+Horizontal premium product grid.
+
+SECTION 4:
+New Arrivals
+
+Luxury cards.
+
+SECTION 5:
+Brand Story
+
+Editorial section.
+
+Large image + text.
+
+SECTION 6:
+Newsletter
+
+Premium subscription block.
+
+SECTION 7:
+Instagram Style Gallery
+
+Fashion moodboard grid.
+
+====================================================
+PRODUCT CARD
+============
+
+Complete redesign.
+
+Image zoom on hover.
+
+Wishlist heart animation.
+
+Quick Add button appears on hover.
+
+Luxury shadows.
+
+Clean spacing.
+
+Premium typography.
+
+====================================================
+PRODUCT LISTING
+===============
+
+Magazine-style layout.
+
+Luxury filters.
+
+Better spacing.
+
+Modern sorting dropdown.
+
+Premium empty states.
+
+====================================================
+PRODUCT DETAILS
+===============
+
+Complete redesign.
+
+Large gallery.
+
+Sticky purchase panel.
+
+Luxury size selector.
+
+Luxury color selector.
+
+Trust badges.
+
+Shipping accordion.
+
+Returns accordion.
+
+Reviews section redesigned.
+
+Related products carousel.
+
+====================================================
+CART DRAWER
+===========
+
+Luxury slide-out panel.
+
+Smooth animations.
+
+Premium order summary.
+
+Elegant quantity controls.
+
+====================================================
+CHECKOUT
+========
+
+Premium 3-step checkout.
+
+Step indicators.
+
+Modern payment cards.
+
+Better spacing.
+
+Luxury order review.
+
+====================================================
+CUSTOMER DASHBOARD
+==================
+
+NO TABLES.
+
+Replace tables with cards.
+
+Order timeline cards.
+
+Luxury profile layout.
+
+Modern navigation sidebar.
+
+Premium empty states.
+
+====================================================
+ADMIN PANEL
+===========
+
+Keep functionality.
+
+Improve visuals only.
+
+Modern cards.
+
+Better spacing.
+
+Professional SaaS style.
+
+====================================================
+ANIMATIONS
+==========
+
+Framer Motion.
+
+Smooth page transitions.
+
+Hover animations.
+
+Card lift effects.
+
+Image zoom effects.
+
+Fade-ins.
+
+Slide-ups.
+
+NO flashy animations.
+
+Everything should feel premium.
+
+====================================================
+IMPORTANT
+=========
+
+DO NOT stop after creating mockups.
+
+Apply the redesign to the REAL application pages.
+
+Replace existing page layouts.
+
+Keep all existing functionality.
+
+Keep all APIs working.
+
+Keep all routes working.
+
+Keep TypeScript errors at ZERO.
+
+After completion:
+
+1. List every modified file.
+2. Confirm TypeScript errors = 0.
+3. Confirm build passes.
+4. Confirm backend untouched.
+5. Confirm dark mode and light mode fully supported.
