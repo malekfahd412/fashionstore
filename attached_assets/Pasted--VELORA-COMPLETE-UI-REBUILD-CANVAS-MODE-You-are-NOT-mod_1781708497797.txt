@@ -1,0 +1,536 @@
+# VELORA COMPLETE UI REBUILD (CANVAS MODE)
+
+You are NOT modifying the existing UI.
+
+You are redesigning the entire storefront from scratch while keeping all existing backend APIs, database schema, authentication, routes, business logic, checkout flow, dashboard functionality, reviews, wishlist, support system, coupons, notifications, analytics, vendor panel, and admin panel intact.
+
+This is a FULL visual overhaul only.
+
+---
+
+# DESIGN GOAL
+
+Create a premium fashion ecommerce experience comparable to:
+
+* Zara
+* Massimo Dutti
+* COS
+* ARKET
+* Farfetch
+* SSENSE
+
+The site must feel:
+
+* Modern
+* Luxury
+* Clean
+* Editorial
+* Fashion-focused
+* Premium
+
+NOT:
+
+* Generic ecommerce
+* Template looking
+* Bootstrap style
+* Admin-dashboard style
+
+---
+
+# BRAND
+
+Brand Name:
+
+VELORA
+
+Typography:
+
+Headings:
+Playfair Display
+
+Body:
+Inter
+
+Use elegant spacing.
+
+Large typography.
+
+Editorial layouts.
+
+Lots of white space.
+
+---
+
+# COLOR SYSTEM
+
+Primary Theme:
+
+Background:
+#F8F6F2
+
+Primary Text:
+#111111
+
+Secondary Text:
+#5A5A5A
+
+Accent:
+#8A6A43
+
+Accent Hover:
+#A8834F
+
+Borders:
+#E6E0D8
+
+Success:
+#2F855A
+
+Danger:
+#C53030
+
+---
+
+# DARK MODE
+
+Create FULL dark mode support.
+
+Dark Background:
+#0B0B0B
+
+Card Background:
+#111111
+
+Primary Text:
+#FFFFFF
+
+Secondary Text:
+#B0B0B0
+
+Accent:
+#C9A227
+
+Borders:
+#2A2A2A
+
+Dark mode must affect:
+
+* Home
+* Product pages
+* Shop
+* Cart
+* Checkout
+* Customer Dashboard
+* Vendor Dashboard
+* Admin Dashboard
+* Support Center
+* Reviews
+* FAQ
+* Contact
+* Policies
+
+Everything.
+
+No partially-themed pages.
+
+---
+
+# THEME TOGGLE
+
+Add professional theme switcher.
+
+Requirements:
+
+* Persist in localStorage
+* Detect system preference
+* No page flash
+* Smooth transition
+* Global provider
+
+---
+
+# HOME PAGE
+
+Completely redesign.
+
+Create:
+
+1. Full screen cinematic hero
+
+Large fashion image
+
+Overlay headline
+
+Luxury typography
+
+CTA:
+Shop Collection
+
+CTA:
+New Arrivals
+
+---
+
+2. Category Showcase
+
+Large image cards
+
+Men
+
+Women
+
+Accessories
+
+Hover animation
+
+---
+
+3. Featured Collection
+
+Luxury product grid
+
+No cramped cards
+
+Large images
+
+---
+
+4. Best Sellers
+
+Horizontal premium slider
+
+---
+
+5. Editorial Section
+
+Large image
+
+Brand story
+
+Magazine style layout
+
+---
+
+6. Reviews
+
+ONLY real reviews from database
+
+Never show fake reviews
+
+Hide section if no reviews exist
+
+---
+
+7. Newsletter
+
+Luxury design
+
+Large spacing
+
+---
+
+# NAVBAR
+
+Rebuild completely.
+
+Requirements:
+
+* Sticky
+* Blur background
+* Transparent over hero
+* Becomes solid on scroll
+* Smooth animations
+
+Desktop:
+
+Logo center
+
+Navigation left
+
+Icons right
+
+Search
+Wishlist
+Account
+Cart
+
+Categories dropdown mega menu
+
+Mobile:
+
+Premium drawer menu
+
+Animated
+
+---
+
+# PRODUCT LISTING PAGE
+
+Redesign.
+
+Requirements:
+
+* Large product cards
+* Luxury spacing
+* Filter sidebar
+* Sort dropdown
+* Hover image swap
+* Wishlist heart
+* Quick add
+
+No masonry.
+
+Use clean luxury grid.
+
+---
+
+# PRODUCT DETAILS PAGE
+
+Completely redesign.
+
+Layout:
+
+Left:
+Large gallery
+
+Right:
+Sticky purchase panel
+
+Include:
+
+* Size selector
+* Color selector
+* Stock state
+* Delivery info
+* Returns info
+* Trust badges
+* Wishlist
+* Share button
+
+Accordion sections:
+
+Description
+
+Shipping
+
+Returns
+
+Materials
+
+Reviews
+
+---
+
+# CART
+
+Replace current design.
+
+Requirements:
+
+* Premium product cards
+* Quantity controls
+* Smooth updates
+* Order summary card
+* Coupon section
+* Free shipping indicator
+
+Use optimistic updates.
+
+Never require refresh.
+
+---
+
+# CHECKOUT
+
+Create luxury checkout.
+
+3-step flow:
+
+1 Shipping
+
+2 Payment
+
+3 Review
+
+Progress indicator.
+
+Modern layout.
+
+Professional forms.
+
+---
+
+# CUSTOMER DASHBOARD
+
+Remove table-heavy feeling.
+
+Create:
+
+Sidebar
+
+Cards
+
+Timeline
+
+Modern widgets
+
+Sections:
+
+Overview
+
+Orders
+
+Tracking
+
+Wishlist
+
+Reviews
+
+Support
+
+Notifications
+
+Security
+
+Profile
+
+Everything should feel like a premium SaaS dashboard.
+
+---
+
+# ADMIN DASHBOARD
+
+Separate visual identity from storefront.
+
+Use:
+
+Gray
+White
+Black
+
+Professional SaaS style.
+
+Do NOT use luxury storefront styling.
+
+Keep functionality unchanged.
+
+Improve:
+
+Spacing
+
+Cards
+
+Tables
+
+Filters
+
+Forms
+
+Charts
+
+---
+
+# VENDOR DASHBOARD
+
+Modern analytics experience.
+
+Cards
+
+Revenue charts
+
+Order metrics
+
+Top products
+
+Recent orders
+
+Modern layout
+
+---
+
+# ANIMATIONS
+
+Use Framer Motion where appropriate.
+
+Subtle only.
+
+No excessive animations.
+
+Focus:
+
+Hover states
+
+Cards
+
+Drawers
+
+Menus
+
+Theme switching
+
+Page transitions
+
+---
+
+# PERFORMANCE
+
+Do not break existing functionality.
+
+Do not remove:
+
+React Query
+
+Auth
+
+API hooks
+
+Forms
+
+Mutations
+
+Validation
+
+Business logic
+
+Only replace visual presentation.
+
+---
+
+# CRITICAL RULES
+
+1. DO NOT add fake data.
+
+2. DO NOT add hardcoded reviews.
+
+3. DO NOT add placeholder products.
+
+4. DO NOT add fake statistics.
+
+5. Only display real API data.
+
+6. Hide sections when no data exists.
+
+7. Keep TypeScript at zero errors.
+
+8. Keep build passing.
+
+9. Keep all routes working.
+
+10. Maintain full responsiveness.
+
+---
+
+# DELIVERY REQUIREMENT
+
+After implementation provide:
+
+* List of all modified files
+* New components created
+* Any dependencies added
+* Build status
+* TypeScript status
+* Any manual setup required
+
+Do not stop at mockups.
+
+Implement the actual production UI across the real application.

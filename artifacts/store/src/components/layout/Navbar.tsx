@@ -1,12 +1,33 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, User, Search, Menu, LogOut, X, Heart, ChevronRight, ChevronDown, Globe } from "lucide-react";
+import { ShoppingBag, User, Search, Menu, LogOut, X, Heart, ChevronRight, ChevronDown, Globe, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useGetCart, getGetCartQueryKey, useListCategories } from "@workspace/api-client-react";
 import { useGuestCart } from "@/hooks/useGuestCart";
 import { useCartDrawer } from "@/contexts/CartDrawerContext";
+
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <div className="w-9 h-9" />;
+  const isDark = resolvedTheme === "dark";
+  return (
+    <button
+      className="w-9 h-9 flex items-center justify-center text-foreground/60 hover:text-foreground transition-colors"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {isDark
+        ? <Sun className="w-4 h-4" />
+        : <Moon className="w-4 h-4" />
+      }
+    </button>
+  );
+}
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -68,7 +89,9 @@ export function Navbar() {
     <>
       <header
         className={`sticky top-0 z-50 w-full transition-all duration-500 ${
-          scrolled ? "bg-white/98 backdrop-blur-md border-b border-black/8 shadow-[0_1px_0_rgba(0,0,0,0.06)]" : "bg-white border-b border-black/6"
+          scrolled
+            ? "bg-background/98 backdrop-blur-md border-b border-border shadow-[0_1px_0_rgba(0,0,0,0.06)] dark:shadow-[0_1px_0_rgba(255,255,255,0.04)]"
+            : "bg-background border-b border-border"
         }`}
         onMouseLeave={() => setShowMegaMenu(false)}
       >
@@ -123,6 +146,8 @@ export function Navbar() {
               {searchOpen ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
             </button>
 
+            <ThemeToggle />
+
             <button
               className="hidden sm:flex w-9 h-9 items-center justify-center text-[10px] font-bold tracking-widest text-foreground/60 hover:text-foreground transition-colors uppercase"
               onClick={() => setLanguage(language === "en" ? "ar" : "en")}
@@ -138,8 +163,8 @@ export function Navbar() {
                     <User className="w-4 h-4" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 border-black/10 shadow-xl">
-                  <div className="px-3 py-3 border-b border-black/8 mb-1">
+                <DropdownMenuContent align="end" className="w-56 shadow-xl">
+                  <div className="px-3 py-3 border-b border-border mb-1">
                     <p className="font-semibold text-sm truncate">{user.name}</p>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">{user.email}</p>
                   </div>
@@ -184,7 +209,7 @@ export function Navbar() {
 
         {/* Mega Menu */}
         <div
-          className={`absolute top-full left-0 w-full bg-white border-b border-black/8 shadow-lg transition-all duration-300 origin-top ${
+          className={`absolute top-full left-0 w-full bg-background border-b border-border shadow-lg transition-all duration-300 origin-top ${
             showMegaMenu ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0 pointer-events-none"
           }`}
         >
@@ -210,7 +235,7 @@ export function Navbar() {
                 </Link>
               ))}
             </div>
-            <div className="mt-8 pt-6 border-t border-black/6 text-center">
+            <div className="mt-8 pt-6 border-t border-border text-center">
               <Link
                 href="/categories"
                 onClick={() => setShowMegaMenu(false)}
@@ -223,7 +248,7 @@ export function Navbar() {
         </div>
 
         {/* Search overlay */}
-        <div className={`overflow-hidden transition-all duration-300 bg-white ${searchOpen ? "max-h-24 border-t border-black/6" : "max-h-0"}`}>
+        <div className={`overflow-hidden transition-all duration-300 bg-background ${searchOpen ? "max-h-24 border-t border-border" : "max-h-0"}`}>
           <form onSubmit={handleSearch} className="max-w-screen-xl mx-auto px-6 py-5">
             <div className="relative max-w-2xl mx-auto">
               <Search className="absolute start-0 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
@@ -233,7 +258,7 @@ export function Navbar() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t("nav.searchPlaceholder")}
-                className="w-full bg-transparent border-0 border-b border-black/15 py-2 ps-8 pe-24 text-sm focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30"
+                className="w-full bg-transparent border-0 border-b border-border py-2 ps-8 pe-24 text-sm focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30"
               />
               <button
                 type="submit"
@@ -250,8 +275,8 @@ export function Navbar() {
       {mobileOpen && (
         <>
           <div className="fixed inset-0 z-[60] bg-black/50 md:hidden" onClick={() => setMobileOpen(false)} />
-          <div className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-xs z-[70] bg-white border-r border-black/8 shadow-2xl md:hidden flex flex-col">
-            <div className="h-16 px-5 border-b border-black/8 flex items-center justify-between">
+          <div className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-xs z-[70] bg-background border-r border-border shadow-2xl md:hidden flex flex-col">
+            <div className="h-16 px-5 border-b border-border flex items-center justify-between">
               <span className="font-serif text-xl font-bold text-foreground">Velora</span>
               <button onClick={() => setMobileOpen(false)} className="w-8 h-8 flex items-center justify-center text-foreground/40 hover:text-foreground">
                 <X className="w-4 h-4" />
@@ -285,16 +310,19 @@ export function Navbar() {
               ))}
             </div>
 
-            <div className="border-t border-black/8 p-5 space-y-3">
-              <button
-                className="flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/50 hover:text-foreground transition-colors"
-                onClick={() => { setLanguage(language === "en" ? "ar" : "en"); setMobileOpen(false); }}
-              >
-                <Globe className="w-3.5 h-3.5" />
-                {language === "en" ? "عربى" : "English"}
-              </button>
+            <div className="border-t border-border p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <button
+                  className="flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/50 hover:text-foreground transition-colors"
+                  onClick={() => { setLanguage(language === "en" ? "ar" : "en"); setMobileOpen(false); }}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  {language === "en" ? "عربى" : "English"}
+                </button>
+                <ThemeToggle />
+              </div>
               {user ? (
-                <div className="space-y-2 pt-2 border-t border-black/6">
+                <div className="space-y-2 pt-2 border-t border-border">
                   <p className="text-[10px] tracking-wide text-foreground/40">Signed in as <span className="font-semibold text-foreground">{user.name}</span></p>
                   <Link href={getDashboardLink()} className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-foreground/70 hover:text-foreground py-2 transition-colors" onClick={() => setMobileOpen(false)}>
                     <User className="w-3.5 h-3.5" /> {t("nav.dashboard")}
@@ -304,11 +332,11 @@ export function Navbar() {
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-2 pt-2 border-t border-black/6">
+                <div className="flex gap-2 pt-2 border-t border-border">
                   <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 h-10 border border-foreground flex items-center justify-center text-[10px] font-bold tracking-[0.15em] uppercase hover:bg-foreground hover:text-background transition-colors">
                     {t("nav.login")}
                   </Link>
-                  <Link href="/register" onClick={() => setMobileOpen(false)} className="flex-1 h-10 bg-foreground text-background flex items-center justify-center text-[10px] font-bold tracking-[0.15em] uppercase hover:bg-foreground/80 transition-colors">
+                  <Link href="/register" onClick={() => setMobileOpen(false)} className="flex-1 h-10 bg-foreground text-background flex items-center justify-center text-[10px] font-bold tracking-[0.15em] uppercase hover:opacity-80 transition-opacity">
                     {t("nav.register")}
                   </Link>
                 </div>

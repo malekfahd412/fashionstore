@@ -77,7 +77,7 @@ export default function Checkout() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-5 h-5 border border-black/20 border-t-black/60 rounded-full animate-spin" />
+        <div className="w-5 h-5 border border-foreground/20 border-t-foreground/60 rounded-full animate-spin" />
       </div>
     );
   }
@@ -223,7 +223,7 @@ export default function Checkout() {
     label: string; field: keyof typeof billing; placeholder: string; type?: string;
   }) => (
     <div>
-      <label className="block text-[9px] font-bold tracking-[0.3em] uppercase text-black/40 mb-2">
+      <label className="block text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/40 mb-2">
         {label} <span className="text-[#C9A227]">*</span>
       </label>
       <input
@@ -235,7 +235,7 @@ export default function Checkout() {
           if (billingErrors[field]) setBillingErrors(prev => ({ ...prev, [field]: undefined }));
         }}
         placeholder={placeholder}
-        className={`w-full h-12 border bg-[#F7F6F4] px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors tracking-wide ${billingErrors[field] ? "border-red-400" : "border-black/10"}`}
+        className={`w-full h-12 border bg-secondary dark:bg-card px-4 text-sm focus:outline-none focus:border-foreground transition-colors tracking-wide ${billingErrors[field] ? "border-red-400" : "border-border"}`}
       />
       {billingErrors[field] && (
         <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-red-500 mt-1.5">{billingErrors[field]}</p>
@@ -244,7 +244,7 @@ export default function Checkout() {
   );
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-background" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="max-w-screen-xl mx-auto px-6 md:px-10">
         <div className="grid lg:grid-cols-[1fr_380px] gap-16 py-12 md:py-20">
 
@@ -252,9 +252,9 @@ export default function Checkout() {
           <div>
             {/* Title + progress */}
             <div className="mb-12">
-              <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-black/28 mb-4">Velora</p>
+              <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-foreground/28 mb-4">Velora</p>
               <h1
-                className="text-4xl md:text-5xl font-bold text-[#111111] mb-10 leading-[0.92]"
+                className="text-4xl md:text-5xl font-bold text-foreground mb-10 leading-[0.92]"
                 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
               >
                 Checkout
@@ -271,16 +271,16 @@ export default function Checkout() {
                     <div className="flex items-center gap-3">
                       <div className={`w-7 h-7 flex items-center justify-center text-[9px] font-bold border transition-colors ${
                         step > n ? "bg-[#C9A227] border-[#C9A227] text-white" :
-                        step === n ? "bg-[#111111] border-[#111111] text-white" :
-                        "border-black/15 text-black/25"
+                        step === n ? "bg-foreground border-foreground text-background" :
+                        "border-foreground/15 text-foreground/25"
                       }`}>
                         {step > n ? <Check className="w-3 h-3" /> : n}
                       </div>
-                      <span className={`text-[9px] font-bold tracking-[0.22em] uppercase ${step >= n ? "text-[#111111]" : "text-black/25"}`}>
+                      <span className={`text-[9px] font-bold tracking-[0.22em] uppercase ${step >= n ? "text-foreground" : "text-foreground/25"}`}>
                         {label}
                       </span>
                     </div>
-                    {i < 2 && <div className={`w-10 h-[1px] mx-4 ${step > n ? "bg-[#C9A227]" : "bg-black/10"}`} />}
+                    {i < 2 && <div className={`w-10 h-[1px] mx-4 ${step > n ? "bg-[#C9A227]" : "bg-foreground/10"}`} />}
                   </div>
                 ))}
               </div>
@@ -289,7 +289,7 @@ export default function Checkout() {
             {/* STEP 1: SHIPPING */}
             {step === 1 && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-400">
-                <h2 className="text-lg font-bold text-[#111111] mb-8 pb-5 border-b border-black/6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                <h2 className="text-lg font-bold text-foreground mb-8 pb-5 border-b border-border" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                   {t("checkout.shippingInfo")}
                 </h2>
                 <div className="space-y-5">
@@ -303,9 +303,9 @@ export default function Checkout() {
                     <LuxuryField label={t("checkout.phone")} field="phone" placeholder="+20 100 000 0000" type="tel" />
                   </div>
                 </div>
-                <div className="mt-10 pt-6 border-t border-black/6 flex justify-end">
+                <div className="mt-10 pt-6 border-t border-border flex justify-end">
                   <button
-                    className="flex items-center gap-3 bg-[#111111] text-white px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300"
+                    className="flex items-center gap-3 bg-foreground text-background px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300"
                     onClick={advanceToStep2}
                   >
                     Continue to Payment <ChevronRight className="w-3.5 h-3.5" />
@@ -317,11 +317,11 @@ export default function Checkout() {
             {/* STEP 2: PAYMENT */}
             {step === 2 && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-400">
-                <div className="flex items-center justify-between mb-8 pb-5 border-b border-black/6">
-                  <h2 className="text-lg font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                <div className="flex items-center justify-between mb-8 pb-5 border-b border-border">
+                  <h2 className="text-lg font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                     {t("checkout.paymentMethod")}
                   </h2>
-                  <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors border-b border-black/15 pb-0.5">
+                  <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/35 hover:text-foreground transition-colors border-b border-foreground/15 pb-0.5">
                     Edit Shipping
                   </button>
                 </div>
@@ -334,43 +334,43 @@ export default function Checkout() {
                       <div
                         key={opt.id}
                         onClick={() => { setPaymentMethod(opt.id); setReferenceNumber(""); }}
-                        className={`flex items-center gap-5 border p-5 cursor-pointer transition-all duration-200 ${isActive ? "border-[#111111] bg-[#F7F6F4]" : "border-black/8 hover:border-black/25"}`}
+                        className={`flex items-center gap-5 border p-5 cursor-pointer transition-all duration-200 ${isActive ? "border-foreground bg-secondary dark:bg-card" : "border-border hover:border-foreground/25"}`}
                       >
-                        <div className={`w-4 h-4 border shrink-0 flex items-center justify-center ${isActive ? "border-[#111111] bg-[#111111]" : "border-black/25"}`}>
+                        <div className={`w-4 h-4 border shrink-0 flex items-center justify-center ${isActive ? "border-foreground bg-foreground" : "border-border"}`}>
                           {isActive && <Check className="w-2.5 h-2.5 text-white" />}
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-bold tracking-[0.18em] uppercase text-[#111111]">{opt.label}</p>
-                          <p className="text-[10px] text-black/38 mt-0.5 tracking-wide">{opt.description}</p>
+                          <p className="text-xs font-bold tracking-[0.18em] uppercase text-foreground">{opt.label}</p>
+                          <p className="text-[10px] text-foreground/38 mt-0.5 tracking-wide">{opt.description}</p>
                         </div>
-                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#111111]" : "text-black/25"}`} />
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-foreground" : "text-foreground/25"}`} />
                       </div>
                     );
                   })}
                 </div>
 
                 {isManual && accountInfo && (
-                  <div className="mb-10 p-6 bg-[#F7F6F4] border border-black/8 space-y-5">
+                  <div className="mb-10 p-6 bg-secondary dark:bg-card border border-border space-y-5">
                     <div>
-                      <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/35 mb-2 flex items-center gap-2"><FileText className="w-3.5 h-3.5" /> {t("checkout.manualAccountInfo")}</p>
-                      <p className="font-mono text-2xl font-bold text-[#111111] tracking-wider">{accountInfo}</p>
+                      <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/35 mb-2 flex items-center gap-2"><FileText className="w-3.5 h-3.5" /> {t("checkout.manualAccountInfo")}</p>
+                      <p className="font-mono text-2xl font-bold text-foreground tracking-wider">{accountInfo}</p>
                     </div>
-                    <div className="pt-4 border-t border-black/8">
-                      <label className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/40 mb-2 block">{t("checkout.manualReference")}</label>
+                    <div className="pt-4 border-t border-border">
+                      <label className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/40 mb-2 block">{t("checkout.manualReference")}</label>
                       <input
                         value={referenceNumber}
                         onChange={e => setReferenceNumber(e.target.value)}
                         placeholder={t("checkout.manualReferencePlaceholder")}
-                        className="w-full h-11 border border-black/10 bg-white px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors tracking-wide"
+                        className="w-full h-11 border border-border bg-background px-4 text-sm focus:outline-none focus:border-foreground transition-colors tracking-wide"
                       />
-                      <p className="text-[9px] text-black/35 mt-1.5 tracking-wide">{t("checkout.manualReferenceHint")}</p>
+                      <p className="text-[9px] text-foreground/35 mt-1.5 tracking-wide">{t("checkout.manualReferenceHint")}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Coupon */}
                 <div className="mb-10">
-                  <label className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/40 mb-3 block">{t("checkout.couponCode")}</label>
+                  <label className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/40 mb-3 block">{t("checkout.couponCode")}</label>
                   <div className="flex gap-0">
                     <input
                       value={couponCode}
@@ -380,14 +380,14 @@ export default function Checkout() {
                         setCouponError("");
                       }}
                       placeholder={t("checkout.enterCoupon")}
-                      className={`flex-1 h-11 border border-r-0 bg-[#F7F6F4] px-4 text-xs font-bold tracking-widest uppercase focus:outline-none focus:border-[#111111] transition-colors ${couponError ? "border-red-400" : couponApplied ? "border-[#C9A227]" : "border-black/10"}`}
+                      className={`flex-1 h-11 border border-r-0 bg-secondary dark:bg-card px-4 text-xs font-bold tracking-widest uppercase focus:outline-none focus:border-foreground transition-colors ${couponError ? "border-red-400" : couponApplied ? "border-[#C9A227]" : "border-border"}`}
                       disabled={processing}
                     />
                     <button
                       type="button"
                       onClick={handleValidateCoupon}
                       disabled={!couponCode.trim() || processing}
-                      className="h-11 px-6 bg-[#111111] text-white text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-30"
+                      className="h-11 px-6 bg-foreground text-background text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-30"
                     >
                       {t("btn.apply")}
                     </button>
@@ -401,12 +401,12 @@ export default function Checkout() {
                   )}
                 </div>
 
-                <div className="mt-10 pt-6 border-t border-black/6 flex justify-between items-center">
-                  <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors">
+                <div className="mt-10 pt-6 border-t border-border flex justify-between items-center">
+                  <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/35 hover:text-foreground transition-colors">
                     Back
                   </button>
                   <button
-                    className="flex items-center gap-3 bg-[#111111] text-white px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300"
+                    className="flex items-center gap-3 bg-foreground text-background px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300"
                     onClick={advanceToStep3}
                   >
                     Review Order <ChevronRight className="w-3.5 h-3.5" />
@@ -418,8 +418,8 @@ export default function Checkout() {
             {/* STEP 3: REVIEW */}
             {step === 3 && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-400">
-                <div className="flex items-center justify-between mb-8 pb-5 border-b border-black/6">
-                  <h2 className="text-lg font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                <div className="flex items-center justify-between mb-8 pb-5 border-b border-border">
+                  <h2 className="text-lg font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                     Review Order
                   </h2>
                 </div>
@@ -428,19 +428,19 @@ export default function Checkout() {
                   {/* Items */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-black/38">Order Items</p>
-                      <Link href="/cart" className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/38 hover:text-black transition-colors border-b border-black/15 pb-0.5">Edit Bag</Link>
+                      <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-foreground/38">Order Items</p>
+                      <Link href="/cart" className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/38 hover:text-foreground transition-colors border-b border-foreground/15 pb-0.5">Edit Bag</Link>
                     </div>
                     <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1 no-scrollbar">
                       {cart.items.map(item => (
-                        <div key={item.variantId} className="flex gap-4 bg-[#F7F6F4] p-3">
-                          <div className="w-14 bg-white overflow-hidden shrink-0" style={{ aspectRatio: "3/4" }}>
+                        <div key={item.variantId} className="flex gap-4 bg-secondary dark:bg-card p-3">
+                          <div className="w-14 bg-secondary overflow-hidden shrink-0" style={{ aspectRatio: "3/4" }}>
                             {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
                           </div>
                           <div className="flex-1 min-w-0 flex flex-col justify-center">
-                            <p className="text-sm font-medium text-[#111111] line-clamp-1 mb-1">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
-                            <p className="text-[9px] text-black/35 tracking-[0.18em] uppercase font-bold">{[item.color, item.size].filter(Boolean).join(" · ")} · Qty {item.quantity}</p>
-                            <p className="text-sm font-bold text-[#111111] mt-1">{((Number(item.salePrice) || Number(item.price)) * item.quantity).toLocaleString()} EGP</p>
+                            <p className="text-sm font-medium text-foreground line-clamp-1 mb-1">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
+                            <p className="text-[9px] text-foreground/35 tracking-[0.18em] uppercase font-bold">{[item.color, item.size].filter(Boolean).join(" · ")} · Qty {item.quantity}</p>
+                            <p className="text-sm font-bold text-foreground mt-1">{((Number(item.salePrice) || Number(item.price)) * item.quantity).toLocaleString()} EGP</p>
                           </div>
                         </div>
                       ))}
@@ -448,13 +448,13 @@ export default function Checkout() {
                   </div>
 
                   {/* Summary */}
-                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-black/6">
+                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/38">Shipping To</p>
-                        <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.18em] uppercase text-black/35 hover:text-black border-b border-black/15 pb-0.5">Edit</button>
+                        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/38">Shipping To</p>
+                        <button onClick={() => setStep(1)} className="text-[9px] font-bold tracking-[0.18em] uppercase text-foreground/35 hover:text-foreground border-b border-foreground/15 pb-0.5">Edit</button>
                       </div>
-                      <div className="bg-[#F7F6F4] p-4 text-xs text-[#111111] leading-relaxed tracking-wide">
+                      <div className="bg-secondary dark:bg-card p-4 text-xs text-foreground leading-relaxed tracking-wide">
                         {billing.firstName} {billing.lastName}<br />
                         {billing.address}<br />
                         {billing.city}<br />
@@ -463,21 +463,21 @@ export default function Checkout() {
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/38">Payment</p>
-                        <button onClick={() => setStep(2)} className="text-[9px] font-bold tracking-[0.18em] uppercase text-black/35 hover:text-black border-b border-black/15 pb-0.5">Edit</button>
+                        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/38">Payment</p>
+                        <button onClick={() => setStep(2)} className="text-[9px] font-bold tracking-[0.18em] uppercase text-foreground/35 hover:text-foreground border-b border-foreground/15 pb-0.5">Edit</button>
                       </div>
-                      <div className="bg-[#F7F6F4] p-4 text-xs text-[#111111] tracking-[0.15em] uppercase font-bold">
+                      <div className="bg-secondary dark:bg-card p-4 text-xs text-foreground tracking-[0.15em] uppercase font-bold">
                         {paymentOptions.find(o => o.id === paymentMethod)?.label}
-                        {isManual && referenceNumber && <span className="block text-[9px] font-normal normal-case mt-1 text-black/40 tracking-wide">Ref: {referenceNumber}</span>}
+                        {isManual && referenceNumber && <span className="block text-[9px] font-normal normal-case mt-1 text-foreground/40 tracking-wide">Ref: {referenceNumber}</span>}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-10 pt-6 border-t border-black/6 flex justify-between items-center">
-                  <button onClick={() => setStep(2)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors">Back</button>
+                <div className="mt-10 pt-6 border-t border-border flex justify-between items-center">
+                  <button onClick={() => setStep(2)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/35 hover:text-foreground transition-colors">Back</button>
                   <button
-                    className="flex items-center gap-3 bg-[#111111] text-white px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300 disabled:opacity-40"
+                    className="flex items-center gap-3 bg-foreground text-background px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300 disabled:opacity-40"
                     onClick={handleCheckout}
                     disabled={processing || createOrderMutation.isPending}
                   >
@@ -489,31 +489,31 @@ export default function Checkout() {
                     ) : isPaymob ? t("btn.payWithPaymob") : t("btn.placeOrder")}
                   </button>
                 </div>
-                <p className="text-[9px] text-black/25 text-center mt-6 tracking-[0.18em] uppercase font-bold">{t("checkout.terms")}</p>
+                <p className="text-[9px] text-foreground/25 text-center mt-6 tracking-[0.18em] uppercase font-bold">{t("checkout.terms")}</p>
               </div>
             )}
           </div>
 
           {/* ── Right: Order Summary ─────────────────────────────────────── */}
-          <div className="lg:border-l lg:border-black/6 lg:ps-16 py-12 md:py-20">
-            <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/30 mb-6">Order Summary</p>
+          <div className="lg:border-l lg:border-border lg:ps-16 py-12 md:py-20">
+            <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/30 mb-6">Order Summary</p>
 
             {/* Items */}
-            <div className="space-y-5 mb-8 pb-8 border-b border-black/6">
+            <div className="space-y-5 mb-8 pb-8 border-b border-border">
               {cart.items.map(item => (
                 <div key={item.variantId} className="flex gap-4">
-                  <div className="w-14 bg-[#F7F6F4] overflow-hidden shrink-0 relative" style={{ aspectRatio: "3/4" }}>
+                  <div className="w-14 bg-secondary dark:bg-card overflow-hidden shrink-0 relative" style={{ aspectRatio: "3/4" }}>
                     {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
-                    <div className="absolute -top-1.5 -end-1.5 w-5 h-5 bg-[#111111] text-white text-[9px] font-bold flex items-center justify-center">
+                    <div className="absolute -top-1.5 -end-1.5 w-5 h-5 bg-foreground text-background text-[9px] font-bold flex items-center justify-center">
                       {item.quantity}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0 py-1">
-                    <p className="text-xs font-medium text-[#111111] leading-snug mb-1 line-clamp-2">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
-                    {(item.color || item.size) && <p className="text-[9px] text-black/30 tracking-[0.15em] uppercase font-bold">{[item.color, item.size].filter(Boolean).join(" · ")}</p>}
+                    <p className="text-xs font-medium text-foreground leading-snug mb-1 line-clamp-2">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
+                    {(item.color || item.size) && <p className="text-[9px] text-foreground/30 tracking-[0.15em] uppercase font-bold">{[item.color, item.size].filter(Boolean).join(" · ")}</p>}
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-[#111111]">{((Number(item.salePrice) || Number(item.price)) * item.quantity).toLocaleString()} EGP</p>
+                    <p className="text-sm font-bold text-foreground">{((Number(item.salePrice) || Number(item.price)) * item.quantity).toLocaleString()} EGP</p>
                   </div>
                 </div>
               ))}
@@ -522,8 +522,8 @@ export default function Checkout() {
             {/* Totals */}
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/38">{t("common.subtotal")}</span>
-                <span className="font-medium text-[#111111]">{cartSubtotal.toFixed(2)} EGP</span>
+                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/38">{t("common.subtotal")}</span>
+                <span className="font-medium text-foreground">{cartSubtotal.toFixed(2)} EGP</span>
               </div>
               {couponApplied && discount > 0 && (
                 <div className="flex justify-between text-[#C9A227]">
@@ -532,18 +532,18 @@ export default function Checkout() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/38">{t("common.shipping")}</span>
+                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/38">{t("common.shipping")}</span>
                 <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#C9A227]">{t("common.free")}</span>
               </div>
-              <div className="flex justify-between pt-4 border-t border-black/8 mt-2">
+              <div className="flex justify-between pt-4 border-t border-border mt-2">
                 <span
-                  className="text-base font-bold text-[#111111]"
+                  className="text-base font-bold text-foreground"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
                   {t("common.total")}
                 </span>
                 <span
-                  className="text-xl font-bold text-[#111111]"
+                  className="text-xl font-bold text-foreground"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
                   {total.toFixed(2)} EGP

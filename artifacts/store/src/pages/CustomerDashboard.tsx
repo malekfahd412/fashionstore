@@ -51,7 +51,7 @@ function PaymentStatusBadge({ paymentStatus, orderStatus }: { paymentStatus?: st
   if (paymentStatus === "cod") {
     return orderStatus === "delivered"
       ? <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#9a7a1a] bg-[#C9A227]/8 border border-[#C9A227]/25 px-2.5 py-1">{t("dash.codPaid")}</span>
-      : <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-black/40 bg-black/4 border border-black/8 px-2.5 py-1">{t("dash.payOnDelivery")}</span>;
+      : <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-foreground/40 bg-foreground/4 border border-border px-2.5 py-1">{t("dash.payOnDelivery")}</span>;
   }
   if (paymentStatus === "paid") return <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#9a7a1a] bg-[#C9A227]/8 border border-[#C9A227]/25 px-2.5 py-1">{t("dash.paid")}</span>;
   if (paymentStatus === "failed") return <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-red-600 bg-red-50 border border-red-200 px-2.5 py-1">{t("dash.paymentFailed")}</span>;
@@ -66,10 +66,10 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`px-2.5 py-1 text-[9px] font-bold tracking-[0.18em] uppercase border ${
       isPositive ? "bg-[#C9A227]/8 text-[#9a7a1a] border-[#C9A227]/25" :
-      isWarning ? "bg-black/4 text-black/60 border-black/10" :
-      isNew ? "bg-black/4 text-black/50 border-black/8" :
+      isWarning ? "bg-foreground/4 text-foreground/60 border-border" :
+      isNew ? "bg-foreground/4 text-foreground/50 border-border" :
       isCancelled ? "bg-red-50 text-red-600 border-red-200" :
-      "bg-black/4 text-black/40 border-black/8"
+      "bg-foreground/4 text-foreground/40 border-border"
     }`}>
       {status.replace(/_/g, " ")}
     </span>
@@ -81,29 +81,29 @@ function AddressCard({ addr, onEdit, onDelete, onSetDefault, isLoading }: {
 }) {
   const { t } = useTranslation();
   return (
-    <div className={`border p-6 relative ${addr.isDefault ? "border-[#111111]" : "border-black/10"}`}>
+    <div className={`border p-6 relative ${addr.isDefault ? "border-[#111111]" : "border-border"}`}>
       {addr.isDefault && (
         <span className="absolute top-4 end-4 text-[9px] font-bold tracking-[0.18em] uppercase text-[#C9A227] flex items-center gap-1">
           <Star className="w-3 h-3 fill-[#C9A227]" /> {t("dash.addr.default")}
         </span>
       )}
       <div className="flex items-start gap-4 mb-5">
-        <MapPin className="w-4 h-4 text-black/30 mt-0.5 shrink-0" strokeWidth={1.5} />
+        <MapPin className="w-4 h-4 text-foreground/30 mt-0.5 shrink-0" strokeWidth={1.5} />
         <div>
-          <p className="font-bold text-sm text-[#111111] mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{addr.label}</p>
-          <p className="text-xs text-[#111111] font-medium">{addr.firstName} {addr.lastName}</p>
-          <p className="text-xs text-black/45 mt-1 tracking-wide">{addr.address}, {addr.city}</p>
-          <p className="text-xs text-black/45 tracking-wide">{addr.phone}</p>
+          <p className="font-bold text-sm text-foreground mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{addr.label}</p>
+          <p className="text-xs text-foreground font-medium">{addr.firstName} {addr.lastName}</p>
+          <p className="text-xs text-foreground/45 mt-1 tracking-wide">{addr.address}, {addr.city}</p>
+          <p className="text-xs text-foreground/45 tracking-wide">{addr.phone}</p>
         </div>
       </div>
-      <div className="flex gap-4 pt-4 border-t border-black/6">
+      <div className="flex gap-4 pt-4 border-t border-border">
         {!addr.isDefault && (
           <button onClick={onSetDefault} disabled={isLoading} className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#C9A227] hover:text-[#b8912a] transition-colors disabled:opacity-40">
             {t("dash.addr.setAsDefault")}
           </button>
         )}
         <div className="flex gap-4 ms-auto">
-          <button onClick={onEdit} disabled={isLoading} className="flex items-center gap-1.5 text-[9px] font-bold tracking-[0.15em] uppercase text-black/35 hover:text-[#111111] transition-colors disabled:opacity-40">
+          <button onClick={onEdit} disabled={isLoading} className="flex items-center gap-1.5 text-[9px] font-bold tracking-[0.15em] uppercase text-foreground/35 hover:text-foreground transition-colors disabled:opacity-40">
             <Pencil className="w-3 h-3" /> {t("dash.addr.edit")}
           </button>
           <button onClick={onDelete} disabled={isLoading} className="flex items-center gap-1.5 text-[9px] font-bold tracking-[0.15em] uppercase text-red-400 hover:text-red-600 transition-colors disabled:opacity-40">
@@ -121,11 +121,11 @@ function AddressForm({ initial, onSave, onCancel, isSaving }: {
   const { t } = useTranslation();
   const [form, setForm] = useState<AddressFormData>(initial);
   const set = (k: keyof AddressFormData, v: string | boolean) => setForm(f => ({ ...f, [k]: v }));
-  const fieldClass = "h-11 border border-black/10 bg-white px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors w-full tracking-wide";
-  const labelClass = "text-[9px] font-bold tracking-[0.25em] uppercase text-black/38 block mb-2";
+  const fieldClass = "h-11 border border-border bg-background px-4 text-sm focus:outline-none focus:border-foreground transition-colors w-full tracking-wide";
+  const labelClass = "text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/38 block mb-2";
 
   return (
-    <div className="border border-black/10 p-8 bg-[#F7F6F4] space-y-5">
+    <div className="border border-border p-8 bg-secondary space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="col-span-full">
           <label className={labelClass}>{t("dash.addr.label")}</label>
@@ -152,23 +152,23 @@ function AddressForm({ initial, onSave, onCancel, isSaving }: {
           <input className={fieldClass} value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="+20 100 000 0000" />
         </div>
       </div>
-      <label className="flex items-center gap-3 text-xs cursor-pointer font-medium text-[#111111]">
+      <label className="flex items-center gap-3 text-xs cursor-pointer font-medium text-foreground">
         <div className="relative flex items-center justify-center">
-          <input type="checkbox" checked={form.isDefault} onChange={e => set("isDefault", e.target.checked)} className="peer appearance-none w-4 h-4 border border-black/20 checked:bg-[#111111] checked:border-[#111111] transition-colors" />
+          <input type="checkbox" checked={form.isDefault} onChange={e => set("isDefault", e.target.checked)} className="peer appearance-none w-4 h-4 border border-foreground/20 checked:bg-foreground checked:border-foreground transition-colors" />
           <Check className="absolute w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
         </div>
         {t("dash.addr.setDefault")}
       </label>
-      <div className="flex gap-3 pt-4 border-t border-black/8">
+      <div className="flex gap-3 pt-4 border-t border-border">
         <button
-          className="flex-1 bg-[#111111] text-white py-3.5 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-40"
+          className="flex-1 py-3.5 bg-foreground text-background text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={() => onSave(form)}
           disabled={isSaving || !form.firstName || !form.lastName || !form.address || !form.city || !form.phone}
         >
           {isSaving ? t("dash.addr.saving") : t("dash.addr.save")}
         </button>
         <button
-          className="flex-1 border border-black/12 py-3.5 text-[9px] font-bold tracking-[0.25em] uppercase hover:border-black/40 transition-colors"
+          className="flex-1 border border-border py-3.5 text-[9px] font-bold tracking-[0.25em] uppercase hover:border-foreground/40 transition-colors"
           onClick={onCancel}
           disabled={isSaving}
         >
@@ -334,19 +334,19 @@ export default function CustomerDashboard() {
   ];
 
   return (
-    <div className="bg-white min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="bg-background min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Header */}
-      <div className="bg-[#F7F6F4] border-b border-black/6">
+      <div className="bg-secondary border-b border-border">
         <div className="max-w-screen-xl mx-auto px-6 md:px-10 py-12 md:py-16">
-          <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-black/28 mb-4">Velora</p>
+          <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-foreground/28 mb-4">Velora</p>
           <h1
-            className="text-4xl md:text-5xl font-bold text-[#111111] mb-3 leading-[0.92]"
+            className="text-4xl md:text-5xl font-bold text-foreground mb-3 leading-[0.92]"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
             {t("dash.myAccount")}
           </h1>
-          <p className="text-black/40 text-sm tracking-wide">
-            {t("dash.welcomeBack")} <span className="font-semibold text-[#111111]">{user.name}</span>
+          <p className="text-foreground/40 text-sm tracking-wide">
+            {t("dash.welcomeBack")} <span className="font-semibold text-foreground">{user.name}</span>
           </p>
         </div>
       </div>
@@ -356,13 +356,13 @@ export default function CustomerDashboard() {
 
           {/* ── Sidebar ──────────────────────────────────────────────────── */}
           {/* Mobile */}
-          <div className="lg:hidden flex overflow-x-auto py-5 -mx-6 px-6 gap-2 no-scrollbar border-b border-black/6">
+          <div className="lg:hidden flex overflow-x-auto py-5 -mx-6 px-6 gap-2 no-scrollbar border-b border-border">
             {NAV_TABS.map(({ value, label, icon: Icon, badge }) => (
               <button
                 key={value}
                 onClick={() => setActiveTab(value)}
                 className={`flex items-center gap-2 px-4 py-2.5 whitespace-nowrap text-[9px] font-bold tracking-[0.18em] uppercase transition-colors shrink-0 ${
-                  activeTab === value ? "bg-[#111111] text-white" : "bg-[#F7F6F4] text-black/45 hover:text-[#111111]"
+                  activeTab === value ? "bg-foreground text-background" : "bg-secondary text-foreground/45 hover:text-foreground"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -373,7 +373,7 @@ export default function CustomerDashboard() {
           </div>
 
           {/* Desktop */}
-          <div className="hidden lg:block w-52 shrink-0 border-e border-black/6 py-12">
+          <div className="hidden lg:block w-52 shrink-0 border-e border-border py-12">
             <div className="space-y-0.5">
               {NAV_TABS.map(({ value, label, icon: Icon, badge }) => (
                 <button
@@ -381,8 +381,8 @@ export default function CustomerDashboard() {
                   onClick={() => setActiveTab(value)}
                   className={`flex items-center gap-3.5 pe-6 py-3.5 w-full text-left text-[9px] font-bold tracking-[0.2em] uppercase transition-all border-e-2 ${
                     activeTab === value
-                      ? "border-[#111111] text-[#111111]"
-                      : "border-transparent text-black/35 hover:text-[#111111]"
+                      ? "border-[#111111] text-foreground"
+                      : "border-transparent text-foreground/35 hover:text-foreground"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -409,10 +409,10 @@ export default function CustomerDashboard() {
                     { label: t("dash.wishlistItems"), value: wishlist?.length ?? 0, icon: Heart },
                     { label: "Notifications", value: unreadCount, icon: Bell },
                   ].map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="border border-black/8 p-6 bg-[#F7F6F4]">
-                      <Icon className="w-4 h-4 text-black/30 mb-4" strokeWidth={1.5} />
-                      <p className="text-3xl font-bold text-[#111111] mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{value}</p>
-                      <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-black/35">{label}</p>
+                    <div key={label} className="border border-border p-6 bg-secondary">
+                      <Icon className="w-4 h-4 text-foreground/30 mb-4" strokeWidth={1.5} />
+                      <p className="text-3xl font-bold text-foreground mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{value}</p>
+                      <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/35">{label}</p>
                     </div>
                   ))}
                 </div>
@@ -420,27 +420,27 @@ export default function CustomerDashboard() {
                 {/* Active shipments */}
                 {activeOrders.length > 0 && (
                   <div>
-                    <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/35 mb-6 pb-3 border-b border-black/6">{t("dash.activeShipments")}</h3>
+                    <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/35 mb-6 pb-3 border-b border-border">{t("dash.activeShipments")}</h3>
                     <div className="space-y-4">
                       {activeOrders.map(order => {
                         const stepIdx = STATUS_STEPS.indexOf(order.status);
                         const progress = stepIdx >= 0 ? Math.round(((stepIdx + 1) / STATUS_STEPS.length) * 100) : 0;
                         return (
-                          <div key={order.id} className="border border-black/8 p-6">
+                          <div key={order.id} className="border border-border p-6">
                             <div className="flex items-center justify-between mb-5">
-                              <span className="font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Order #{order.id}</span>
+                              <span className="font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Order #{order.id}</span>
                               <StatusBadge status={order.status} />
                             </div>
-                            <div className="h-[1px] bg-black/6 relative mb-2">
+                            <div className="h-[1px] bg-foreground/6 relative mb-2">
                               <div className="absolute top-0 start-0 h-full bg-[#C9A227] transition-all duration-700" style={{ width: `${progress}%` }} />
                             </div>
-                            <div className="flex justify-between text-[9px] font-bold tracking-[0.15em] uppercase text-black/28">
+                            <div className="flex justify-between text-[9px] font-bold tracking-[0.15em] uppercase text-foreground/28">
                               <span>{t("dash.placed")}</span>
                               <span>{progress}%</span>
                               <span>{t("dash.deliveredLabel")}</span>
                             </div>
                             <button
-                              className="mt-4 flex items-center gap-1.5 text-[9px] font-bold tracking-[0.2em] uppercase text-black/35 hover:text-black transition-colors border-b border-black/15 pb-0.5"
+                              className="mt-4 flex items-center gap-1.5 text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/35 hover:text-foreground transition-colors border-b border-border pb-0.5"
                               onClick={() => { setOrderSearch(String(order.id)); setActiveTab("orders"); }}
                             >
                               {t("dash.fullDetails")} <ChevronRight className="w-3 h-3" />
@@ -454,24 +454,24 @@ export default function CustomerDashboard() {
 
                 {/* Recent orders */}
                 <div>
-                  <div className="flex justify-between items-end mb-6 pb-3 border-b border-black/6">
-                    <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/35">{t("dash.recentOrders")}</h3>
-                    <button onClick={() => setActiveTab("orders")} className="text-[9px] font-bold tracking-[0.2em] uppercase text-black/35 hover:text-black transition-colors border-b border-black/15 pb-0.5">{t("dash.viewAll")}</button>
+                  <div className="flex justify-between items-end mb-6 pb-3 border-b border-border">
+                    <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/35">{t("dash.recentOrders")}</h3>
+                    <button onClick={() => setActiveTab("orders")} className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/35 hover:text-foreground transition-colors border-b border-border pb-0.5">{t("dash.viewAll")}</button>
                   </div>
                   {!allOrders.length ? (
-                    <div className="border border-dashed border-black/10 p-12 text-center">
-                      <ShoppingBag className="w-8 h-8 text-black/15 mx-auto mb-4" strokeWidth={1} />
-                      <p className="text-black/35 text-sm mb-6">{t("dash.noOrders")}</p>
-                      <Link href="/products" className="inline-flex bg-[#111111] text-white px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] transition-colors">{t("dash.startShopping")}</Link>
+                    <div className="border border-dashed border-border p-12 text-center">
+                      <ShoppingBag className="w-8 h-8 text-foreground/15 mx-auto mb-4" strokeWidth={1} />
+                      <p className="text-foreground/35 text-sm mb-6">{t("dash.noOrders")}</p>
+                      <Link href="/products" className="inline-flex border border-foreground px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-foreground hover:text-background transition-colors">{t("dash.startShopping")}</Link>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {allOrders.slice(0, 3).map(order => (
-                        <div key={order.id} className="border border-black/8 px-6 py-5 flex items-center justify-between gap-6 hover:border-black/25 transition-colors">
+                        <div key={order.id} className="border border-border px-6 py-5 flex items-center justify-between gap-6 hover:border-foreground/25 transition-colors">
                           <div>
-                            <p className="font-bold text-[#111111] mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Order #{order.id}</p>
-                            <p className="text-[9px] text-black/35 tracking-widest uppercase font-bold">
-                              {format(new Date(order.createdAt), "MMM dd, yyyy")} · <span className="text-[#111111]">{Number(order.totalPrice).toLocaleString()} EGP</span>
+                            <p className="font-bold text-foreground mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Order #{order.id}</p>
+                            <p className="text-[9px] text-foreground/35 tracking-widest uppercase font-bold">
+                              {format(new Date(order.createdAt), "MMM dd, yyyy")} · <span className="text-foreground">{Number(order.totalPrice).toLocaleString()} EGP</span>
                             </p>
                           </div>
                           <StatusBadge status={order.status} />
@@ -484,17 +484,17 @@ export default function CustomerDashboard() {
                 {/* Recently Viewed */}
                 {(recentlyViewed ?? []).length > 0 && (
                   <div>
-                    <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/35 mb-6 pb-3 border-b border-black/6">Recently Viewed</h3>
+                    <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/35 mb-6 pb-3 border-b border-border">Recently Viewed</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {(recentlyViewed ?? []).slice(0, 4).map(item => (
                         <Link key={item.productId} href={`/products/${item.productId}`} className="group">
-                          <div className="bg-[#F7F6F4] overflow-hidden mb-2" style={{ aspectRatio: "3/4" }}>
+                          <div className="bg-secondary overflow-hidden mb-2" style={{ aspectRatio: "3/4" }}>
                             {item.imageUrl
                               ? <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-                              : <div className="w-full h-full flex items-center justify-center"><Package className="w-6 h-6 text-black/15" strokeWidth={1} /></div>
+                              : <div className="w-full h-full flex items-center justify-center"><Package className="w-6 h-6 text-foreground/15" strokeWidth={1} /></div>
                             }
                           </div>
-                          <p className="text-[9px] font-bold tracking-[0.12em] uppercase text-black/50 line-clamp-1">{item.nameEn}</p>
+                          <p className="text-[9px] font-bold tracking-[0.12em] uppercase text-foreground/50 line-clamp-1">{item.nameEn}</p>
                         </Link>
                       ))}
                     </div>
@@ -506,20 +506,20 @@ export default function CustomerDashboard() {
             {/* ORDERS */}
             {activeTab === "orders" && (
               <div className="space-y-8 animate-in fade-in duration-300">
-                <h2 className="text-2xl font-bold text-[#111111] pb-5 border-b border-black/6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.myOrders")}</h2>
+                <h2 className="text-2xl font-bold text-foreground pb-5 border-b border-border" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.myOrders")}</h2>
 
-                <div className="flex flex-col sm:flex-row gap-3 p-4 bg-[#F7F6F4] border border-black/8">
+                <div className="flex flex-col sm:flex-row gap-3 p-4 bg-secondary border border-border">
                   <input
                     placeholder={t("dash.searchOrders") || "Search by order ID..."}
                     value={orderSearch}
                     onChange={e => setOrderSearch(e.target.value)}
-                    className="sm:max-w-[180px] h-10 border border-black/10 bg-white px-4 text-xs focus:outline-none focus:border-[#111111] transition-colors tracking-wide"
+                    className="sm:max-w-[180px] h-10 border border-border bg-background px-4 text-xs focus:outline-none focus:border-foreground transition-colors tracking-wide"
                   />
                   <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
-                    <SelectTrigger className="sm:w-48 h-10 border-black/10 bg-white text-[9px] font-bold tracking-[0.18em] uppercase focus:ring-0 focus:border-[#111111]">
+                    <SelectTrigger className="sm:w-48 h-10 border-border bg-background text-[9px] font-bold tracking-[0.18em] uppercase focus:ring-0 focus:border-foreground">
                       <SelectValue placeholder={t("dash.filterByStatus") || "Filter"} />
                     </SelectTrigger>
-                    <SelectContent className="border-black/10">
+                    <SelectContent className="border-border">
                       <SelectItem value="all" className="text-[9px] font-bold uppercase tracking-widest">{t("dash.allStatuses") || "All"}</SelectItem>
                       {["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"].map(s => (
                         <SelectItem key={s} value={s} className="text-[9px] font-bold uppercase tracking-widest">{s.replace(/_/g, " ")}</SelectItem>
@@ -529,33 +529,33 @@ export default function CustomerDashboard() {
                 </div>
 
                 {!filteredOrders.length ? (
-                  <div className="border border-dashed border-black/10 p-16 text-center">
-                    <ShoppingBag className="w-8 h-8 text-black/15 mx-auto mb-5" strokeWidth={1} />
-                    <p className="text-xl font-bold text-[#111111] mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                  <div className="border border-dashed border-border p-16 text-center">
+                    <ShoppingBag className="w-8 h-8 text-foreground/15 mx-auto mb-5" strokeWidth={1} />
+                    <p className="text-xl font-bold text-foreground mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                       {allOrders.length === 0 ? (t("dash.noOrdersYet") || "No orders yet.") : (t("dash.noOrdersMatch") || "No matching orders.")}
                     </p>
                     {allOrders.length === 0 && (
-                      <Link href="/products" className="inline-flex bg-[#111111] text-white px-10 py-3.5 text-[9px] font-bold tracking-[0.28em] uppercase hover:bg-[#C9A227] transition-colors">{t("dash.startShopping")}</Link>
+                      <Link href="/products" className="inline-flex border border-foreground px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-foreground hover:text-background transition-colors">{t("dash.startShopping")}</Link>
                     )}
                   </div>
                 ) : (
                   <div className="space-y-5">
                     {filteredOrders.map(order => (
-                      <div key={order.id} className="border border-black/8 p-6 md:p-8 hover:border-black/25 transition-colors">
-                        <div className="flex flex-col md:flex-row gap-5 md:items-start justify-between border-b border-black/6 pb-6 mb-6">
+                      <div key={order.id} className="border border-border p-6 md:p-8 hover:border-foreground/25 transition-colors">
+                        <div className="flex flex-col md:flex-row gap-5 md:items-start justify-between border-b border-border pb-6 mb-6">
                           <div>
                             <div className="flex items-center gap-3 flex-wrap mb-2">
-                              <span className="font-bold text-xl text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Order #{order.id}</span>
+                              <span className="font-bold text-xl text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Order #{order.id}</span>
                               <StatusBadge status={order.status} />
                               <PaymentStatusBadge paymentStatus={(order as unknown as { paymentStatus?: string }).paymentStatus} orderStatus={order.status} />
                             </div>
-                            <p className="text-[9px] text-black/35 tracking-[0.18em] uppercase font-bold">
+                            <p className="text-[9px] text-foreground/35 tracking-[0.18em] uppercase font-bold">
                               {format(new Date(order.createdAt), "MMMM dd, yyyy")}
                             </p>
                           </div>
                           <div className="md:text-end">
-                            <p className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{Number(order.totalPrice).toLocaleString()} EGP</p>
-                            <p className="text-[9px] text-black/35 tracking-[0.15em] uppercase font-bold mt-1">
+                            <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{Number(order.totalPrice).toLocaleString()} EGP</p>
+                            <p className="text-[9px] text-foreground/35 tracking-[0.15em] uppercase font-bold mt-1">
                               {order.items?.length || 0} items · {order.paymentMethod.replace(/_/g, " ")}
                             </p>
                           </div>
@@ -563,27 +563,27 @@ export default function CustomerDashboard() {
 
                         <div className="flex gap-3 mb-6 overflow-x-auto pb-2 no-scrollbar">
                           {(order.items as unknown as Array<{ productVariantId: number; imageUrl?: string | null }>).map((item, i) => (
-                            <div key={i} className="w-16 shrink-0 bg-[#F7F6F4] border border-black/6 overflow-hidden" style={{ aspectRatio: "3/4" }}>
+                            <div key={i} className="w-16 shrink-0 bg-secondary border border-border overflow-hidden" style={{ aspectRatio: "3/4" }}>
                               {item.imageUrl
                                 ? <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
-                                : <div className="w-full h-full flex items-center justify-center"><Package className="w-4 h-4 text-black/15" strokeWidth={1} /></div>
+                                : <div className="w-full h-full flex items-center justify-center"><Package className="w-4 h-4 text-foreground/15" strokeWidth={1} /></div>
                               }
                             </div>
                           ))}
                         </div>
 
-                        <div className="flex flex-wrap gap-2.5 pt-4 border-t border-black/6">
-                          <Link href={`/track-order/${order.id}`} className="flex items-center gap-1.5 bg-[#111111] text-white px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-[#C9A227] transition-colors">
+                        <div className="flex flex-wrap gap-2.5 pt-4 border-t border-border">
+                          <Link href={`/track-order/${order.id}`} className="flex items-center gap-1.5 bg-foreground text-background px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors">
                             Track <ChevronRight className="w-3 h-3" />
                           </Link>
                           <button
-                            className="flex items-center gap-1.5 border border-black/10 px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-black/45 hover:border-black/40 hover:text-[#111111] transition-colors"
+                            className="flex items-center gap-1.5 border border-border px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/45 hover:border-foreground/40 hover:text-foreground transition-colors"
                             onClick={() => { setSupportOrderId(order.id); setActiveTab("support"); }}
                           >
                             <Headphones className="w-3 h-3" /> Support
                           </button>
                           <button
-                            className="flex items-center gap-1.5 border border-black/10 px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-black/45 hover:border-black/40 hover:text-[#111111] transition-colors"
+                            className="flex items-center gap-1.5 border border-border px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/45 hover:border-foreground/40 hover:text-foreground transition-colors"
                             onClick={() => {
                               const token = localStorage.getItem("auth_token");
                               const a = document.createElement("a");
@@ -600,7 +600,7 @@ export default function CustomerDashboard() {
                           </button>
                           {["delivered", "cancelled"].includes(order.status) && (
                             <button
-                              className="flex items-center gap-1.5 border border-black/10 px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-black/45 hover:border-black/40 hover:text-[#111111] transition-colors ms-auto disabled:opacity-30"
+                              className="flex items-center gap-1.5 border border-border px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/45 hover:border-foreground/40 hover:text-foreground transition-colors ms-auto disabled:opacity-30"
                               disabled={createOrderMutation.isPending}
                               onClick={() => handleReorder(order as { items?: Array<{ productVariantId: number; quantity: number; price: number }> })}
                             >
@@ -618,20 +618,20 @@ export default function CustomerDashboard() {
             {/* ADDRESSES */}
             {activeTab === "addresses" && (
               <div className="space-y-8 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between pb-5 border-b border-black/6">
-                  <h2 className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.savedAddresses")}</h2>
+                <div className="flex items-center justify-between pb-5 border-b border-border">
+                  <h2 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.savedAddresses")}</h2>
                   {!showAddressForm && !editingAddress && (
-                    <button className="flex items-center gap-2 bg-[#111111] text-white px-5 py-2.5 text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] transition-colors" onClick={() => setShowAddressForm(true)}>
+                    <button className="flex items-center gap-1.5 border border-foreground px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-foreground hover:text-background transition-colors" onClick={() => setShowAddressForm(true)}>
                       <Plus className="w-3.5 h-3.5" /> {t("dash.addAddress")}
                     </button>
                   )}
                 </div>
                 {showAddressForm && <AddressForm initial={EMPTY_ADDRESS} onSave={(d) => createAddressMutation.mutate(d)} onCancel={() => setShowAddressForm(false)} isSaving={createAddressMutation.isPending} />}
                 {!addresses?.length && !showAddressForm ? (
-                  <div className="border border-dashed border-black/10 p-16 text-center">
-                    <MapPin className="w-8 h-8 text-black/15 mx-auto mb-5" strokeWidth={1} />
-                    <p className="text-xl font-bold text-[#111111] mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.noAddresses")}</p>
-                    <button className="border border-[#111111]/20 px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#111111] hover:text-white transition-colors" onClick={() => setShowAddressForm(true)}>{t("dash.addFirstAddress")}</button>
+                  <div className="border border-dashed border-border p-16 text-center">
+                    <MapPin className="w-8 h-8 text-foreground/15 mx-auto mb-5" strokeWidth={1} />
+                    <p className="text-xl font-bold text-foreground mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.noAddresses")}</p>
+                    <button className="border border-foreground/20 px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-foreground hover:text-background transition-colors" onClick={() => setShowAddressForm(true)}>{t("dash.addFirstAddress")}</button>
                   </div>
                 ) : (
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -657,15 +657,15 @@ export default function CustomerDashboard() {
             {/* WISHLIST */}
             {activeTab === "wishlist" && (
               <div className="space-y-8 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between pb-5 border-b border-black/6">
-                  <h2 className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.myWishlist")}</h2>
-                  {wishlist?.length ? <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-black/35">{wishlist.length} {wishlist.length !== 1 ? t("dash.items") : t("dash.item")}</span> : null}
+                <div className="flex items-center justify-between pb-5 border-b border-border">
+                  <h2 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.myWishlist")}</h2>
+                  {wishlist?.length ? <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/35">{wishlist.length} {wishlist.length !== 1 ? t("dash.items") : t("dash.item")}</span> : null}
                 </div>
                 {!wishlist?.length ? (
-                  <div className="border border-dashed border-black/10 p-16 text-center">
-                    <Heart className="w-8 h-8 text-black/15 mx-auto mb-5" strokeWidth={1} />
-                    <p className="text-xl font-bold text-[#111111] mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.wishlistEmpty")}</p>
-                    <Link href="/products" className="inline-flex bg-[#111111] text-white px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] transition-colors">{t("dash.discoverProducts")}</Link>
+                  <div className="border border-dashed border-border p-16 text-center">
+                    <Heart className="w-8 h-8 text-foreground/15 mx-auto mb-5" strokeWidth={1} />
+                    <p className="text-xl font-bold text-foreground mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.wishlistEmpty")}</p>
+                    <Link href="/products" className="inline-flex border border-foreground px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-foreground hover:text-background transition-colors">{t("dash.discoverProducts")}</Link>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -694,26 +694,26 @@ export default function CustomerDashboard() {
             {/* NOTIFICATIONS */}
             {activeTab === "notifications" && (
               <div className="space-y-8 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between pb-5 border-b border-black/6">
-                  <h2 className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.notifications")}</h2>
+                <div className="flex items-center justify-between pb-5 border-b border-border">
+                  <h2 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.notifications")}</h2>
                   {unreadCount > 0 && <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-[#C9A227]">{unreadCount} {t("dash.unread")}</span>}
                 </div>
                 {!notifications?.length ? (
-                  <div className="border border-dashed border-black/10 p-16 text-center">
-                    <Bell className="w-8 h-8 text-black/15 mx-auto mb-5" strokeWidth={1} />
-                    <p className="text-xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.noNotifications")}</p>
+                  <div className="border border-dashed border-border p-16 text-center">
+                    <Bell className="w-8 h-8 text-foreground/15 mx-auto mb-5" strokeWidth={1} />
+                    <p className="text-xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.noNotifications")}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {notifications.map(notif => (
-                      <div key={notif.id} className={`p-6 border transition-colors flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${notif.isRead ? "border-black/6 bg-white" : "border-[#C9A227]/30 bg-[#C9A227]/4"}`}>
+                      <div key={notif.id} className={`p-6 border transition-colors flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${notif.isRead ? "border-border bg-white" : "border-[#C9A227]/30 bg-[#C9A227]/4"}`}>
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1.5">
                             {!notif.isRead && <span className="w-1.5 h-1.5 bg-[#C9A227] shrink-0" />}
-                            <h4 className={`text-sm font-bold ${notif.isRead ? "text-black/50" : "text-[#111111]"}`}>{notif.title}</h4>
+                            <h4 className={`text-sm font-bold ${notif.isRead ? "text-foreground/50" : "text-foreground"}`}>{notif.title}</h4>
                           </div>
-                          <p className="text-xs text-black/40 mb-2 tracking-wide">{notif.message}</p>
-                          <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-black/25">{format(new Date(notif.createdAt), "MMMM dd, yyyy · HH:mm")}</p>
+                          <p className="text-xs text-foreground/40 mb-2 tracking-wide">{notif.message}</p>
+                          <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-foreground/25">{format(new Date(notif.createdAt), "MMMM dd, yyyy · HH:mm")}</p>
                         </div>
                         {!notif.isRead && (
                           <button
@@ -734,21 +734,21 @@ export default function CustomerDashboard() {
             {activeTab === "payment-history" && (
               <div className="space-y-12 animate-in fade-in duration-300">
                 <PaymentHistoryTab />
-                <div className="border-t border-black/6 pt-12">
-                  <h3 className="text-2xl font-bold text-[#111111] mb-8 pb-5 border-b border-black/6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Saved Coupons</h3>
+                <div className="border-t border-border pt-12">
+                  <h3 className="text-2xl font-bold text-foreground mb-8 pb-5 border-b border-border" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Saved Coupons</h3>
                   {!savedCoupons?.length ? (
-                    <div className="border border-dashed border-black/10 p-12 text-center">
-                      <p className="text-sm text-black/35 tracking-wide">No saved coupons yet.</p>
+                    <div className="border border-dashed border-border p-12 text-center">
+                      <p className="text-sm text-foreground/35 tracking-wide">No saved coupons yet.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {savedCoupons.map(c => (
-                        <div key={c.id} className="border border-black/8 p-6 group bg-[#F7F6F4]">
+                        <div key={c.id} className="border border-border p-6 group bg-secondary">
                           <div className="flex justify-between items-start mb-4">
-                            <span className="font-mono text-xl font-bold text-[#111111] tracking-wider">{c.couponCode}</span>
+                            <span className="font-mono text-xl font-bold text-foreground tracking-wider">{c.couponCode}</span>
                             <button
                               onClick={() => apiFetch(`/api/saved-coupons/${c.couponCode}`, { method: "DELETE" }).then(() => refetchSavedCoupons())}
-                              className="text-[9px] font-bold tracking-[0.18em] uppercase text-black/25 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                              className="text-[9px] font-bold tracking-[0.18em] uppercase text-foreground/25 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                             >
                               Remove
                             </button>
@@ -758,9 +758,9 @@ export default function CustomerDashboard() {
                               {c.discountType === "percentage" ? `${c.discountValue}% OFF` : `${Number(c.discountValue).toLocaleString()} EGP OFF`}
                             </p>
                           )}
-                          {c.endDate && <p className="text-[9px] text-black/30 tracking-[0.18em] uppercase font-bold">Valid until {format(new Date(c.endDate), "MMM dd, yyyy")}</p>}
+                          {c.endDate && <p className="text-[9px] text-foreground/30 tracking-[0.18em] uppercase font-bold">Valid until {format(new Date(c.endDate), "MMM dd, yyyy")}</p>}
                           <div className="mt-3 flex gap-2">
-                            {c.active === false && <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-black/6 text-black/35 px-2.5 py-1">Inactive</span>}
+                            {c.active === false && <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-foreground/6 text-foreground/35 px-2.5 py-1">Inactive</span>}
                             {c.endDate && new Date(c.endDate) < new Date() && <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-red-50 text-red-500 border border-red-200 px-2.5 py-1">Expired</span>}
                           </div>
                         </div>
@@ -781,41 +781,41 @@ export default function CustomerDashboard() {
             {/* PROFILE */}
             {activeTab === "profile" && (
               <div className="space-y-10 animate-in fade-in duration-300 max-w-2xl">
-                <h2 className="text-2xl font-bold text-[#111111] pb-5 border-b border-black/6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.tab.profile")}</h2>
+                <h2 className="text-2xl font-bold text-foreground pb-5 border-b border-border" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.tab.profile")}</h2>
 
                 {/* Name */}
                 <div className="space-y-5">
-                  <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/35">{t("dash.profileInfo")}</h3>
+                  <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/35">{t("dash.profileInfo")}</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/38 block mb-2">{t("common.name")}</label>
+                      <label className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/38 block mb-2">{t("common.name")}</label>
                       <input
                         value={name}
                         onChange={e => setName(e.target.value)}
-                        className="w-full h-11 border border-black/10 bg-[#F7F6F4] px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors tracking-wide"
+                        className="w-full h-11 border border-border bg-secondary px-4 text-sm focus:outline-none focus:border-foreground transition-colors tracking-wide"
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/38 block mb-2">{t("common.email")}</label>
+                      <label className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/38 block mb-2">{t("common.email")}</label>
                       <input
                         value={user.email}
                         disabled
-                        className="w-full h-11 border border-black/8 bg-black/3 text-black/35 px-4 text-sm cursor-not-allowed"
+                        className="w-full h-11 border border-border bg-foreground/3 text-foreground/35 px-4 text-sm cursor-not-allowed"
                       />
                     </div>
                   </div>
                   <button
                     onClick={handleUpdateProfile}
                     disabled={updateUserMutation.isPending}
-                    className="bg-[#111111] text-white px-8 py-3.5 text-[9px] font-bold tracking-[0.28em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-40"
+                    className="py-3.5 px-10 bg-foreground text-background text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors disabled:opacity-40"
                   >
                     {updateUserMutation.isPending ? t("dash.saving") : t("dash.saveChanges")}
                   </button>
                 </div>
 
                 {/* Email Preferences */}
-                <div className="border-t border-black/6 pt-10 space-y-5">
-                  <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-black/35">{t("dash.emailPrefs")}</h3>
+                <div className="border-t border-border pt-10 space-y-5">
+                  <h3 className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground/35">{t("dash.emailPrefs")}</h3>
                   <div className="space-y-4">
                     {[
                       { key: "orderUpdates" as const, label: t("dash.pref.orderUpdates"), desc: t("dash.pref.orderUpdatesDesc") },
@@ -828,13 +828,13 @@ export default function CustomerDashboard() {
                             type="checkbox"
                             checked={prefs[key]}
                             onChange={e => updateEmailPrefsMutation.mutate({ [key]: e.target.checked })}
-                            className="peer appearance-none w-4 h-4 border border-black/20 checked:bg-[#111111] checked:border-[#111111] transition-colors cursor-pointer"
+                            className="peer appearance-none w-4 h-4 border border-foreground/20 checked:bg-foreground checked:border-foreground transition-colors cursor-pointer"
                           />
                           <Check className="absolute inset-0 m-auto w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-[#111111] tracking-wide">{label}</p>
-                          <p className="text-[9px] text-black/38 tracking-wide mt-0.5">{desc}</p>
+                          <p className="text-xs font-bold text-foreground tracking-wide">{label}</p>
+                          <p className="text-[9px] text-foreground/38 tracking-wide mt-0.5">{desc}</p>
                         </div>
                       </label>
                     ))}
@@ -887,51 +887,51 @@ function MyReviewsTab({ userId }: { userId: number }) {
     });
   };
 
-  if (isLoading) return <div className="p-16 text-center text-[9px] font-bold tracking-[0.25em] uppercase text-black/35">{t("dash.loading")}</div>;
+  if (isLoading) return <div className="p-16 text-center text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/35">{t("dash.loading")}</div>;
 
   const reviewList = (reviews ?? []) as unknown as MyReview[];
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold text-[#111111] pb-5 border-b border-black/6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.tab.myReviews")}</h2>
+      <h2 className="text-2xl font-bold text-foreground pb-5 border-b border-border" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{t("dash.tab.myReviews")}</h2>
 
       {!reviewList.length ? (
-        <div className="border border-dashed border-black/10 p-16 text-center">
-          <Star className="w-8 h-8 text-black/15 mx-auto mb-5" strokeWidth={1} />
-          <p className="text-xl font-bold text-[#111111] mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>No reviews yet</p>
-          <p className="text-[9px] text-black/35 tracking-[0.2em] uppercase font-bold">Reviews you write will appear here</p>
+        <div className="border border-dashed border-border p-16 text-center">
+          <Star className="w-8 h-8 text-foreground/15 mx-auto mb-5" strokeWidth={1} />
+          <p className="text-xl font-bold text-foreground mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>No reviews yet</p>
+          <p className="text-[9px] text-foreground/35 tracking-[0.2em] uppercase font-bold">Reviews you write will appear here</p>
         </div>
       ) : (
         <div className="space-y-5">
           {reviewList.map(review => (
-            <div key={review.id} className="border border-black/8 p-6">
+            <div key={review.id} className="border border-border p-6">
               <div className="flex gap-4 mb-4">
                 {review.productImageUrl && (
-                  <div className="w-14 shrink-0 bg-[#F7F6F4] overflow-hidden" style={{ aspectRatio: "3/4" }}>
+                  <div className="w-14 shrink-0 bg-secondary overflow-hidden" style={{ aspectRatio: "3/4" }}>
                     <img src={review.productImageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-[#111111] mb-1 tracking-wide" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{review.productNameEn}</p>
+                  <p className="text-sm font-bold text-foreground mb-1 tracking-wide" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{review.productNameEn}</p>
                   <div className="flex items-center gap-2">
-                    {[1,2,3,4,5].map(i => <Star key={i} className={`w-3.5 h-3.5 ${i <= review.rating ? "fill-[#C9A227] text-[#C9A227]" : "text-black/12"}`} />)}
-                    <span className="text-[9px] text-black/30 tracking-[0.15em] uppercase font-bold ms-1">{format(new Date(review.createdAt), "MMM dd, yyyy")}</span>
+                    {[1,2,3,4,5].map(i => <Star key={i} className={`w-3.5 h-3.5 ${i <= review.rating ? "fill-[#C9A227] text-[#C9A227]" : "text-foreground/12"}`} />)}
+                    <span className="text-[9px] text-foreground/30 tracking-[0.15em] uppercase font-bold ms-1">{format(new Date(review.createdAt), "MMM dd, yyyy")}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => { setEditTarget(review); setEditForm({ rating: review.rating, title: review.title ?? "", comment: review.comment ?? "" }); }}
-                    className="p-2 text-black/25 hover:text-[#111111] transition-colors"
+                    className="p-2 text-foreground/25 hover:text-foreground transition-colors"
                   >
                     <PenLine className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => handleDelete(review.id, review.productId)} className="p-2 text-black/25 hover:text-red-500 transition-colors">
+                  <button onClick={() => handleDelete(review.id, review.productId)} className="p-2 text-foreground/25 hover:text-red-500 transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
-              {review.title && <p className="text-sm font-bold text-[#111111] mb-1">{review.title}</p>}
-              {review.comment && <p className="text-xs text-black/45 leading-relaxed tracking-wide">{review.comment}</p>}
+              {review.title && <p className="text-sm font-bold text-foreground mb-1">{review.title}</p>}
+              {review.comment && <p className="text-xs text-foreground/45 leading-relaxed tracking-wide">{review.comment}</p>}
             </div>
           ))}
         </div>
@@ -940,33 +940,33 @@ function MyReviewsTab({ userId }: { userId: number }) {
       {editTarget && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditTarget(null)} />
-          <div className="relative bg-white w-full sm:max-w-lg mx-4 p-8 shadow-2xl">
+          <div className="relative bg-background w-full sm:max-w-lg mx-4 p-8 shadow-2xl">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Edit Review</h3>
-              <button onClick={() => setEditTarget(null)} className="text-black/30 hover:text-black"><X className="w-5 h-5" /></button>
+              <h3 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Edit Review</h3>
+              <button onClick={() => setEditTarget(null)} className="text-foreground/30 hover:text-foreground"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleUpdate} className="space-y-5">
               <div>
-                <label className="text-[9px] font-bold tracking-[0.28em] uppercase text-black/38 block mb-3">{t("reviews.rating")}</label>
+                <label className="text-[9px] font-bold tracking-[0.28em] uppercase text-foreground/38 block mb-3">{t("reviews.rating")}</label>
                 <div className="flex gap-1">
                   {[1,2,3,4,5].map(i => (
                     <button key={i} type="button" onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(0)} onClick={() => setEditForm(f => ({ ...f, rating: i }))}>
-                      <Star className={`w-7 h-7 transition-colors ${i <= (hovered || editForm.rating) ? "fill-[#C9A227] text-[#C9A227]" : "text-black/12"}`} />
+                      <Star className={`w-7 h-7 transition-colors ${i <= (hovered || editForm.rating) ? "fill-[#C9A227] text-[#C9A227]" : "text-foreground/12"}`} />
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="text-[9px] font-bold tracking-[0.28em] uppercase text-black/38 block mb-2">Title</label>
-                <input type="text" maxLength={120} value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} className="w-full h-11 border border-black/10 bg-[#F7F6F4] px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors" />
+                <label className="text-[9px] font-bold tracking-[0.28em] uppercase text-foreground/38 block mb-2">Title</label>
+                <input type="text" maxLength={120} value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} className="w-full h-11 border border-border bg-secondary px-4 text-sm focus:outline-none focus:border-foreground transition-colors" />
               </div>
               <div>
-                <label className="text-[9px] font-bold tracking-[0.28em] uppercase text-black/38 block mb-2">Comment</label>
-                <textarea rows={4} maxLength={2000} value={editForm.comment} onChange={e => setEditForm(f => ({ ...f, comment: e.target.value }))} className="w-full border border-black/10 bg-[#F7F6F4] px-4 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors resize-none" />
+                <label className="text-[9px] font-bold tracking-[0.28em] uppercase text-foreground/38 block mb-2">Comment</label>
+                <textarea rows={4} maxLength={2000} value={editForm.comment} onChange={e => setEditForm(f => ({ ...f, comment: e.target.value }))} className="w-full border border-border bg-secondary px-4 py-3 text-sm focus:outline-none focus:border-foreground transition-colors resize-none" />
               </div>
-              <div className="flex gap-3 pt-4 border-t border-black/6">
-                <button type="button" onClick={() => setEditTarget(null)} className="flex-1 py-4 border border-black/10 text-[9px] font-bold tracking-[0.22em] uppercase text-black/40 hover:border-black/30">{t("dash.cancel")}</button>
-                <button type="submit" className="flex-1 py-4 bg-[#111111] text-white text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-40" disabled={updateMutation.isPending}>
+              <div className="flex gap-3 pt-4 border-t border-border">
+                <button type="button" onClick={() => setEditTarget(null)} className="flex-1 py-4 border border-border text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/40 hover:border-foreground/30">{t("dash.cancel")}</button>
+                <button type="submit" className="flex-1 py-4 bg-foreground text-background text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors disabled:opacity-40" disabled={updateMutation.isPending}>
                   {updateMutation.isPending ? t("dash.saving") : "Update Review"}
                 </button>
               </div>
@@ -983,12 +983,12 @@ type SupportTicket = { id: number; subject: string; category: string; status: st
 type TicketMsg = { id: number; ticketId: number; senderId: number; message: string; createdAt: string; senderName?: string; senderRole?: string };
 
 const STATUS_COLORS: Record<string, string> = {
-  open: "bg-black/4 text-black/60 border-black/8",
+  open: "bg-foreground/4 text-foreground/60 border-border",
   in_progress: "bg-[#C9A227]/8 text-[#9a7a1a] border-[#C9A227]/25",
-  waiting_customer: "bg-black/4 text-black/45 border-black/8",
-  waiting_admin: "bg-black/4 text-black/45 border-black/8",
+  waiting_customer: "bg-foreground/4 text-foreground/45 border-border",
+  waiting_admin: "bg-foreground/4 text-foreground/45 border-border",
   resolved: "bg-[#C9A227]/8 text-[#9a7a1a] border-[#C9A227]/25",
-  closed: "bg-black/4 text-black/30 border-black/6",
+  closed: "bg-foreground/4 text-foreground/30 border-border",
 };
 const STATUS_LABELS: Record<string, string> = {
   open: "Open", in_progress: "In Progress", waiting_customer: "Waiting on You", waiting_admin: "Awaiting Reply", resolved: "Resolved", closed: "Closed",
@@ -1075,27 +1075,27 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
     } finally { setClosing(false); }
   };
 
-  if (loading) return <div className="p-16 text-center text-[9px] font-bold tracking-[0.25em] uppercase text-black/35">{t("dash.loading")}</div>;
+  if (loading) return <div className="p-16 text-center text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/35">{t("dash.loading")}</div>;
 
-  const fieldClass = "w-full h-11 border border-black/10 bg-[#F7F6F4] px-4 text-sm focus:outline-none focus:border-[#111111] transition-colors tracking-wide";
-  const labelClass = "text-[9px] font-bold tracking-[0.25em] uppercase text-black/38 block mb-2";
+  const fieldClass = "w-full h-11 border border-border bg-secondary px-4 text-sm focus:outline-none focus:border-foreground transition-colors tracking-wide";
+  const labelClass = "text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/38 block mb-2";
 
   if (showNew) {
     return (
       <div className="space-y-8 max-w-2xl animate-in fade-in duration-300">
-        <div className="flex items-center gap-4 pb-5 border-b border-black/6">
-          <button onClick={() => setShowNew(false)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors">← Back</button>
-          <h2 className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Open Support Ticket</h2>
+        <div className="flex items-center gap-4 pb-5 border-b border-border">
+          <button onClick={() => setShowNew(false)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/35 hover:text-foreground transition-colors">← Back</button>
+          <h2 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Open Support Ticket</h2>
         </div>
         <form onSubmit={handleCreate} className="space-y-5">
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
               <label className={labelClass}>Category</label>
               <Select value={newForm.category} onValueChange={v => setNewForm(f => ({ ...f, category: v }))}>
-                <SelectTrigger className="h-11 border-black/10 bg-[#F7F6F4] text-[9px] font-bold tracking-[0.18em] uppercase focus:ring-0 focus:border-[#111111]">
+                <SelectTrigger className="h-11 border-border bg-secondary text-[9px] font-bold tracking-[0.18em] uppercase focus:ring-0 focus:border-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-black/10">
+                <SelectContent className="border-border">
                   {["general", "order", "payment", "returns", "account"].map(v => (
                     <SelectItem key={v} value={v} className="text-[9px] font-bold uppercase tracking-widest">{v}</SelectItem>
                   ))}
@@ -1106,10 +1106,10 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
               <div>
                 <label className={labelClass}>Related Order</label>
                 <Select value={newForm.orderId} onValueChange={v => setNewForm(f => ({ ...f, orderId: v }))}>
-                  <SelectTrigger className="h-11 border-black/10 bg-[#F7F6F4] text-[9px] font-bold tracking-[0.18em] uppercase focus:ring-0 focus:border-[#111111]">
+                  <SelectTrigger className="h-11 border-border bg-secondary text-[9px] font-bold tracking-[0.18em] uppercase focus:ring-0 focus:border-foreground">
                     <SelectValue placeholder="Select order" />
                   </SelectTrigger>
-                  <SelectContent className="border-black/10">
+                  <SelectContent className="border-border">
                     <SelectItem value="none" className="text-[9px] font-bold uppercase tracking-widest">None</SelectItem>
                     {myOrders.map(o => (
                       <SelectItem key={o.id} value={String(o.id)} className="text-[9px] font-bold uppercase tracking-widest">
@@ -1127,9 +1127,9 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
           </div>
           <div>
             <label className={labelClass}>Message *</label>
-            <textarea rows={5} value={newForm.message} onChange={e => setNewForm(f => ({ ...f, message: e.target.value }))} className="w-full border border-black/10 bg-[#F7F6F4] px-4 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors resize-none tracking-wide" placeholder="Describe your issue in detail..." />
+            <textarea rows={5} value={newForm.message} onChange={e => setNewForm(f => ({ ...f, message: e.target.value }))} className="w-full border border-border bg-secondary px-4 py-3 text-sm focus:outline-none focus:border-foreground transition-colors resize-none tracking-wide" placeholder="Describe your issue in detail..." />
           </div>
-          <button type="submit" className="w-full bg-[#111111] text-white py-4 text-[9px] font-bold tracking-[0.28em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-40" disabled={creating}>
+          <button type="submit" className="w-full py-4 bg-foreground text-background text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors disabled:opacity-40" disabled={creating}>
             {creating ? "Opening..." : "Open Ticket"}
           </button>
         </form>
@@ -1140,12 +1140,12 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
   if (selected) {
     return (
       <div className="space-y-8 animate-in fade-in duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-black/6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSelected(null)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-black/35 hover:text-black transition-colors shrink-0">← Back</button>
+            <button onClick={() => setSelected(null)} className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/35 hover:text-foreground transition-colors shrink-0">← Back</button>
             <div>
-              <h2 className="text-xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{selected.subject}</h2>
-              <div className="flex items-center gap-3 mt-1.5 text-[9px] text-black/35 font-bold tracking-[0.18em] uppercase flex-wrap">
+              <h2 className="text-xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{selected.subject}</h2>
+              <div className="flex items-center gap-3 mt-1.5 text-[9px] text-foreground/35 font-bold tracking-[0.18em] uppercase flex-wrap">
                 <span>Ticket #{selected.id}</span>
                 <span className={`px-2 py-0.5 border ${STATUS_COLORS[selected.status]}`}>{STATUS_LABELS[selected.status] || selected.status}</span>
                 {selected.orderId && <><span>·</span><Link href={`/track-order/${selected.orderId}`} className="text-[#C9A227] hover:underline">Order #{selected.orderId}</Link></>}
@@ -1153,7 +1153,7 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
             </div>
           </div>
           {selected.status !== "closed" && (
-            <button onClick={handleCloseTicket} disabled={closing} className="border border-black/10 px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-black/40 hover:border-black/30 transition-colors disabled:opacity-40">
+            <button onClick={handleCloseTicket} disabled={closing} className="border border-border px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/40 hover:border-foreground/30 transition-colors disabled:opacity-40">
               Close Ticket
             </button>
           )}
@@ -1164,10 +1164,10 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
             const isMe = m.senderRole === "customer";
             return (
               <div key={i} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
-                <div className="text-[9px] font-bold tracking-[0.15em] uppercase text-black/25 mb-1.5 px-1">
+                <div className="text-[9px] font-bold tracking-[0.15em] uppercase text-foreground/25 mb-1.5 px-1">
                   {isMe ? "You" : m.senderName || "Support"} · {format(new Date(m.createdAt), "MMM d, h:mm a")}
                 </div>
-                <div className={`px-5 py-4 max-w-[80%] ${isMe ? "bg-[#111111] text-white" : "bg-[#F7F6F4] text-[#111111] border border-black/8"}`}>
+                <div className={`px-5 py-4 max-w-[80%] ${isMe ? "bg-foreground text-background" : "bg-secondary text-foreground border border-border"}`}>
                   <p className="text-sm leading-relaxed tracking-wide whitespace-pre-wrap">{m.message}</p>
                 </div>
               </div>
@@ -1179,9 +1179,9 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
           <form onSubmit={handleReply} className="flex gap-3 max-w-2xl items-end">
             <div className="flex-1">
               <label className={labelClass}>Reply</label>
-              <textarea rows={3} value={reply} onChange={e => setReply(e.target.value)} placeholder="Type your reply..." className="w-full border border-black/10 bg-[#F7F6F4] px-4 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors resize-none tracking-wide" />
+              <textarea rows={3} value={reply} onChange={e => setReply(e.target.value)} placeholder="Type your reply..." className="w-full border border-border bg-secondary px-4 py-3 text-sm focus:outline-none focus:border-foreground transition-colors resize-none tracking-wide" />
             </div>
-            <button type="submit" className="h-11 px-6 bg-[#111111] text-white text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] transition-colors flex items-center gap-2 disabled:opacity-40" disabled={replyPending || !reply.trim()}>
+            <button type="submit" className="flex items-center gap-1.5 bg-foreground text-background px-6 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors disabled:opacity-40" disabled={replyPending || !reply.trim()}>
               <Send className="w-3.5 h-3.5" /> Send
             </button>
           </form>
@@ -1192,33 +1192,33 @@ function SupportTab({ userId, prefilledOrderId }: { userId: number; prefilledOrd
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <div className="flex items-center justify-between pb-5 border-b border-black/6">
-        <h2 className="text-2xl font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Support</h2>
-        <button className="flex items-center gap-2 bg-[#111111] text-white px-5 py-2.5 text-[9px] font-bold tracking-[0.22em] uppercase hover:bg-[#C9A227] transition-colors" onClick={() => setShowNew(true)}>
+      <div className="flex items-center justify-between pb-5 border-b border-border">
+        <h2 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Support</h2>
+        <button className="flex items-center gap-1.5 border border-foreground px-5 py-2.5 text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-foreground hover:text-background transition-colors" onClick={() => setShowNew(true)}>
           <Plus className="w-3.5 h-3.5" /> New Ticket
         </button>
       </div>
 
       {!tickets.length ? (
-        <div className="border border-dashed border-black/10 p-16 text-center">
-          <MessageCircle className="w-8 h-8 text-black/15 mx-auto mb-5" strokeWidth={1} />
-          <p className="text-xl font-bold text-[#111111] mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>No tickets yet</p>
-          <p className="text-[9px] text-black/35 tracking-[0.2em] uppercase font-bold mb-8">Open a ticket if you need help</p>
-          <button className="border border-[#111111]/15 px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#111111] hover:text-white transition-colors" onClick={() => setShowNew(true)}>Open First Ticket</button>
+        <div className="border border-dashed border-border p-16 text-center">
+          <MessageCircle className="w-8 h-8 text-foreground/15 mx-auto mb-5" strokeWidth={1} />
+          <p className="text-xl font-bold text-foreground mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>No tickets yet</p>
+          <p className="text-[9px] text-foreground/35 tracking-[0.2em] uppercase font-bold mb-8">Open a ticket if you need help</p>
+          <button className="border border-foreground/15 px-8 py-3 text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-foreground hover:text-background transition-colors" onClick={() => setShowNew(true)}>Open First Ticket</button>
         </div>
       ) : (
         <div className="space-y-3">
           {tickets.map(tkt => (
-            <div key={tkt.id} className="border border-black/8 p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-black/25 transition-colors cursor-pointer" onClick={() => openTicket(tkt)}>
+            <div key={tkt.id} className="border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-foreground/25 transition-colors cursor-pointer" onClick={() => openTicket(tkt)}>
               <div>
                 <div className="flex items-center gap-3 mb-2 flex-wrap">
                   <span className={`px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase border ${STATUS_COLORS[tkt.status]}`}>{STATUS_LABELS[tkt.status] || tkt.status}</span>
-                  <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-black/30">Ticket #{tkt.id}</span>
+                  <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-foreground/30">Ticket #{tkt.id}</span>
                 </div>
-                <p className="text-sm font-bold text-[#111111] mb-1 tracking-wide">{tkt.subject}</p>
-                <p className="text-[9px] text-black/30 tracking-[0.15em] uppercase font-bold">{format(new Date(tkt.createdAt), "MMM d, yyyy")}</p>
+                <p className="text-sm font-bold text-foreground mb-1 tracking-wide">{tkt.subject}</p>
+                <p className="text-[9px] text-foreground/30 tracking-[0.15em] uppercase font-bold">{format(new Date(tkt.createdAt), "MMM d, yyyy")}</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-black/20 shrink-0" />
+              <ChevronRight className="w-4 h-4 text-foreground/20 shrink-0" />
             </div>
           ))}
         </div>
@@ -1249,45 +1249,45 @@ function PaymentHistoryTab() {
   const statusStyle = (s: string) =>
     s === "success" || s === "approved" ? "bg-[#C9A227]/8 text-[#9a7a1a] border-[#C9A227]/25"
     : s === "failed" ? "bg-red-50 text-red-600 border-red-200"
-    : "bg-black/4 text-black/45 border-black/8";
+    : "bg-foreground/4 text-foreground/45 border-border";
 
   const methodLabel = (m: string) =>
     m === "vodafone_cash" ? "Vodafone Cash" : m === "etisalat_cash" ? "Etisalat Cash" : m === "instapay" ? "InstaPay" : m === "card" ? "Card" : m;
 
-  if (loading) return <div className="p-16 text-center text-[9px] font-bold tracking-[0.25em] uppercase text-black/35">{t("dash.loading")}</div>;
+  if (loading) return <div className="p-16 text-center text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/35">{t("dash.loading")}</div>;
 
   const isEmpty = paymob.length === 0 && manual.length === 0;
   if (isEmpty) return (
-    <div className="border border-dashed border-black/10 p-16 text-center">
-      <CreditCard className="w-8 h-8 text-black/15 mx-auto mb-5" strokeWidth={1} />
-      <p className="text-xl font-bold text-[#111111] mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>No payment records</p>
-      <p className="text-[9px] text-black/35 tracking-[0.2em] uppercase font-bold">Your payment history will appear here</p>
+    <div className="border border-dashed border-border p-16 text-center">
+      <CreditCard className="w-8 h-8 text-foreground/15 mx-auto mb-5" strokeWidth={1} />
+      <p className="text-xl font-bold text-foreground mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>No payment records</p>
+      <p className="text-[9px] text-foreground/35 tracking-[0.2em] uppercase font-bold">Your payment history will appear here</p>
     </div>
   );
 
   return (
     <div className="space-y-12">
-      <h2 className="text-2xl font-bold text-[#111111] pb-5 border-b border-black/6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Payment History</h2>
+      <h2 className="text-2xl font-bold text-foreground pb-5 border-b border-border" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Payment History</h2>
       {paymob.length > 0 && (
         <div>
-          <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-black/35 mb-4">Card (Paymob)</p>
-          <div className="border border-black/8 overflow-x-auto">
+          <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-foreground/35 mb-4">Card (Paymob)</p>
+          <div className="border border-border overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#F7F6F4]">
+              <thead className="bg-secondary">
                 <tr>
                   {["Order", "Method", "Amount", "Status", "Date"].map(h => (
-                    <th key={h} className="px-5 py-3.5 text-start text-[9px] font-bold tracking-[0.2em] uppercase text-black/35 border-b border-black/6">{h}</th>
+                    <th key={h} className="px-5 py-3.5 text-start text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/35 border-b border-border">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
                 {paymob.map(p => (
-                  <tr key={p.id} className="hover:bg-[#F7F6F4] transition-colors">
-                    <td className="px-5 py-4 font-bold text-[#111111]">#{p.orderId}</td>
-                    <td className="px-5 py-4 text-black/40 text-xs tracking-wide capitalize">{methodLabel(p.method)}</td>
-                    <td className="px-5 py-4 font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{(p.amountCents / 100).toFixed(2)} <span className="text-[9px] font-sans font-normal text-black/35">EGP</span></td>
+                  <tr key={p.id} className="hover:bg-secondary transition-colors">
+                    <td className="px-5 py-4 font-bold text-foreground">#{p.orderId}</td>
+                    <td className="px-5 py-4 text-foreground/40 text-xs tracking-wide capitalize">{methodLabel(p.method)}</td>
+                    <td className="px-5 py-4 font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{(p.amountCents / 100).toFixed(2)} <span className="text-[9px] font-sans font-normal text-foreground/35">EGP</span></td>
                     <td className="px-5 py-4"><span className={`px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase border ${statusStyle(p.status)}`}>{p.status}</span></td>
-                    <td className="px-5 py-4 text-[9px] text-black/30 tracking-[0.15em] uppercase font-bold">{format(new Date(p.createdAt), "MMM dd, yyyy")}</td>
+                    <td className="px-5 py-4 text-[9px] text-foreground/30 tracking-[0.15em] uppercase font-bold">{format(new Date(p.createdAt), "MMM dd, yyyy")}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1297,25 +1297,25 @@ function PaymentHistoryTab() {
       )}
       {manual.length > 0 && (
         <div>
-          <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-black/35 mb-4">Manual Transfer</p>
-          <div className="border border-black/8 overflow-x-auto">
+          <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-foreground/35 mb-4">Manual Transfer</p>
+          <div className="border border-border overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#F7F6F4]">
+              <thead className="bg-secondary">
                 <tr>
                   {["Order", "Method", "Amount", "Reference", "Status", "Date"].map(h => (
-                    <th key={h} className="px-5 py-3.5 text-start text-[9px] font-bold tracking-[0.2em] uppercase text-black/35 border-b border-black/6">{h}</th>
+                    <th key={h} className="px-5 py-3.5 text-start text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/35 border-b border-border">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
                 {manual.map(m => (
-                  <tr key={m.id} className="hover:bg-[#F7F6F4] transition-colors">
-                    <td className="px-5 py-4 font-bold text-[#111111]">#{m.orderId}</td>
-                    <td className="px-5 py-4 text-black/40 text-xs tracking-wide capitalize">{methodLabel(m.method)}</td>
-                    <td className="px-5 py-4 font-bold text-[#111111]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{Number(m.orderTotal).toFixed(2)} <span className="text-[9px] font-sans font-normal text-black/35">EGP</span></td>
-                    <td className="px-5 py-4 text-[9px] font-mono text-black/40 tracking-wider">{m.referenceNumber ?? "—"}</td>
+                  <tr key={m.id} className="hover:bg-secondary transition-colors">
+                    <td className="px-5 py-4 font-bold text-foreground">#{m.orderId}</td>
+                    <td className="px-5 py-4 text-foreground/40 text-xs tracking-wide capitalize">{methodLabel(m.method)}</td>
+                    <td className="px-5 py-4 font-bold text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{Number(m.orderTotal).toFixed(2)} <span className="text-[9px] font-sans font-normal text-foreground/35">EGP</span></td>
+                    <td className="px-5 py-4 text-[9px] font-mono text-foreground/40 tracking-wider">{m.referenceNumber ?? "—"}</td>
                     <td className="px-5 py-4"><span className={`px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase border ${statusStyle(m.status)}`}>{m.status}</span></td>
-                    <td className="px-5 py-4 text-[9px] text-black/30 tracking-[0.15em] uppercase font-bold">{format(new Date(m.createdAt), "MMM dd, yyyy")}</td>
+                    <td className="px-5 py-4 text-[9px] text-foreground/30 tracking-[0.15em] uppercase font-bold">{format(new Date(m.createdAt), "MMM dd, yyyy")}</td>
                   </tr>
                 ))}
               </tbody>

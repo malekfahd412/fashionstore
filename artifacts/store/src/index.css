@@ -67,6 +67,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ── LIGHT MODE ─────────────────────────────────────────────────────── */
 :root {
   --button-outline: rgba(0,0,0,.10);
   --badge-outline: rgba(0,0,0,.05);
@@ -74,42 +75,54 @@
   --elevate-1: rgba(0,0,0,.02);
   --elevate-2: rgba(0,0,0,.05);
 
-  --background: 0 0% 100%;
-  --foreground: 0 0% 7%;
-  --border: 0 0% 90%;
+  /* Brand palette */
+  --velora-bg: #F8F6F2;
+  --velora-ink: #111111;
+  --velora-secondary-text: #5A5A5A;
+  --velora-accent: #8A6A43;
+  --velora-accent-hover: #A8834F;
+  --velora-gold: #C9A227;
+  --velora-border: #E6E0D8;
+  --velora-success: #2F855A;
+  --velora-danger: #C53030;
+
+  /* Tailwind tokens — light */
+  --background: 40 33% 97%;        /* #F8F6F2 */
+  --foreground: 0 0% 7%;           /* #111111 */
+  --border: 33 25% 89%;            /* #E6E0D8 */
+  --input: 33 20% 85%;
 
   --card: 0 0% 100%;
   --card-foreground: 0 0% 7%;
-  --card-border: 0 0% 90%;
+  --card-border: 33 25% 89%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 7%;
-  --popover-border: 0 0% 90%;
+  --popover-border: 33 25% 89%;
 
   --primary: 0 0% 7%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 95%;
+  --secondary: 40 20% 94%;
   --secondary-foreground: 0 0% 7%;
 
-  --muted: 0 0% 95%;
-  --muted-foreground: 0 0% 45%;
+  --muted: 40 20% 94%;
+  --muted-foreground: 0 0% 35%;
 
-  --accent: 46 67% 47%;
+  --accent: 38 55% 37%;            /* #8A6A43 */
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 0 0% 85%;
   --ring: 0 0% 7%;
 
-  --sidebar: 0 0% 100%;
+  --sidebar: 40 33% 97%;
   --sidebar-foreground: 0 0% 7%;
-  --sidebar-border: 0 0% 90%;
+  --sidebar-border: 33 25% 89%;
   --sidebar-primary: 0 0% 7%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 95%;
+  --sidebar-accent: 40 20% 94%;
   --sidebar-accent-foreground: 0 0% 7%;
   --sidebar-ring: 0 0% 7%;
 
@@ -125,12 +138,7 @@
   --radius: 0rem;
 }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
+/* ── DARK MODE ──────────────────────────────────────────────────────── */
 .dark {
   --button-outline: rgba(255,255,255,.10);
   --badge-outline: rgba(255,255,255,.05);
@@ -138,39 +146,48 @@ html {
   --elevate-1: rgba(255,255,255,.04);
   --elevate-2: rgba(255,255,255,.09);
 
-  --background: 0 0% 7%;
-  --foreground: 0 0% 96%;
-  --border: 0 0% 18%;
+  /* Brand palette — dark */
+  --velora-bg: #0B0B0B;
+  --velora-ink: #FFFFFF;
+  --velora-secondary-text: #B0B0B0;
+  --velora-accent: #C9A227;
+  --velora-accent-hover: #E0B93A;
+  --velora-border: #2A2A2A;
 
-  --card: 0 0% 10%;
+  /* Tailwind tokens — dark */
+  --background: 0 0% 4%;           /* #0B0B0B */
+  --foreground: 0 0% 96%;          /* #F5F5F5 */
+  --border: 0 0% 16%;              /* #2A2A2A */
+  --input: 0 0% 18%;
+
+  --card: 0 0% 7%;                 /* #111111 */
   --card-foreground: 0 0% 96%;
-  --card-border: 0 0% 18%;
+  --card-border: 0 0% 16%;
 
-  --popover: 0 0% 10%;
+  --popover: 0 0% 7%;
   --popover-foreground: 0 0% 96%;
-  --popover-border: 0 0% 18%;
+  --popover-border: 0 0% 16%;
 
-  --primary: 46 67% 47%;
+  --primary: 46 67% 47%;           /* #C9A227 gold */
   --primary-foreground: 0 0% 7%;
 
   --secondary: 0 0% 12%;
   --secondary-foreground: 0 0% 96%;
 
   --muted: 0 0% 14%;
-  --muted-foreground: 0 0% 58%;
+  --muted-foreground: 0 0% 58%;    /* #949494 */
 
-  --accent: 0 0% 96%;
+  --accent: 46 67% 47%;            /* #C9A227 */
   --accent-foreground: 0 0% 7%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 0 0% 18%;
   --ring: 46 67% 47%;
 
-  --sidebar: 0 0% 9%;
+  --sidebar: 0 0% 6%;
   --sidebar-foreground: 0 0% 96%;
-  --sidebar-border: 0 0% 18%;
+  --sidebar-border: 0 0% 16%;
   --sidebar-primary: 46 67% 47%;
   --sidebar-primary-foreground: 0 0% 7%;
   --sidebar-accent: 0 0% 14%;
@@ -182,6 +199,22 @@ html {
   --chart-3: 0 0% 58%;
   --chart-4: 0 0% 35%;
   --chart-5: 0 72% 55%;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global smooth transition for theme switching */
+*, *::before, *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.1s ease;
+}
+
+/* But not for transforms / opacity to keep animations snappy */
+.no-theme-transition, .no-theme-transition * {
+  transition: none !important;
 }
 
 @layer base {
@@ -208,6 +241,9 @@ html {
   text-transform: uppercase;
   color: rgba(17,17,17,0.28);
 }
+.dark .velora-label {
+  color: rgba(255,255,255,0.28);
+}
 
 .velora-heading {
   font-family: 'Playfair Display', Georgia, serif;
@@ -231,8 +267,16 @@ html {
   align-items: center;
   gap: 0.75rem;
 }
+.dark .velora-btn-primary {
+  background: #C9A227;
+  color: #0B0B0B;
+}
 .velora-btn-primary:hover {
   background: #C9A227;
+}
+.dark .velora-btn-primary:hover {
+  background: #E0B93A;
+  color: #0B0B0B;
 }
 
 .velora-btn-outline {
@@ -250,10 +294,19 @@ html {
   align-items: center;
   gap: 0.75rem;
 }
+.dark .velora-btn-outline {
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.2);
+}
 .velora-btn-outline:hover {
   background: #111111;
   color: #ffffff;
   border-color: #111111;
+}
+.dark .velora-btn-outline:hover {
+  background: #C9A227;
+  color: #0B0B0B;
+  border-color: #C9A227;
 }
 
 /* Animated underline for links */
@@ -267,6 +320,9 @@ html {
   text-decoration: none;
   padding-bottom: 2px;
 }
+.dark .velora-link {
+  color: rgba(255,255,255,0.35);
+}
 .velora-link::after {
   content: '';
   position: absolute;
@@ -277,5 +333,9 @@ html {
   background: #111111;
   transition: width 0.3s ease;
 }
+.dark .velora-link::after {
+  background: #C9A227;
+}
 .velora-link:hover { color: #111111; }
+.dark .velora-link:hover { color: #C9A227; }
 .velora-link:hover::after { width: 100%; }

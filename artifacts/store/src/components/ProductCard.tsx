@@ -35,9 +35,9 @@ export interface ProductCardProps {
 export function ProductCardSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="aspect-[2/3] bg-[#F0EFED] mb-4" />
-      <div className="h-2.5 bg-[#F0EFED] w-2/3 mb-2.5" />
-      <div className="h-2.5 bg-[#F0EFED] w-1/4" />
+      <div className="aspect-[2/3] bg-secondary mb-4" />
+      <div className="h-2.5 bg-secondary w-2/3 mb-2.5" />
+      <div className="h-2.5 bg-secondary w-1/4" />
     </div>
   );
 }
@@ -128,7 +128,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
   return (
     <Link href={`/products/${id}`} className="group block">
       <div
-        className="relative overflow-hidden bg-[#F2F1EF] mb-4"
+        className="relative overflow-hidden bg-secondary dark:bg-[#1C1C1C] mb-4"
         style={{ aspectRatio: "2/3" }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -142,24 +142,24 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-[9px] font-bold tracking-[0.25em] uppercase text-black/20">{t("product.noImage")}</span>
+            <span className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/20">{t("product.noImage")}</span>
           </div>
         )}
 
         {savePct && (
-          <div className="absolute top-3 left-3 bg-[#111111] text-white text-[8px] font-bold px-2 py-1 tracking-[0.22em] uppercase">
+          <div className="absolute top-3 left-3 bg-foreground text-background text-[8px] font-bold px-2 py-1 tracking-[0.22em] uppercase">
             −{savePct}%
           </div>
         )}
 
         <button
           onClick={handleWishlist}
-          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white transition-all duration-200 ${
+          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-background transition-all duration-200 ${
             hovered || isWishlisted ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
           aria-label={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}
         >
-          <Heart className={`w-3.5 h-3.5 transition-colors ${isWishlisted ? "fill-[#111111] text-[#111111]" : "text-[#111111]"}`} />
+          <Heart className={`w-3.5 h-3.5 transition-colors ${isWishlisted ? "fill-foreground text-foreground" : "text-foreground"}`} />
         </button>
 
         {canQuickAdd && (
@@ -168,7 +168,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
           >
             <button
               onClick={handleQuickAdd}
-              className="w-full bg-[#111111] text-white text-[8px] font-bold tracking-[0.28em] uppercase py-3.5 hover:bg-[#C9A227] transition-colors duration-200"
+              className="w-full bg-foreground text-background text-[8px] font-bold tracking-[0.28em] uppercase py-3.5 hover:bg-[#C9A227] hover:text-white transition-colors duration-200"
             >
               {t("btn.quickAdd")}
             </button>
@@ -178,7 +178,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
 
       <div className="space-y-1.5">
         <h3
-          className="text-sm font-medium leading-snug tracking-wide text-[#111111] line-clamp-1 group-hover:opacity-60 transition-opacity duration-300"
+          className="text-sm font-medium leading-snug tracking-wide text-foreground line-clamp-1 group-hover:opacity-60 transition-opacity duration-300"
           style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
         >
           {displayName}
@@ -186,19 +186,19 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
         {hasRating && (
           <div className="flex items-center gap-1.5">
             {[1, 2, 3, 4, 5].map(i => (
-              <span key={i} className={`text-[9px] ${i <= Math.round(averageRating!) ? "text-[#C9A227]" : "text-black/15"}`}>★</span>
+              <span key={i} className={`text-[9px] ${i <= Math.round(averageRating!) ? "text-[#C9A227]" : "text-foreground/15"}`}>★</span>
             ))}
-            <span className="text-[9px] text-black/30 tracking-wide">({reviewCount})</span>
+            <span className="text-[9px] text-foreground/30 tracking-wide">({reviewCount})</span>
           </div>
         )}
         <div className="flex items-center gap-2">
           {displaySalePrice ? (
             <>
               <span className="text-sm font-semibold text-[#C9A227] tracking-wide">{displaySalePrice} EGP</span>
-              <span className="line-through text-xs text-black/30 tracking-wide">{displayPrice} EGP</span>
+              <span className="line-through text-xs text-foreground/30 tracking-wide">{displayPrice} EGP</span>
             </>
           ) : (
-            <span className="text-sm font-medium text-[#111111] tracking-wide">{displayPrice} EGP</span>
+            <span className="text-sm font-medium text-foreground tracking-wide">{displayPrice} EGP</span>
           )}
         </div>
       </div>

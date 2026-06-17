@@ -61,7 +61,7 @@ export default function Home() {
   const hero = banners[0];
 
   return (
-    <div className="bg-white" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="bg-background">
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="relative h-[100dvh] min-h-[640px] overflow-hidden bg-[#0d0d0d]">
@@ -144,7 +144,7 @@ export default function Home() {
       </section>
 
       {/* ── EDITORIAL STRIP ──────────────────────────────────────────── */}
-      <section className="bg-[#111111] border-y border-white/5">
+      <section className="bg-[#111111] dark:bg-[#0d0d0d] border-y border-white/5">
         <div className="max-w-screen-2xl mx-auto px-6 md:px-16 grid grid-cols-2 md:grid-cols-4">
           {[t("home.trust1"), t("home.trust2"), t("home.trust3"), t("home.trust4")].map((text, i) => (
             <div
@@ -163,11 +163,11 @@ export default function Home() {
           <div className="max-w-screen-xl mx-auto px-6 md:px-12">
             <RevealSection className="flex items-end justify-between mb-16">
               <div>
-                <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-black/28 mb-5">
+                <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-foreground/28 mb-5">
                   {t("home.shopBy")}
                 </p>
                 <h2
-                  className="text-[clamp(2.8rem,6vw,5.5rem)] font-bold text-[#111111] leading-[0.88] tracking-[-0.03em]"
+                  className="text-[clamp(2.8rem,6vw,5.5rem)] font-bold text-foreground leading-[0.88] tracking-[-0.03em]"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
                   {t("home.categories")}
@@ -183,11 +183,11 @@ export default function Home() {
               {/* Large feature — col-span-7 */}
               {(categories ?? []).slice(0, 1).map(cat => (
                 <RevealSection key={cat.id} className="col-span-12 md:col-span-7" delay={0}>
-                  <Link href={`/products?categoryId=${cat.id}`} className="group block relative overflow-hidden bg-[#EBEBEB]" style={{ aspectRatio: "7/6" }}>
+                  <Link href={`/products?categoryId=${cat.id}`} className="group block relative overflow-hidden bg-secondary" style={{ aspectRatio: "7/6" }}>
                     {cat.imageUrl ? (
                       <img src={cat.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out" loading="lazy" />
                     ) : (
-                      <div className="w-full h-full bg-[#E0DFD8]" />
+                      <div className="w-full h-full bg-secondary" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
@@ -204,11 +204,11 @@ export default function Home() {
               <div className="col-span-12 md:col-span-5 grid grid-rows-2 gap-3 md:gap-4">
                 {(categories ?? []).slice(1, 3).map((cat, i) => (
                   <RevealSection key={cat.id} delay={i * 120 + 80}>
-                    <Link href={`/products?categoryId=${cat.id}`} className="group block relative overflow-hidden bg-[#EBEBEB]" style={{ aspectRatio: "5/3" }}>
+                    <Link href={`/products?categoryId=${cat.id}`} className="group block relative overflow-hidden bg-secondary" style={{ aspectRatio: "5/3" }}>
                       {cat.imageUrl ? (
                         <img src={cat.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out" loading="lazy" />
                       ) : (
-                        <div className="w-full h-full bg-[#E0DFD8]" />
+                        <div className="w-full h-full bg-secondary" />
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
@@ -225,11 +225,11 @@ export default function Home() {
               {/* Bottom row of 3 */}
               {(categories ?? []).slice(3, 6).map((cat, i) => (
                 <RevealSection key={cat.id} className="col-span-4" delay={i * 100 + 200}>
-                  <Link href={`/products?categoryId=${cat.id}`} className="group block relative overflow-hidden bg-[#EBEBEB]" style={{ aspectRatio: "1/1.2" }}>
+                  <Link href={`/products?categoryId=${cat.id}`} className="group block relative overflow-hidden bg-secondary" style={{ aspectRatio: "1/1.2" }}>
                     {cat.imageUrl ? (
                       <img src={cat.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.06] transition-transform duration-700 ease-out" loading="lazy" />
                     ) : (
-                      <div className="w-full h-full bg-[#E0DFD8]" />
+                      <div className="w-full h-full bg-secondary" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -246,13 +246,13 @@ export default function Home() {
       )}
 
       {/* ── NEW ARRIVALS ─────────────────────────────────────────────── */}
-      <section className="py-28 md:py-40 bg-[#F5F4F2]">
+      <section className="py-28 md:py-40 bg-secondary dark:bg-[#0d0d0d]">
         <div className="max-w-screen-xl mx-auto px-6 md:px-12">
           <RevealSection className="flex items-end justify-between mb-16">
             <div>
-              <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-black/28 mb-5">{t("home.justIn")}</p>
+              <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-foreground/28 mb-5">{t("home.justIn")}</p>
               <h2
-                className="text-[clamp(2.8rem,6vw,5.5rem)] font-bold text-[#111111] leading-[0.88] tracking-[-0.03em]"
+                className="text-[clamp(2.8rem,6vw,5.5rem)] font-bold text-foreground leading-[0.88] tracking-[-0.03em]"
                 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
               >
                 {t("home.newArrivals")}
@@ -275,7 +275,7 @@ export default function Home() {
           <RevealSection className="mt-20 text-center" delay={100}>
             <Link
               href="/products?sortBy=newest"
-              className="inline-flex items-center gap-4 border border-[#111111]/18 px-14 py-4 text-[9px] font-bold tracking-[0.32em] uppercase hover:bg-[#111111] hover:text-white hover:border-[#111111] transition-all duration-300"
+              className="inline-flex items-center gap-4 border border-foreground/18 px-14 py-4 text-[9px] font-bold tracking-[0.32em] uppercase hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300"
             >
               {t("home.viewAllNew")}
               <ArrowRight className="w-3.5 h-3.5" />
@@ -298,26 +298,26 @@ export default function Home() {
             )}
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
           </div>
-          <div className="bg-white flex flex-col justify-center px-10 md:px-16 lg:px-24 py-20 md:py-32 order-1 md:order-2">
+          <div className="bg-background flex flex-col justify-center px-10 md:px-16 lg:px-24 py-20 md:py-32 order-1 md:order-2">
             <RevealSection>
-              <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-black/25 mb-8 flex items-center gap-4">
-                <span className="w-8 h-[1px] bg-black/20" />
+              <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-foreground/25 mb-8 flex items-center gap-4">
+                <span className="w-8 h-[1px] bg-foreground/20" />
                 {t("home.editorial")}
               </p>
               <h2
-                className="text-[clamp(2rem,4vw,3.8rem)] font-bold mb-8 leading-[0.9] text-[#111111] tracking-[-0.03em]"
+                className="text-[clamp(2rem,4vw,3.8rem)] font-bold mb-8 leading-[0.9] text-foreground tracking-[-0.03em]"
                 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
               >
                 {language === "en" ? banners[1].titleEn : (banners[1].titleAr ?? banners[1].titleEn)}
               </h2>
               {banners[1].subtitleEn && (
-                <p className="text-black/45 text-sm leading-relaxed mb-12 max-w-xs tracking-[0.03em] font-light">
+                <p className="text-foreground/45 text-sm leading-relaxed mb-12 max-w-xs tracking-[0.03em] font-light">
                   {language === "en" ? banners[1].subtitleEn : (banners[1].subtitleAr ?? banners[1].subtitleEn)}
                 </p>
               )}
               <Link
                 href={banners[1].linkUrl ?? "/products"}
-                className="self-start inline-flex items-center gap-4 bg-[#111111] text-white px-10 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] transition-colors duration-300"
+                className="self-start inline-flex items-center gap-4 bg-foreground text-background px-10 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors duration-300"
               >
                 {t("home.discoverMore")}
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -328,13 +328,13 @@ export default function Home() {
       )}
 
       {/* ── BEST SELLERS ─────────────────────────────────────────────── */}
-      <section className="py-28 md:py-40">
+      <section className="py-28 md:py-40 bg-background">
         <div className="max-w-screen-xl mx-auto px-6 md:px-12">
           <RevealSection className="flex items-end justify-between mb-16">
             <div>
-              <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-black/28 mb-5">{t("home.trending")}</p>
+              <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-foreground/28 mb-5">{t("home.trending")}</p>
               <h2
-                className="text-[clamp(2.8rem,6vw,5.5rem)] font-bold text-[#111111] leading-[0.88] tracking-[-0.03em]"
+                className="text-[clamp(2.8rem,6vw,5.5rem)] font-bold text-foreground leading-[0.88] tracking-[-0.03em]"
                 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
               >
                 {t("home.bestSellers")}
@@ -358,7 +358,7 @@ export default function Home() {
 
       {/* ── FEATURED — CINEMATIC DARK SECTION ────────────────────────── */}
       {(featured ?? []).length > 0 && (
-        <section className="py-28 md:py-40 bg-[#111111]">
+        <section className="py-28 md:py-40 bg-[#111111] dark:bg-[#0d0d0d]">
           <div className="max-w-screen-xl mx-auto px-6 md:px-12">
             <RevealSection className="flex items-end justify-between mb-16">
               <div>
@@ -428,32 +428,32 @@ export default function Home() {
 
       {/* ── FAQ ──────────────────────────────────────────────────────── */}
       {faqs.length > 0 && (
-        <section className="py-28 md:py-40 bg-[#F5F4F2]">
+        <section className="py-28 md:py-40 bg-secondary dark:bg-[#0d0d0d]">
           <div className="max-w-screen-xl mx-auto px-6 md:px-12">
             <div className="grid md:grid-cols-3 gap-16 md:gap-24">
               <RevealSection>
-                <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-black/25 mb-7">{t("home.faqLabel")}</p>
+                <p className="text-[8px] font-bold tracking-[0.4em] uppercase text-foreground/25 mb-7">{t("home.faqLabel")}</p>
                 <h2
-                  className="text-[clamp(2rem,4vw,3rem)] font-bold text-[#111111] leading-[0.9] tracking-[-0.02em]"
+                  className="text-[clamp(2rem,4vw,3rem)] font-bold text-foreground leading-[0.9] tracking-[-0.02em]"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
                   {t("home.faqTitle")}
                 </h2>
               </RevealSection>
-              <RevealSection className="md:col-span-2 divide-y divide-black/7" delay={100}>
+              <RevealSection className="md:col-span-2 divide-y divide-border" delay={100}>
                 {faqs.map(faq => (
                   <div key={faq.id}>
                     <button
                       className="w-full flex items-center justify-between py-7 text-left gap-8"
                       onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
                     >
-                      <span className="font-medium text-sm leading-snug tracking-[0.02em] text-[#111111]">
+                      <span className="font-medium text-sm leading-snug tracking-[0.02em] text-foreground">
                         {language === "en" ? faq.questionEn : faq.questionAr}
                       </span>
-                      <ChevronDown className={`w-4 h-4 text-black/30 shrink-0 transition-transform duration-400 ${openFaq === faq.id ? "rotate-180" : ""}`} />
+                      <ChevronDown className={`w-4 h-4 text-foreground/30 shrink-0 transition-transform duration-400 ${openFaq === faq.id ? "rotate-180" : ""}`} />
                     </button>
                     <div className={`overflow-hidden transition-all duration-400 ${openFaq === faq.id ? "max-h-96 pb-7" : "max-h-0"}`}>
-                      <p className="text-sm text-black/48 leading-relaxed tracking-[0.02em] font-light">
+                      <p className="text-sm text-foreground/50 leading-relaxed tracking-[0.02em] font-light">
                         {language === "en" ? faq.answerEn : faq.answerAr}
                       </p>
                     </div>
@@ -466,7 +466,7 @@ export default function Home() {
       )}
 
       {/* ── NEWSLETTER ───────────────────────────────────────────────── */}
-      <section className="py-28 md:py-36 bg-[#111111]">
+      <section className="py-28 md:py-36 bg-[#111111] dark:bg-[#0B0B0B]">
         <div className="max-w-screen-xl mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-center">
             <RevealSection>
