@@ -63,34 +63,6 @@ export function Footer() {
 
   return (
     <footer className="bg-[#111111] text-white/70 mt-auto">
-      {/* Newsletter strip */}
-      <div className="border-b border-white/8">
-        <div className="max-w-screen-xl mx-auto px-6 py-12 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-          <div>
-            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-white/40 mb-2">{t("footer.newsletter")}</p>
-            <h3 className="font-serif text-2xl md:text-3xl font-bold text-white">{t("home.joinCommunity")}</h3>
-            <p className="text-sm text-white/50 mt-2 max-w-sm">{t("footer.newsletterDesc")}</p>
-          </div>
-          <form onSubmit={handleSubscribe} className="flex gap-0 max-w-sm w-full md:w-auto">
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder={t("footer.emailPlaceholder")}
-              required
-              className="flex-1 bg-white/8 border border-white/15 border-r-0 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-white/40 transition-colors min-w-0"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-white text-[#111111] px-6 py-3 text-[10px] font-bold tracking-[0.18em] uppercase hover:bg-white/90 transition-colors disabled:opacity-60 shrink-0 whitespace-nowrap"
-            >
-              {loading ? "..." : t("footer.subscribe")}
-            </button>
-          </form>
-        </div>
-      </div>
-
       {/* Main columns */}
       <div className="max-w-screen-xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10">
         {/* Brand */}
