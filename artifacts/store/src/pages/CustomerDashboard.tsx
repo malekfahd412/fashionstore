@@ -241,23 +241,23 @@ export default function CustomerDashboard() {
 
   const createAddressMutation = useMutation({
     mutationFn: (data: AddressFormData) => apiFetch<UserAddress>("/api/addresses", { method: "POST", body: JSON.stringify(data) }),
-    onSuccess: () => { refetchAddresses(); setShowAddressForm(false); toast({ title: t("dash.addr.saved") }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["addresses"] }); refetchAddresses(); setShowAddressForm(false); toast({ title: t("dash.addr.saved") }); },
     onError: (e) => toast({ title: t("dash.addr.saveFailed"), description: (e as Error).message, variant: "destructive" }),
   });
   const updateAddressMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<AddressFormData> }) =>
       apiFetch<UserAddress>(`/api/addresses/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-    onSuccess: () => { refetchAddresses(); setEditingAddress(null); toast({ title: t("dash.addr.updated") }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["addresses"] }); refetchAddresses(); setEditingAddress(null); toast({ title: t("dash.addr.updated") }); },
     onError: (e) => toast({ title: t("dash.addr.updateFailed"), description: (e as Error).message, variant: "destructive" }),
   });
   const deleteAddressMutation = useMutation({
     mutationFn: (id: number) => apiFetch(`/api/addresses/${id}`, { method: "DELETE" }),
-    onSuccess: () => { refetchAddresses(); toast({ title: t("dash.addr.deleted") }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["addresses"] }); refetchAddresses(); toast({ title: t("dash.addr.deleted") }); },
   });
   const updateEmailPrefsMutation = useMutation({
     mutationFn: (data: Partial<{ orderUpdates: boolean; promotions: boolean; securityAlerts: boolean }>) =>
       apiFetch(`/api/users/${user!.id}/email-preferences`, { method: "PATCH", body: JSON.stringify(data) }),
-    onSuccess: () => { refetchEmailPrefs(); toast({ title: t("dash.emailPrefsSaved") }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["email-preferences", user?.id] }); refetchEmailPrefs(); toast({ title: t("dash.emailPrefsSaved") }); },
   });
   const updateUserMutation = useUpdateUser();
   const removeFromWishlistMutation = useRemoveFromWishlist();
@@ -293,11 +293,22 @@ export default function CustomerDashboard() {
   };
 
   const handleRemoveWishlist = (productId: number) => {
-    removeFromWishlistMutation.mutate({ productId }, { onSuccess: () => { toast({ title: t("dash.removedWishlist") }); refetchWishlist(); } });
+    removeFromWishlistMutation.mutate({ productId }, {
+      onSuccess: () => {
+        toast({ title: t("dash.removedWishlist") });
+        qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+        refetchWishlist();
+      },
+    });
   };
 
   const handleMarkRead = (id: number) => {
-    markReadMutation.mutate({ id }, { onSuccess: () => refetchNotifications() });
+    markReadMutation.mutate({ id }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListNotificationsQueryKey() });
+        refetchNotifications();
+      },
+    });
   };
 
   const handleReorder = (order: { items?: Array<{ productVariantId: number; quantity: number; price: number }> }) => {

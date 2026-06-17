@@ -3,7 +3,7 @@ import { useParams, Link } from "wouter";
 import {
   useGetProduct, useGetRelatedProducts, useAddToCart, useAddToWishlist, useRemoveFromWishlist, useGetWishlist,
   useCreateReview, useUpdateReview, useDeleteReview,
-  getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey,
+  getGetProductQueryKey, getGetRelatedProductsQueryKey, getGetWishlistQueryKey, getGetCartQueryKey,
 } from "@workspace/api-client-react";
 import type { ProductReviewsResponse } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -147,7 +147,10 @@ export default function ProductDetails() {
   const updateReviewMutation = useUpdateReview();
   const deleteReviewMutation = useDeleteReview();
 
-  const invalidateReviews = () => qc.invalidateQueries({ queryKey: ["product-reviews", productId] });
+  const invalidateReviews = () => {
+    qc.invalidateQueries({ queryKey: ["product-reviews", productId] });
+    qc.invalidateQueries({ queryKey: getGetProductQueryKey(productId) });
+  };
 
   const openWriteReview = () => {
     setReviewForm({ rating: 0, title: "", comment: "" });
@@ -272,7 +275,10 @@ export default function ProductDetails() {
       return;
     }
     addToCartMutation.mutate({ data: { variantId, quantity } }, {
-      onSuccess: () => toast({ title: t("product.addedToCart") }),
+      onSuccess: () => {
+        toast({ title: t("product.addedToCart") });
+        qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
+      },
     });
   };
 
@@ -281,9 +287,19 @@ export default function ProductDetails() {
       toast({ title: t("product.signInToSave") }); return;
     }
     if (isWishlisted) {
-      removeWishlistMutation.mutate({ productId }, { onSuccess: () => toast({ title: t("product.removedFromWishlist") }) });
+      removeWishlistMutation.mutate({ productId }, {
+        onSuccess: () => {
+          toast({ title: t("product.removedFromWishlist") });
+          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+        },
+      });
     } else {
-      addWishlistMutation.mutate({ productId }, { onSuccess: () => toast({ title: t("product.savedToWishlist") }) });
+      addWishlistMutation.mutate({ productId }, {
+        onSuccess: () => {
+          toast({ title: t("product.savedToWishlist") });
+          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+        },
+      });
     }
   };
 

@@ -8,6 +8,7 @@ import { Trash2, ShoppingBag, Tag, X, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGuestCart } from "@/hooks/useGuestCart";
+import { useQueryClient } from "@tanstack/react-query";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -19,6 +20,7 @@ export default function Cart() {
   const { toast } = useToast();
   const { user } = useAuth();
   const guest = useGuestCart();
+  const qc = useQueryClient();
 
   const { data: cart, isLoading } = useGetCart({ query: { enabled: !!user, queryKey: getGetCartQueryKey() } });
   const updateMutation = useUpdateCartItem();
@@ -30,20 +32,22 @@ export default function Cart() {
   const [couponError, setCouponError] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
 
+  const invalidateCart = () => qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
+
   const handleUpdateQuantity = (variantId: number, quantity: number) => {
     if (quantity < 1) return;
-    updateMutation.mutate({ variantId, data: { quantity } });
+    updateMutation.mutate({ variantId, data: { quantity } }, { onSuccess: invalidateCart });
   };
 
   const handleRemove = (variantId: number) => {
     removeMutation.mutate({ variantId }, {
-      onSuccess: () => toast({ title: t("btn.remove") })
+      onSuccess: () => { invalidateCart(); toast({ title: t("btn.remove") }); }
     });
   };
 
   const handleClear = () => {
     clearMutation.mutate(undefined, {
-      onSuccess: () => { toast({ title: t("btn.clearCart") }); setCoupon(null); }
+      onSuccess: () => { invalidateCart(); toast({ title: t("btn.clearCart") }); setCoupon(null); }
     });
   };
 

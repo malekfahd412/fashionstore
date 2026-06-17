@@ -3,8 +3,8 @@ import { Link } from "wouter";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAddToWishlist, useRemoveFromWishlist, useAddToCart, getGetWishlistQueryKey } from "@workspace/api-client-react";
-import { useQuery } from "@tanstack/react-query";
+import { useAddToWishlist, useRemoveFromWishlist, useAddToCart, getGetWishlistQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGuestCart } from "@/hooks/useGuestCart";
 import { useToast } from "@/hooks/use-toast";
 
@@ -48,6 +48,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
   const { language, t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const qc = useQueryClient();
   const guestCart = useGuestCart();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -73,11 +74,17 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
     }
     if (isWishlisted) {
       removeWishlistMutation.mutate({ productId: id }, {
-        onSuccess: () => toast({ title: t("product.removedFromWishlist") }),
+        onSuccess: () => {
+          toast({ title: t("product.removedFromWishlist") });
+          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+        },
       });
     } else {
       addWishlistMutation.mutate({ productId: id }, {
-        onSuccess: () => toast({ title: t("product.savedToWishlist") }),
+        onSuccess: () => {
+          toast({ title: t("product.savedToWishlist") });
+          qc.invalidateQueries({ queryKey: getGetWishlistQueryKey() });
+        },
       });
     }
   };
@@ -91,7 +98,10 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
     const v = variants![0];
     if (user) {
       addToCartMutation.mutate({ data: { variantId: v.id, quantity: 1 } }, {
-        onSuccess: () => toast({ title: t("product.addedToCart") }),
+        onSuccess: () => {
+          toast({ title: t("product.addedToCart") });
+          qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
+        },
       });
     } else {
       guestCart.addItem({

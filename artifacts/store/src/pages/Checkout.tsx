@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useSearch } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { useGetCart, useCreateOrder } from "@workspace/api-client-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useGetCart, useCreateOrder, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ export default function Checkout() {
   const [, setLocation] = useLocation();
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const qc = useQueryClient();
   const { data: cart, isLoading } = useGetCart();
   const createOrderMutation = useCreateOrder();
 
@@ -213,7 +214,10 @@ export default function Checkout() {
             items: orderItems,
           }
         }, {
-          onSuccess: (data) => resolve(data as unknown as { id: number }),
+          onSuccess: (data) => {
+            qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
+            resolve(data as unknown as { id: number });
+          },
           onError: reject,
         });
       });
