@@ -1,10 +1,10 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable, userAddressesTable } from "@workspace/db";
-import { eq, and, SQL, desc, inArray, gt, isNull } from "drizzle-orm";
+import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable, userAddressesTable, storeSettingsTable } from "@workspace/db";
+import { eq, and, SQL, desc, inArray, gt, isNull, lte } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, ListOrdersQueryParams } from "@workspace/api-zod";
 import { auditLog } from "../lib/audit";
-import { sendOrderConfirmationEmail, sendOrderStatusEmail, sendVendorNewOrderEmail } from "../lib/email";
+import { sendOrderConfirmationEmail, sendOrderStatusEmail, sendVendorNewOrderEmail, sendLowStockAlertEmail } from "../lib/email";
 import {
   sendOrderPlacedWhatsApp,
   sendOrderShippedWhatsApp,
@@ -281,6 +281,51 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
       }
     }
   }
+
+  // Low-stock alert to vendors (non-blocking, after response sent)
+  void (async () => {
+    const variantIds = parsed.data.items.map(i => i.productVariantId);
+    const [thresholdSetting] = await db
+      .select({ value: storeSettingsTable.value })
+      .from(storeSettingsTable)
+      .where(eq(storeSettingsTable.key, "low_stock_threshold"))
+      .limit(1);
+    const threshold = Number(thresholdSetting?.value ?? "5");
+
+    const lowVariants = await db
+      .select({
+        stock: productVariantsTable.stockQuantity,
+        color: productVariantsTable.color,
+        size: productVariantsTable.size,
+        productName: productsTable.nameEn,
+        vendorId: productsTable.vendorId,
+      })
+      .from(productVariantsTable)
+      .innerJoin(productsTable, eq(productsTable.id, productVariantsTable.productId))
+      .where(and(inArray(productVariantsTable.id, variantIds), lte(productVariantsTable.stockQuantity, threshold)));
+
+    if (lowVariants.length === 0) return;
+
+    const byVendor = new Map<number, typeof lowVariants>();
+    for (const v of lowVariants) {
+      if (!byVendor.has(v.vendorId)) byVendor.set(v.vendorId, []);
+      byVendor.get(v.vendorId)!.push(v);
+    }
+
+    for (const [vid, items] of byVendor) {
+      const [vendor] = await db
+        .select({ email: usersTable.email, name: usersTable.name })
+        .from(usersTable).where(eq(usersTable.id, vid)).limit(1);
+      if (vendor) {
+        await sendLowStockAlertEmail(vendor.email, vendor.name, items.map(v => ({
+          productName: v.productName,
+          color: v.color,
+          size: v.size,
+          stock: Number(v.stock),
+        })));
+      }
+    }
+  })();
 });
 
 // ── Update order status ───────────────────────────────────────────────────────

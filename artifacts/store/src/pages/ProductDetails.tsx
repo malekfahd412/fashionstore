@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGuestCart } from "@/hooks/useGuestCart";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
-import { Heart, Truck, RotateCcw, ShieldCheck, ZoomIn, ChevronLeft, ChevronRight, Star, PenLine, Trash2, CheckCircle2, X } from "lucide-react";
+import { Heart, Truck, RotateCcw, ShieldCheck, ZoomIn, ChevronLeft, ChevronRight, Star, PenLine, Trash2, CheckCircle2, X, Bell } from "lucide-react";
 import ProductCard, { ProductCardSkeleton } from "@/components/ProductCard";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -239,6 +239,49 @@ export default function ProductDetails() {
     ? new Set((product?.variants || []).filter(v => v.color === selectedColor).map(v => v.size))
     : null;
   const selectedVariant = product?.variants?.find(v => v.color === selectedColor && v.size === selectedSize);
+  const notifyVariantId = selectedVariant?.id;
+  const { data: notifyStatus, refetch: refetchNotifyStatus } = useQuery({
+    queryKey: ["notify-status", notifyVariantId],
+    queryFn: async () => {
+      if (!notifyVariantId) return { subscribed: false };
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`${BASE}/api/products/variants/${notifyVariantId}/notify`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return { subscribed: false };
+      return res.json() as Promise<{ subscribed: boolean }>;
+    },
+    enabled: !!user && !!notifyVariantId,
+  });
+  const isSubscribed = notifyStatus?.subscribed ?? false;
+  const subscribeMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`${BASE}/api/products/variants/${notifyVariantId}/notify`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Failed to subscribe");
+    },
+    onSuccess: () => {
+      void refetchNotifyStatus();
+      toast({ title: "You'll be notified when this item is back in stock!" });
+    },
+  });
+  const unsubscribeMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`${BASE}/api/products/variants/${notifyVariantId}/notify`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Failed to unsubscribe");
+    },
+    onSuccess: () => {
+      void refetchNotifyStatus();
+      toast({ title: "Stock notification removed" });
+    },
+  });
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
@@ -336,6 +379,7 @@ export default function ProductDetails() {
 
   const needsSelection = colors.length > 0 || sizes.length > 0;
   const selectionComplete = (!colors.length || selectedColor) && (!sizes.length || selectedSize);
+  const isOutOfStock = selectionComplete && selectedVariant !== undefined && selectedVariant.stockQuantity === 0;
 
   if (isLoading) {
     return (
@@ -572,18 +616,55 @@ export default function ProductDetails() {
 
           {/* CTA */}
           <div className="flex gap-3 mb-8">
-            <Button
-              size="lg"
-              className="flex-1 h-13 text-base rounded-none uppercase tracking-widest"
-              onClick={handleAddToCart}
-              disabled={addToCartMutation.isPending || (needsSelection && !selectionComplete)}
-            >
-              {addToCartMutation.isPending
-                ? t("btn.addingToCart")
-                : needsSelection && !selectionComplete
-                ? `${t("common.color").toLowerCase() !== t("common.size").toLowerCase() && !selectedColor && colors.length > 0 ? t("product.selectColor") : t("product.selectSize")}`
-                : t("btn.addToCart")}
-            </Button>
+            {isOutOfStock ? (
+              user ? (
+                isSubscribed ? (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1 h-13 text-base rounded-none uppercase tracking-widest border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+                    onClick={() => unsubscribeMutation.mutate()}
+                    disabled={unsubscribeMutation.isPending}
+                  >
+                    <Bell className="w-4 h-4 mr-2 fill-emerald-600" />
+                    {unsubscribeMutation.isPending ? "..." : "Notified ✓"}
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1 h-13 text-base rounded-none uppercase tracking-widest"
+                    onClick={() => subscribeMutation.mutate()}
+                    disabled={subscribeMutation.isPending || !notifyVariantId}
+                  >
+                    <Bell className="w-4 h-4 mr-2" />
+                    {subscribeMutation.isPending ? "Saving..." : "Notify When Back"}
+                  </Button>
+                )
+              ) : (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="flex-1 h-13 text-base rounded-none uppercase tracking-widest opacity-60 cursor-default"
+                  disabled
+                >
+                  Out of Stock
+                </Button>
+              )
+            ) : (
+              <Button
+                size="lg"
+                className="flex-1 h-13 text-base rounded-none uppercase tracking-widest"
+                onClick={handleAddToCart}
+                disabled={addToCartMutation.isPending || (needsSelection && !selectionComplete)}
+              >
+                {addToCartMutation.isPending
+                  ? t("btn.addingToCart")
+                  : needsSelection && !selectionComplete
+                  ? `${t("common.color").toLowerCase() !== t("common.size").toLowerCase() && !selectedColor && colors.length > 0 ? t("product.selectColor") : t("product.selectSize")}`
+                  : t("btn.addToCart")}
+              </Button>
+            )}
             <Button
               size="lg"
               variant="outline"

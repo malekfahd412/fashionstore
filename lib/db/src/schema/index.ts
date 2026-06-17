@@ -25,3 +25,4 @@ export * from "./manual-payments";
 export * from "./abandoned-cart-reminders";
 export * from "./recently-viewed";
 export * from "./saved-coupons";
+export * from "./stock-notifications";

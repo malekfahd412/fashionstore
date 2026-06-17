@@ -1,0 +1,169 @@
+You are now in FINAL PRODUCTION LOCK mode for the VELORA ecommerce system.
+
+IMPORTANT CONTEXT:
+The project is fully built and feature-complete. The owner is preparing to migrate the entire project to another Replit account.
+
+GOALS:
+1. Stabilize the system completely
+2. Ensure zero runtime errors
+3. Ensure full production readiness
+4. Ensure safe migration to another account
+5. Do NOT add any new features
+
+---
+
+# 🚫 STRICT RULES
+
+- DO NOT add new features
+- DO NOT change business logic unless fixing bugs
+- DO NOT modify UI design unless fixing broken behavior
+- DO NOT introduce experimental changes
+- ONLY bug fixes, stability, and production hardening
+
+---
+
+# 🧪 FINAL SYSTEM AUDIT
+
+Perform a full audit across:
+
+- Frontend (React)
+- Backend (Express API)
+- Database (PostgreSQL + Drizzle)
+- Authentication (Google + Email login)
+- Cart & Checkout
+- Orders lifecycle
+- Payments (Paymob + manual payments)
+- Support system
+- Email system (Resend)
+- Admin dashboard
+- Vendor dashboard
+- Customer dashboard
+
+---
+
+# 🔥 FIX ALL ISSUES FOUND
+
+Ensure:
+
+- No runtime errors in browser console
+- No failed API calls (no 4xx/5xx unexpected)
+- No missing database tables or relations
+- No broken queries
+- No undefined/null crashes in UI
+- No TypeScript errors
+- No build failures
+
+---
+
+# 🧱 DATABASE INTEGRITY CHECK
+
+Verify:
+
+- All tables exist and match Drizzle schema
+- No missing columns
+- No broken relations
+- No inconsistent types
+
+If any issue exists:
+- Fix via migration (DO NOT delete data)
+
+---
+
+# 📩 EMAIL SYSTEM CHECK
+
+Verify:
+
+- Resend email system works
+- Support ticket emails work
+- Order emails work
+- Newsletter system works
+
+If RESEND_API_KEY or RESEND_FROM_EMAIL is missing:
+- Gracefully disable email features
+- DO NOT crash system
+
+---
+
+# 💳 PAYMENT SYSTEM CHECK
+
+Verify:
+
+- Paymob callback flow works
+- Manual payments saved correctly
+- Order status updates correctly
+- No orphan payment states
+
+---
+
+# 🛒 CORE ECOMMERCE FLOW
+
+Validate full user journey:
+
+1. Browse products
+2. Add to cart
+3. Update cart
+4. Checkout
+5. Payment
+6. Order creation
+7. Order tracking
+8. Admin management
+
+ALL MUST WORK WITHOUT REFRESH ISSUES OR BROKEN STATE.
+
+---
+
+# 🧑‍💼 ADMIN SYSTEM
+
+Verify:
+
+- Admin dashboard loads without errors
+- All tables render correctly
+- All CRUD operations work
+- No failed queries
+
+---
+
+# 🚚 SUPPORT SYSTEM
+
+Verify:
+
+- Ticket creation works
+- Admin replies work
+- Email notifications work (if configured)
+- No missing ticket states
+
+---
+
+# 🧼 PRODUCTION HARDENING
+
+Apply:
+
+- proper error handling everywhere
+- safe async handling
+- no unhandled promise rejections
+- consistent API responses
+- safe fallback states for missing data
+
+---
+
+# 📦 MIGRATION SAFETY REQUIREMENTS
+
+The project will be moved to another Replit account.
+
+Ensure:
+
+- No hardcoded environment-specific URLs
+- All secrets are environment variables only
+- No local machine dependencies
+- No broken absolute paths
+- Clean build works after migration
+
+OUTPUT:
+
+1. List all issues found
+2. List all fixes applied
+3. List any remaining risks
+4. Confirm system is production-ready for migration
+
+FINAL STATUS:
+System must be safe to deploy immediately after migration with no additional fixes required.

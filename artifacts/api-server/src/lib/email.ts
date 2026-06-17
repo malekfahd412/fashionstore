@@ -416,6 +416,63 @@ export async function sendSupportTicketConfirmationEmail(
   `));
 }
 
+export async function sendBackInStockEmail(
+  email: string,
+  name: string,
+  product: { id: number; nameEn: string; color: string | null; size: string | null; imageUrl?: string | null },
+): Promise<void> {
+  const productUrl = `${APP_URL()}/products/${product.id}`;
+  const variant = [product.color, product.size].filter(Boolean).join(" / ");
+  await send(email, `Back in stock: ${product.nameEn}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 16px">Good news — your item is back!</h2>
+    <p style="line-height:1.7;color:#444">Hi ${name}, an item you wanted is back in stock. Act fast — quantities are limited.</p>
+    <div style="background:#f9f9f9;padding:20px;margin:20px 0">
+      ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.nameEn}" style="width:100%;max-height:200px;object-fit:contain;margin-bottom:16px;"/>` : ""}
+      <p style="margin:0 0 6px;font-size:18px;font-weight:600">${product.nameEn}</p>
+      ${variant ? `<p style="margin:0;color:#666;font-size:14px">${variant}</p>` : ""}
+    </div>
+    <div style="text-align:center">
+      <a href="${productUrl}" style="${btnStyle}">SHOP NOW</a>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:24px">You requested to be notified when this item returned to stock. Visit the product page to unsubscribe from future alerts.</p>
+  `));
+}
+
+export async function sendLowStockAlertEmail(
+  email: string,
+  vendorName: string,
+  items: Array<{ productName: string; color: string | null; size: string | null; stock: number }>,
+): Promise<void> {
+  const dashboardUrl = `${APP_URL()}/dashboard/vendor`;
+  const rowsHtml = items.map(i => {
+    const variant = [i.color, i.size].filter(Boolean).join(" / ");
+    const stockColor = i.stock === 0 ? "#b91c1c" : "#d97706";
+    const stockLabel = i.stock === 0 ? "Out of stock" : `${i.stock} left`;
+    return `<tr>
+      <td style="padding:10px 0;border-bottom:1px solid #eee;font-size:14px">${i.productName}${variant ? ` <span style="color:#888;font-size:12px">(${variant})</span>` : ""}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;font-weight:bold;color:${stockColor}">${stockLabel}</td>
+    </tr>`;
+  }).join("");
+  await send(email, `Low stock alert — ${items.length} product${items.length !== 1 ? "s" : ""} need restocking`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 8px">Low Stock Alert</h2>
+    <p style="color:#888;margin:0 0 24px">${items.length} product${items.length !== 1 ? "s" : ""} require attention</p>
+    <p style="line-height:1.7;color:#444">Hi ${vendorName}, the following products in your store are running low on stock.</p>
+    <table style="width:100%;border-collapse:collapse;margin:24px 0">
+      <thead>
+        <tr style="border-bottom:2px solid #0a0a0a">
+          <th style="text-align:left;padding:8px 0;font-size:12px;letter-spacing:1px;text-transform:uppercase">Product</th>
+          <th style="text-align:right;padding:8px 0;font-size:12px;letter-spacing:1px;text-transform:uppercase">Stock</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div style="text-align:center">
+      <a href="${dashboardUrl}" style="${btnStyle}">MANAGE PRODUCTS</a>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:24px">Update your stock quantities from your vendor dashboard to keep your products available to customers.</p>
+  `));
+}
+
 export async function sendSupportNewTicketAdminEmail(
   adminEmail: string,
   ticket: { id: number; subject: string; category: string; message: string },

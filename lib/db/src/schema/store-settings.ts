@@ -48,6 +48,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   whatsapp_template_order_shipped: "order_shipped",
   whatsapp_template_order_delivered: "order_delivered",
   whatsapp_template_support_reply: "support_reply",
+  low_stock_threshold: "5",
   abandoned_cart_enabled: "true",
   abandoned_cart_threshold_hours: "1",
   payment_vodafone_cash_enabled: "false",
