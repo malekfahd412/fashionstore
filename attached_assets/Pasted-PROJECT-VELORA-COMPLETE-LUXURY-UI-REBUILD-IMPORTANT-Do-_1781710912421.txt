@@ -1,0 +1,377 @@
+PROJECT: VELORA COMPLETE LUXURY UI REBUILD
+
+IMPORTANT:
+Do NOT redesign one page only.
+Do NOT partially update components.
+Perform a FULL WEBSITE UI REBUILD across ALL customer-facing pages and shared components.
+
+Backend, API routes, database schema, business logic, authentication, payments, admin functionality and existing React Query hooks MUST remain untouched.
+
+Only rebuild the visual layer and UX.
+
+==================================================
+DESIGN DIRECTION
+================
+
+Brand Name: VELORA
+
+Style:
+Luxury fashion brand
+Premium
+Modern
+Editorial
+High-end ecommerce
+
+Inspiration:
+Louis Vuitton
+Saint Laurent
+Zara Premium
+Massimo Dutti
+COS
+Farfetch luxury sections
+
+Visual Goals:
+
+* Minimal but expensive
+* Large typography
+* Strong whitespace
+* Cinematic imagery
+* Premium product presentation
+* Smooth interactions
+* Luxury feeling
+* Mobile-first
+* Dark mode + light mode
+
+==================================================
+COLOR SYSTEM
+============
+
+LIGHT MODE
+
+Background:
+#F8F6F2
+
+Cards:
+#FFFFFF
+
+Primary Text:
+#111111
+
+Secondary Text:
+#666666
+
+Borders:
+rgba(17,17,17,0.08)
+
+Accent:
+#C9A227
+
+Buttons:
+Black glossy appearance
+
+---
+
+DARK MODE
+
+Background:
+#000000
+
+Cards:
+#111111
+
+Primary Text:
+#FFFFFF
+
+Secondary Text:
+#B8B8B8
+
+Borders:
+rgba(255,255,255,0.08)
+
+Accent:
+#C9A227
+
+Buttons:
+Luxury gold accents
+
+==================================================
+TYPOGRAPHY
+==========
+
+Headings:
+Playfair Display
+
+Body:
+Inter
+
+Rules:
+
+* Large editorial headings
+* Strong hierarchy
+* Comfortable spacing
+* Luxury magazine feel
+
+==================================================
+GLOBAL ANIMATIONS
+=================
+
+Implement everywhere:
+
+* Fade Up
+* Fade In
+* Scale Hover
+* Smooth page transitions
+* Smooth accordion animations
+* Smooth drawer animations
+* Smooth hover states
+
+Duration:
+200ms–350ms
+
+No flashy animations.
+
+==================================================
+GLOBAL COMPONENTS
+=================
+
+REBUILD:
+
+Navbar
+Footer
+Mobile Menu
+Cart Drawer
+Search Overlay
+Newsletter
+Product Cards
+Buttons
+Inputs
+Dropdowns
+Modals
+Accordions
+Pagination
+Empty States
+Loading States
+
+==================================================
+HOME PAGE
+=========
+
+Completely rebuild.
+
+Sections:
+
+1. Cinematic Hero
+   Full screen
+   Large typography
+   Real banner data
+
+2. Trust Marquee
+
+3. Editorial Categories Grid
+
+4. New Arrivals
+
+5. Editorial Story Section
+
+6. Best Sellers
+
+7. Featured Collection
+
+8. Brand Story
+
+9. FAQ
+
+10. Newsletter
+
+Luxury spacing throughout.
+
+==================================================
+PRODUCTS PAGE
+=============
+
+Replace current layout.
+
+Create:
+
+* Premium filter sidebar
+* Sticky filters
+* Editorial category navigation
+* Better sorting UI
+* Refined product cards
+* Hover quick actions
+* Better empty state
+
+==================================================
+PRODUCT DETAILS
+===============
+
+Luxury product presentation.
+
+Requirements:
+
+* Large image gallery
+* Sticky purchase panel
+* Elegant color selector
+* Elegant size selector
+* Shipping section
+* Reviews section redesign
+* Related products
+* Trust badges
+
+==================================================
+CART
+====
+
+Premium redesign.
+
+Requirements:
+
+* Large thumbnails
+* Better quantity controls
+* Luxury summary card
+* Better spacing
+
+==================================================
+CHECKOUT
+========
+
+Luxury multi-step experience.
+
+Steps:
+
+1 Shipping
+2 Payment
+3 Review
+
+Add:
+
+* Progress indicator
+* Better forms
+* Premium cards
+
+==================================================
+CUSTOMER DASHBOARD
+==================
+
+NO TABLE HEAVY DESIGN.
+
+Convert to:
+
+* Sidebar layout
+* Cards
+* Timeline order history
+* Modern support area
+* Better profile UI
+* Better payment history UI
+
+==================================================
+AUTH PAGES
+==========
+
+Login
+Register
+Forgot Password
+Reset Password
+
+Luxury redesign.
+
+Requirements:
+
+* Centered cards
+* Elegant typography
+* Google Login button
+* Better validation display
+
+==================================================
+CONTACT PAGE
+============
+
+Luxury contact experience.
+
+Add:
+
+* Elegant form
+* Contact cards
+* Business hours
+* Social links
+
+==================================================
+FAQ PAGE
+========
+
+Luxury accordion layout.
+
+==================================================
+ABOUT PAGE
+==========
+
+Editorial storytelling page.
+
+==================================================
+TRACK ORDER PAGE
+================
+
+Luxury tracking timeline.
+
+==================================================
+ERROR PAGES
+===========
+
+404
+Access Denied
+Unauthorized
+
+Create premium branded versions.
+
+==================================================
+MOBILE EXPERIENCE
+=================
+
+Must be perfect on:
+
+320px
+375px
+390px
+768px
+
+No horizontal scroll.
+
+==================================================
+PERFORMANCE
+===========
+
+Do NOT add heavy libraries.
+
+Reuse existing stack.
+
+==================================================
+STRICT RULES
+============
+
+Do NOT change:
+
+API routes
+Database schema
+Business logic
+Auth logic
+Payments
+Admin workflows
+
+Only UI / UX.
+
+==================================================
+FINAL STEP
+==========
+
+After finishing:
+
+1. Run typecheck
+2. Run build
+3. Fix all errors
+4. Remove unused imports
+5. Report every modified file
+6. Report any manual steps required
+
+Goal:
+
+VELORA should feel like a premium luxury fashion brand, not a template ecommerce store.
