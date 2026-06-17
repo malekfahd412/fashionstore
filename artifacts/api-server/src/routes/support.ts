@@ -10,7 +10,7 @@ import {
 import { eq, desc, and, count, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { sendSupportReplyWhatsApp } from "../lib/whatsapp";
-import { sendSupportTicketReplyEmail, sendSupportNewTicketAdminEmail } from "../lib/email";
+import { sendSupportTicketReplyEmail, sendSupportNewTicketAdminEmail, sendSupportTicketConfirmationEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -70,28 +70,39 @@ router.post("/support/tickets", requireAuth, async (req, res): Promise<void> => 
     isInternal: false,
   });
 
-  // Notify admin via email (non-blocking)
+  // Notify admin + confirm to customer via email (non-blocking)
   void (async () => {
-    const [setting] = await db
-      .select({ value: storeSettingsTable.value })
-      .from(storeSettingsTable)
-      .where(eq(storeSettingsTable.key, "contact_email"))
-      .limit(1);
-    const adminEmail = setting?.value || process.env.RESEND_FROM_EMAIL;
-    if (adminEmail) {
-      const [customer] = await db
-        .select({ name: usersTable.name, email: usersTable.email })
+    const [[setting], [customer]] = await Promise.all([
+      db.select({ value: storeSettingsTable.value })
+        .from(storeSettingsTable)
+        .where(eq(storeSettingsTable.key, "contact_email"))
+        .limit(1),
+      db.select({ name: usersTable.name, email: usersTable.email })
         .from(usersTable)
         .where(eq(usersTable.id, userId))
-        .limit(1);
-      if (customer) {
-        await sendSupportNewTicketAdminEmail(
-          adminEmail,
-          { id: ticket.id, subject: ticket.subject, category: ticket.category, message: message.trim() },
-          { name: customer.name ?? "Customer", email: customer.email },
-        );
-      }
-    }
+        .limit(1),
+    ]);
+
+    const adminEmail = setting?.value || process.env.RESEND_FROM_EMAIL;
+
+    await Promise.all([
+      // Confirmation to customer
+      customer?.email
+        ? sendSupportTicketConfirmationEmail(
+            customer.email,
+            customer.name ?? "Valued Customer",
+            { id: ticket.id, subject: ticket.subject, category: ticket.category },
+          )
+        : Promise.resolve(),
+      // Notification to admin
+      adminEmail && customer
+        ? sendSupportNewTicketAdminEmail(
+            adminEmail,
+            { id: ticket.id, subject: ticket.subject, category: ticket.category, message: message.trim() },
+            { name: customer.name ?? "Customer", email: customer.email },
+          )
+        : Promise.resolve(),
+    ]);
   })();
 
   res.status(201).json(ticket);

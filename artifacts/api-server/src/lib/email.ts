@@ -361,6 +361,30 @@ export async function sendContactReply(to: string, name: string, replyMessage: s
   `));
 }
 
+export async function sendSupportTicketConfirmationEmail(
+  email: string,
+  name: string,
+  ticket: { id: number; subject: string; category: string },
+): Promise<void> {
+  const ticketUrl = `${APP_URL()}/dashboard/customer?tab=support&ticket=${ticket.id}`;
+  const categoryLabel = ticket.category.charAt(0).toUpperCase() + ticket.category.slice(1);
+  await send(email, `We received your support ticket — #${ticket.id}`, wrap(`
+    <h2 style="font-size:22px;font-weight:400;margin:0 0 8px">We've received your ticket</h2>
+    <p style="color:#888;margin:0 0 24px">Ticket #${ticket.id}</p>
+    <p style="line-height:1.7;color:#444">Hi ${name}, thank you for reaching out. Our support team has received your ticket and will respond as soon as possible, typically within 1–2 business days.</p>
+    <div style="background:#f9f9f9;padding:20px;margin:20px 0">
+      <p style="margin:0 0 8px"><strong>Ticket ID:</strong> #${ticket.id}</p>
+      <p style="margin:0 0 8px"><strong>Subject:</strong> ${ticket.subject}</p>
+      <p style="margin:0"><strong>Category:</strong> ${categoryLabel}</p>
+    </div>
+    <p style="line-height:1.7;color:#444">You'll receive another email as soon as we reply. You can also check your ticket status and add more details from your dashboard at any time.</p>
+    <div style="text-align:center">
+      <a href="${ticketUrl}" style="${btnStyle}">VIEW MY TICKET</a>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:24px">Please do not reply to this email. Use your dashboard to add messages to your ticket.</p>
+  `));
+}
+
 export async function sendSupportNewTicketAdminEmail(
   adminEmail: string,
   ticket: { id: number; subject: string; category: string; message: string },
