@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/lib/adminFetch";
+import { getListCategoriesQueryKey } from "@workspace/api-client-react";
 
 type Category = {
   id: number;
@@ -109,20 +110,20 @@ export default function AdminCategoriesTab() {
   const createCat = useMutation({
     mutationFn: (body: Omit<FormState, "image"> & { image?: string }) =>
       adminFetch("/api/categories", { method: "POST", body: JSON.stringify(body) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["categories"] }); setEditTarget(null); setFormError(""); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["categories"] }); qc.invalidateQueries({ queryKey: getListCategoriesQueryKey() }); setEditTarget(null); setFormError(""); },
     onError: (e: Error) => setFormError(e.message),
   });
 
   const updateCat = useMutation({
     mutationFn: ({ id, body }: { id: number; body: Partial<FormState> }) =>
       adminFetch(`/api/categories/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["categories"] }); setEditTarget(null); setFormError(""); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["categories"] }); qc.invalidateQueries({ queryKey: getListCategoriesQueryKey() }); setEditTarget(null); setFormError(""); },
     onError: (e: Error) => setFormError(e.message),
   });
 
   const deleteCat = useMutation({
     mutationFn: (id: number) => adminFetch(`/api/categories/${id}`, { method: "DELETE" }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["categories"] }); setDeleteTarget(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["categories"] }); qc.invalidateQueries({ queryKey: getListCategoriesQueryKey() }); setDeleteTarget(null); },
   });
 
   function handleSave(form: FormState) {

@@ -6,7 +6,7 @@ import AccessDenied from "@/components/AccessDenied";
 import {
   useGetAnalyticsSummary, useGetOrderStatusBreakdown, useGetSalesTimeline, useListOrders,
   useAdminListReviews, useDeleteReview,
-  getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey, getListOrdersQueryKey, getAdminListReviewsQueryKey,
+  getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey, getListOrdersQueryKey, getAdminListReviewsQueryKey, getGetMyReviewsQueryKey,
 } from "@workspace/api-client-react";
 import { Star, Trash2, CheckCircle2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
@@ -459,6 +459,7 @@ type ContactMsg = { id: number; name: string; email: string; subject: string | n
 type NewsletterSub = { id: number; email: string; active: boolean; subscribedAt: string };
 
 function AdminFaqTab() {
+  const qc = useQueryClient();
   const [faqs, setFaqs] = useState<FaqEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [editTarget, setEditTarget] = useState<FaqEntry | null>(null);
@@ -480,12 +481,14 @@ function AdminFaqTab() {
     }
     setShowForm(false); setEditTarget(null); setForm({ category: 'orders', questionEn: '', questionAr: '', answerEn: '', answerAr: '', sortOrder: 0, active: true });
     void load();
+    qc.invalidateQueries({ queryKey: ["faqs-public"] });
   };
 
   const del = async (id: number) => {
     if (!confirm('Delete this FAQ?')) return;
     await apiFetch(`/api/admin/faq/${id}`, { method: 'DELETE' } as RequestInit);
     void load();
+    qc.invalidateQueries({ queryKey: ["faqs-public"] });
   };
 
   return (
@@ -758,6 +761,7 @@ function AdminReviewsTab() {
     deleteMutation.mutate({ id }, {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: getAdminListReviewsQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
         refetch();
       },
     });

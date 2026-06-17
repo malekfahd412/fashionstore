@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/lib/adminFetch";
+import { getListBannersQueryKey } from "@workspace/api-client-react";
 
 type Banner = {
   id: number;
@@ -164,20 +165,20 @@ export default function AdminBannersTab() {
   const createBanner = useMutation({
     mutationFn: (body: ReturnType<typeof formToBody>) =>
       adminFetch("/api/banners", { method: "POST", body: JSON.stringify(body) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-banners-all"] }); setEditTarget(null); setFormError(""); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-banners-all"] }); qc.invalidateQueries({ queryKey: getListBannersQueryKey() }); setEditTarget(null); setFormError(""); },
     onError: (e: Error) => setFormError(e.message),
   });
 
   const updateBanner = useMutation({
     mutationFn: ({ id, body }: { id: number; body: Partial<ReturnType<typeof formToBody>> }) =>
       adminFetch(`/api/banners/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-banners-all"] }); setEditTarget(null); setFormError(""); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-banners-all"] }); qc.invalidateQueries({ queryKey: getListBannersQueryKey() }); setEditTarget(null); setFormError(""); },
     onError: (e: Error) => setFormError(e.message),
   });
 
   const deleteBanner = useMutation({
     mutationFn: (id: number) => adminFetch(`/api/banners/${id}`, { method: "DELETE" }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-banners-all"] }); setDeleteTarget(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-banners-all"] }); qc.invalidateQueries({ queryKey: getListBannersQueryKey() }); setDeleteTarget(null); },
   });
 
   const toggleActive = (b: Banner) => updateBanner.mutate({ id: b.id, body: { active: !b.active } });

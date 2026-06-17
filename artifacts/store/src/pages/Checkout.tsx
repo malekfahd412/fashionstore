@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useSearch, Link } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useGetCart, useCreateOrder, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useGetCart, useCreateOrder, getGetCartQueryKey, getListOrdersQueryKey, getGetAnalyticsSummaryQueryKey, getGetVendorSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -226,6 +226,11 @@ export default function Checkout() {
         }, {
           onSuccess: (data) => {
             qc.invalidateQueries({ queryKey: getGetCartQueryKey() });
+            qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
+            qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
+            qc.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
+            qc.invalidateQueries({ queryKey: getGetOrderStatusBreakdownQueryKey() });
+            qc.invalidateQueries({ queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) });
             resolve(data as unknown as { id: number });
           },
           onError: reject,

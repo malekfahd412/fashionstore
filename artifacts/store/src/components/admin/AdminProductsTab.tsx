@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/lib/adminFetch";
-import { getGetAnalyticsSummaryQueryKey, getGetVendorSummaryQueryKey } from "@workspace/api-client-react";
+import { getGetAnalyticsSummaryQueryKey, getGetVendorSummaryQueryKey, getGetTopProductsQueryKey, getGetSalesTimelineQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 
 type Variant = { id?: number; color: string; size: string; stockQuantity: number };
 type ProductImage = { id?: number; imageUrl: string; isPrimary: boolean };
@@ -293,6 +293,9 @@ export default function AdminProductsTab() {
     qc.invalidateQueries({ queryKey: ["admin-products"] });
     qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
     qc.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetTopProductsQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) });
+    qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
   };
 
   const createProduct = useMutation({

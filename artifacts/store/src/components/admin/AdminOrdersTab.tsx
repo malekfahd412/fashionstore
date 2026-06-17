@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/lib/adminFetch";
 import { format } from "date-fns";
-import { getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getListOrdersQueryKey } from "@workspace/api-client-react";
+import { getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getListOrdersQueryKey, getGetSalesTimelineQueryKey, getGetVendorSummaryQueryKey } from "@workspace/api-client-react";
 
 type OrderItem = {
   id: number;
@@ -135,6 +135,8 @@ export default function AdminOrdersTab() {
       qc.invalidateQueries({ queryKey: getGetAnalyticsSummaryQueryKey() });
       qc.invalidateQueries({ queryKey: getGetOrderStatusBreakdownQueryKey() });
       qc.invalidateQueries({ queryKey: getListOrdersQueryKey({ limit: 10 }) });
+      qc.invalidateQueries({ queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) });
+      qc.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
     },
   });
 

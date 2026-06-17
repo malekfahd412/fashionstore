@@ -44,7 +44,7 @@ const queryClient = new QueryClient({
         if (status && status < 500) return false;
         return failureCount < 2;
       },
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
     },
     mutations: {
       retry: false,

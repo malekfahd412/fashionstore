@@ -220,7 +220,10 @@ export default function VendorDashboard() {
                         toast({ title: "Product created!" });
                         setIsCreateProductOpen(false);
                         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey({ vendorId: user?.id }) });
+                        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
                         queryClient.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
+                        queryClient.invalidateQueries({ queryKey: getGetTopProductsQueryKey() });
+                        queryClient.invalidateQueries({ queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) });
                       },
                       onError: (err: Error) => setProductFormError(err.message),
                     });
@@ -348,7 +351,10 @@ export default function VendorDashboard() {
                         toast({ title: "Product updated!" });
                         setIsEditProductOpen(false);
                         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey({ vendorId: user?.id }) });
+                        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
                         queryClient.invalidateQueries({ queryKey: getGetVendorSummaryQueryKey() });
+                        queryClient.invalidateQueries({ queryKey: getGetTopProductsQueryKey() });
+                        queryClient.invalidateQueries({ queryKey: getGetSalesTimelineQueryKey({ period: 'month' }) });
                       },
                       onError: (err: Error) => setEditFormError(err.message),
                     });
