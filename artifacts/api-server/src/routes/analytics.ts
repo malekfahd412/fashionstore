@@ -248,7 +248,7 @@ router.get("/analytics/vendor-summary", requireAuth, requireRole("vendor", "admi
 });
 
 // ── Product performance (admin) ───────────────────────────────────────────────
-router.get("/admin/analytics/product-performance", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
+router.get("/admin/analytics/products", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
   const limitParam = Number((_req as { query: Record<string, string> }).query.limit) || 20;
   const rows = await db.execute(sql`
     WITH

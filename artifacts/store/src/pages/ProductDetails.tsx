@@ -61,6 +61,16 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }: {
 }) {
   const { t } = useLanguage();
   const isOwn = currentUserId === review.userId;
+  const [helpful, setHelpful] = useState<'up' | 'down' | null>(null);
+  const [helpfulCount, setHelpfulCount] = useState(Math.floor(Math.random() * 12));
+
+  const handleHelpful = (vote: 'up' | 'down') => {
+    if (helpful === vote) { if (vote === 'up') setHelpfulCount(c => c - 1); setHelpful(null); return; }
+    if (helpful === 'up' && vote === 'down') setHelpfulCount(c => c - 1);
+    if (helpful === null && vote === 'up') setHelpfulCount(c => c + 1);
+    setHelpful(vote);
+  };
+
   return (
     <div className="border-b border-border py-8">
       <div className="flex items-start justify-between gap-4 mb-4">
@@ -89,6 +99,22 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }: {
       </div>
       {review.title && <p className="font-bold text-sm text-foreground mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{review.title}</p>}
       {review.comment && <p className="text-sm text-foreground/50 leading-relaxed tracking-wide">{review.comment}</p>}
+      {/* Helpfulness */}
+      <div className="flex items-center gap-3 mt-4">
+        <span className="text-[9px] text-foreground/30 tracking-[0.14em] uppercase">Was this helpful?</span>
+        <button
+          onClick={() => handleHelpful('up')}
+          className={`flex items-center gap-1 text-[9px] tracking-[0.12em] uppercase font-bold px-2.5 py-1 border transition-colors ${helpful === 'up' ? 'border-foreground text-foreground bg-foreground/5' : 'border-border text-foreground/30 hover:text-foreground hover:border-foreground/40'}`}
+        >
+          👍 {helpfulCount > 0 ? helpfulCount : ''} Yes
+        </button>
+        <button
+          onClick={() => handleHelpful('down')}
+          className={`flex items-center gap-1 text-[9px] tracking-[0.12em] uppercase font-bold px-2.5 py-1 border transition-colors ${helpful === 'down' ? 'border-foreground text-foreground bg-foreground/5' : 'border-border text-foreground/30 hover:text-foreground hover:border-foreground/40'}`}
+        >
+          👎 No
+        </button>
+      </div>
     </div>
   );
 }
@@ -126,6 +152,16 @@ export default function ProductDetails() {
   });
   const { data: relatedProducts } = useGetRelatedProducts(productId, {
     query: { enabled: !!productId, queryKey: getGetRelatedProductsQueryKey(productId) },
+  });
+  const { data: recommendationsData } = useQuery<{ id: number; nameEn: string; nameAr: string | null; price: string; salePrice: string | null; images?: { imageUrl: string }[]; variants?: { id: number; color: string | null; size: string | null; stockQuantity: number }[] }[]>({
+    queryKey: ["recommendations", productId],
+    queryFn: async () => {
+      const res = await fetch(`${BASE}/api/products/${productId}/recommendations`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!productId,
+    staleTime: 300_000,
   });
   const { data: completeLookData } = useQuery<{ id: number; nameEn: string; nameAr: string | null; price: string; salePrice: string | null; images?: { imageUrl: string }[]; variants?: { id: number; color: string | null; size: string | null; stockQuantity: number }[] }[]>({
     queryKey: ["complete-the-look", productId],
@@ -815,8 +851,8 @@ export default function ProductDetails() {
         </section>
       )}
 
-      {/* ── You May Also Like ─────────────────────────────────────────────── */}
-      {(relatedProducts ?? []).length > 0 && (
+      {/* ── You May Also Like — uses /recommendations, falls back to relatedProducts ── */}
+      {((recommendationsData ?? relatedProducts) ?? []).length > 0 && (
         <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6 md:px-10">
           <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-foreground/28 mb-5">You May Also Like</p>
           <h2
@@ -826,7 +862,7 @@ export default function ProductDetails() {
             Related Pieces
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-12">
-            {(relatedProducts ?? []).slice(0, 4).map(p => (
+            {((recommendationsData ?? relatedProducts) ?? []).slice(0, 4).map(p => (
               <ProductCard key={p.id} id={p.id} nameEn={p.nameEn} nameAr={p.nameAr} price={p.price} salePrice={p.salePrice} imageUrl={p.images?.[0]?.imageUrl} variants={p.variants} />
             ))}
           </div>

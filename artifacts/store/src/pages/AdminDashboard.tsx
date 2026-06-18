@@ -1211,24 +1211,66 @@ function AdminSupportTab() {
   );
 }
 
+type InsightRow = { id: number; nameEn: string; viewCount: number; wishlistCount: number; unitsSold: number; revenue: number; totalStock: number };
+type InsightSortCol = 'revenue' | 'unitsSold' | 'viewCount' | 'wishlistCount' | 'totalStock';
+
+function ViewSparkline({ value, max }: { value: number; max: number }) {
+  const pct = max > 0 ? Math.max(4, Math.round((value / max) * 100)) : 4;
+  return (
+    <div className="flex items-center gap-2 justify-end">
+      <span className="text-foreground/80 tabular-nums">{value}</span>
+      <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function AdminProductInsightsTab() {
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<{ id: number; nameEn: string; viewCount: number; wishlistCount: number; unitsSold: number; revenue: number; totalStock: number }[]>([]);
+  const [data, setData] = useState<InsightRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [sortCol, setSortCol] = useState<InsightSortCol>('viewCount');
+  const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
 
   useEffect(() => {
     setLoading(true);
-    apiFetch("/api/admin/analytics/product-performance?limit=20")
-      .then((d: unknown) => setData(d as typeof data))
+    apiFetch("/api/admin/analytics/products?limit=20")
+      .then((d: unknown) => setData(d as InsightRow[]))
       .catch(() => setError("Failed to load product performance data"))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleSort = (col: InsightSortCol) => {
+    if (sortCol === col) setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    else { setSortCol(col); setSortDir('desc'); }
+  };
+
+  const sorted = [...data].sort((a, b) => {
+    const av = sortCol === 'revenue' ? Number(a.revenue) : a[sortCol];
+    const bv = sortCol === 'revenue' ? Number(b.revenue) : b[sortCol];
+    return sortDir === 'desc' ? bv - av : av - bv;
+  });
+
+  const maxViews = Math.max(...data.map(r => r.viewCount), 1);
+
+  const SortTh = ({ col, label, className = "" }: { col: InsightSortCol; label: string; className?: string }) => (
+    <th
+      onClick={() => handleSort(col)}
+      className={`py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors ${className}`}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <span className="text-[10px]">{sortCol === col ? (sortDir === 'desc' ? '↓' : '↑') : '↕'}</span>
+      </span>
+    </th>
+  );
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold text-foreground mb-1">Product Performance</h2>
-        <p className="text-sm text-muted-foreground">Top products by revenue, sorted highest first. Seed demo data from the Settings tab.</p>
+        <p className="text-sm text-muted-foreground">Click any column header to sort. Seed demo data from the Settings tab.</p>
       </div>
 
       {loading && (
@@ -1251,27 +1293,32 @@ function AdminProductInsightsTab() {
             <thead>
               <tr className="border-b border-border text-left">
                 <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider">Product</th>
-                <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">Revenue (EGP)</th>
-                <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">Units Sold</th>
-                <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">Views</th>
-                <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">Wishlisted</th>
-                <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">In Stock</th>
+                <SortTh col="revenue" label="Revenue (EGP)" className="text-right" />
+                <SortTh col="unitsSold" label="Units Sold" className="text-right" />
+                <SortTh col="viewCount" label="Views" className="text-right" />
+                <SortTh col="wishlistCount" label="Wishlisted" className="text-right" />
+                <SortTh col="totalStock" label="In Stock" className="text-right" />
               </tr>
             </thead>
             <tbody>
-              {data.map((row, i) => (
-                <tr key={row.id} className={`border-b border-border hover:bg-muted/40 transition-colors ${i === 0 && row.revenue > 0 ? "bg-amber-50/40" : ""}`}>
-                  <td className="py-3 px-4">
-                    <span className="font-medium text-foreground">{row.nameEn}</span>
-                    {i === 0 && row.revenue > 0 && <span className="ms-2 text-[9px] font-bold tracking-widest uppercase text-amber-600 bg-amber-100 px-1.5 py-0.5">Top Seller</span>}
-                  </td>
-                  <td className="py-3 px-4 text-right font-semibold text-foreground">{Number(row.revenue).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right text-foreground/80">{row.unitsSold}</td>
-                  <td className="py-3 px-4 text-right text-foreground/80">{row.viewCount}</td>
-                  <td className="py-3 px-4 text-right text-foreground/80">{row.wishlistCount}</td>
-                  <td className="py-3 px-4 text-right text-foreground/80">{row.totalStock}</td>
-                </tr>
-              ))}
+              {sorted.map((row, i) => {
+                const isTopBySort = i === 0;
+                return (
+                  <tr key={row.id} className={`border-b border-border hover:bg-muted/40 transition-colors ${isTopBySort ? "bg-amber-50/30" : ""}`}>
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-foreground">{row.nameEn}</span>
+                      {isTopBySort && <span className="ms-2 text-[9px] font-bold tracking-widest uppercase text-amber-600 bg-amber-100 px-1.5 py-0.5">#{1}</span>}
+                    </td>
+                    <td className="py-3 px-4 text-right font-semibold text-foreground">{Number(row.revenue).toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-foreground/80">{row.unitsSold}</td>
+                    <td className="py-3 px-4 text-right">
+                      <ViewSparkline value={row.viewCount} max={maxViews} />
+                    </td>
+                    <td className="py-3 px-4 text-right text-foreground/80">{row.wishlistCount}</td>
+                    <td className="py-3 px-4 text-right text-foreground/80">{row.totalStock}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

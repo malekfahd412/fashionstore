@@ -31,6 +31,22 @@ export default function ImageGallery({ images, productName, savePct, badge }: Im
   const lightboxPrev = () => setLightboxIdx(i => (i - 1 + images.length) % images.length);
   const lightboxNext = () => setLightboxIdx(i => (i + 1) % images.length);
 
+  // Touch swipe for both main gallery and lightbox
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEndMain = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 40) { if (delta < 0) next(); else prev(); }
+    touchStartX.current = null;
+  };
+  const handleTouchEndLightbox = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 40) { if (delta < 0) lightboxNext(); else lightboxPrev(); }
+    touchStartX.current = null;
+  };
+
   useEffect(() => {
     if (!lightboxOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -98,6 +114,8 @@ export default function ImageGallery({ images, productName, savePct, badge }: Im
             onMouseLeave={() => setZoomed(false)}
             onMouseMove={handleMouseMove}
             onClick={() => openLightbox(activeIdx)}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEndMain}
           >
             <img
               src={activeImage}
@@ -166,7 +184,7 @@ export default function ImageGallery({ images, productName, savePct, badge }: Im
 
       {/* ── Lightbox ──────────────────────────────────────────────────────── */}
       {lightboxOpen && (
-        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center" onClick={closeLightbox}>
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center" onClick={closeLightbox} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEndLightbox}>
           <button
             onClick={closeLightbox}
             className="absolute top-5 right-5 z-10 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white transition-colors"

@@ -185,7 +185,7 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
 
           {/* Bottom CTA — Quick Add or Quick View */}
           <div
-            className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${hovered ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
+            className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${hovered ? "translate-y-0 opacity-100" : "md:translate-y-full md:opacity-0 md:pointer-events-none"}`}
           >
             {canQuickAdd ? (
               <button
