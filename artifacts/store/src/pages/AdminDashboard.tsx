@@ -1213,52 +1213,22 @@ function AdminSupportTab() {
 
 function AdminProductInsightsTab() {
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<{ productId: number; nameEn: string; views: number; wishlistCount: number; cartAdditions: number; revenue: number; unitsSold: number }[]>([]);
+  const [data, setData] = useState<{ id: number; nameEn: string; viewCount: number; wishlistCount: number; unitsSold: number; revenue: number; totalStock: number }[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [seedLoading, setSeedLoading] = useState(false);
-  const [seedResult, setSeedResult] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
     apiFetch("/api/admin/analytics/product-performance?limit=20")
-      .then((d: unknown) => setData(d as { productId: number; nameEn: string; views: number; wishlistCount: number; cartAdditions: number; revenue: number; unitsSold: number }[]))
+      .then((d: unknown) => setData(d as typeof data))
       .catch(() => setError("Failed to load product performance data"))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSeed = async () => {
-    if (!window.confirm("This will seed demo products, categories, and variants into the store. Continue?")) return;
-    setSeedLoading(true);
-    setSeedResult(null);
-    try {
-      const result = await apiFetch("/api/admin/seed", { method: "POST" }) as { message: string; created: Record<string, number> };
-      setSeedResult(`✓ ${result.message} — Categories: ${result.created.categories ?? 0}, Products: ${result.created.products ?? 0}`);
-    } catch (e) {
-      setSeedResult("✗ Seed failed: " + (e instanceof Error ? e.message : "Unknown error"));
-    } finally {
-      setSeedLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground mb-1">Product Performance</h2>
-          <p className="text-sm text-muted-foreground">Top products by revenue, units sold, views, and wishlist adds.</p>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <button
-            onClick={handleSeed}
-            disabled={seedLoading}
-            className="px-4 py-2 text-sm font-medium bg-foreground text-background hover:bg-foreground/80 transition-colors disabled:opacity-50"
-          >
-            {seedLoading ? "Seeding…" : "🌱 Seed Demo Data"}
-          </button>
-          {seedResult && (
-            <p className={`text-xs ${seedResult.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{seedResult}</p>
-          )}
-        </div>
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-1">Product Performance</h2>
+        <p className="text-sm text-muted-foreground">Top products by revenue, sorted highest first. Seed demo data from the Settings tab.</p>
       </div>
 
       {loading && (
@@ -1272,7 +1242,7 @@ function AdminProductInsightsTab() {
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && data.length === 0 && (
-        <div className="py-20 text-center text-muted-foreground text-sm">No product data yet. Start selling or seed demo data above.</div>
+        <div className="py-20 text-center text-muted-foreground text-sm">No product data yet. Add products or seed demo data from Settings.</div>
       )}
 
       {!loading && data.length > 0 && (
@@ -1285,19 +1255,21 @@ function AdminProductInsightsTab() {
                 <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">Units Sold</th>
                 <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">Views</th>
                 <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">Wishlisted</th>
+                <th className="py-3 px-4 font-semibold text-foreground/60 text-xs uppercase tracking-wider text-right">In Stock</th>
               </tr>
             </thead>
             <tbody>
               {data.map((row, i) => (
-                <tr key={row.productId} className={`border-b border-border hover:bg-muted/40 transition-colors ${i === 0 ? "bg-amber-50/40" : ""}`}>
+                <tr key={row.id} className={`border-b border-border hover:bg-muted/40 transition-colors ${i === 0 && row.revenue > 0 ? "bg-amber-50/40" : ""}`}>
                   <td className="py-3 px-4">
                     <span className="font-medium text-foreground">{row.nameEn}</span>
-                    {i === 0 && <span className="ms-2 text-[9px] font-bold tracking-widest uppercase text-amber-600 bg-amber-100 px-1.5 py-0.5">Top Seller</span>}
+                    {i === 0 && row.revenue > 0 && <span className="ms-2 text-[9px] font-bold tracking-widest uppercase text-amber-600 bg-amber-100 px-1.5 py-0.5">Top Seller</span>}
                   </td>
                   <td className="py-3 px-4 text-right font-semibold text-foreground">{Number(row.revenue).toLocaleString()}</td>
                   <td className="py-3 px-4 text-right text-foreground/80">{row.unitsSold}</td>
-                  <td className="py-3 px-4 text-right text-foreground/80">{row.views}</td>
+                  <td className="py-3 px-4 text-right text-foreground/80">{row.viewCount}</td>
                   <td className="py-3 px-4 text-right text-foreground/80">{row.wishlistCount}</td>
+                  <td className="py-3 px-4 text-right text-foreground/80">{row.totalStock}</td>
                 </tr>
               ))}
             </tbody>

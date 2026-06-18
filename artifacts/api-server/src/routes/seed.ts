@@ -122,7 +122,20 @@ const SEED_BANNERS = [
 ];
 
 router.post("/admin/seed", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
-  const summary: string[] = [];
+  // Strict idempotency: skip entirely if the store already has products
+  const [{ productCount }] = await db.select({ productCount: count() }).from(productsTable);
+  if (Number(productCount) > 0) {
+    res.json({
+      ok: true,
+      skipped: true,
+      message: "Store already has products — seed skipped",
+      summary: [],
+      created: { categories: 0, products: 0, banners: 0 },
+    });
+    return;
+  }
+
+  const summary: string[]= [];
 
   // ── Categories ────────────────────────────────────────────────────────────
   const existingCats = await db.select({ id: categoriesTable.id, slug: categoriesTable.slug }).from(categoriesTable);
@@ -212,8 +225,14 @@ router.post("/admin/seed", requireAuth, requireRole("admin"), async (_req, res):
 
   res.json({
     ok: true,
-    message: summary.length > 0 ? summary.join("; ") : "Nothing new to seed — data already exists",
+    skipped: false,
+    message: summary.length > 0 ? summary.join("; ") : "Nothing new to seed",
     summary,
+    created: {
+      categories: newCats.length,
+      products: createdProducts,
+      banners: Number(bannerCount) === 0 ? SEED_BANNERS.length : 0,
+    },
   });
 });
 

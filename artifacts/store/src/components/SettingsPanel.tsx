@@ -178,6 +178,9 @@ export default function SettingsPanel() {
     }
   }
 
+  const [storeSeeding, setStoreSeeding] = useState(false);
+  const [storeSeedMsg, setStoreSeedMsg] = useState<{ text: string; ok: boolean; skipped: boolean } | null>(null);
+
   async function seedDefaults() {
     setSaving(true);
     try {
@@ -193,15 +196,45 @@ export default function SettingsPanel() {
     }
   }
 
+  async function seedStoreData() {
+    if (!window.confirm("Seed 8 demo products, 5 categories, and 2 banners into the store? This only runs on an empty store.")) return;
+    setStoreSeeding(true);
+    setStoreSeedMsg(null);
+    try {
+      const result = await apiFetch<{ ok: boolean; skipped: boolean; message: string; created: { categories: number; products: number; banners: number } }>("/api/admin/seed", "POST");
+      setStoreSeedMsg({ text: result.skipped ? result.message : `✓ ${result.message}`, ok: true, skipped: result.skipped });
+    } catch {
+      setStoreSeedMsg({ text: "Seed failed — check the server logs", ok: false, skipped: false });
+    } finally {
+      setStoreSeeding(false);
+    }
+  }
+
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading settings...</div>;
 
   const section = SETTING_SECTIONS.find(s => s.key === activeSection)!;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-3xl font-bold font-serif">Store Settings</h1>
-        <Button variant="outline" size="sm" onClick={seedDefaults} disabled={saving}>Seed Defaults</Button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={seedStoreData}
+              disabled={storeSeeding || storeSeedMsg?.skipped === true}
+              title={storeSeedMsg?.skipped ? "Store already has products" : "Seed demo products, categories & banners"}
+            >
+              {storeSeeding ? "Seeding…" : storeSeedMsg?.skipped ? "Already seeded" : "🌱 Seed Store Data"}
+            </Button>
+            {storeSeedMsg && (
+              <span className={`text-xs ${storeSeedMsg.ok ? "text-green-600" : "text-red-500"}`}>{storeSeedMsg.text}</span>
+            )}
+          </div>
+          <Button variant="outline" size="sm" onClick={seedDefaults} disabled={saving}>Seed Defaults</Button>
+        </div>
       </div>
 
       <div className="flex gap-6">

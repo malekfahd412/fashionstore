@@ -249,7 +249,32 @@ router.get("/analytics/vendor-summary", requireAuth, requireRole("vendor", "admi
 
 // ── Product performance (admin) ───────────────────────────────────────────────
 router.get("/admin/analytics/product-performance", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
+  const limitParam = Number((_req as { query: Record<string, string> }).query.limit) || 20;
   const rows = await db.execute(sql`
+    WITH
+      views_cte AS (
+        SELECT product_id, COUNT(DISTINCT user_id)::int AS view_count
+        FROM recently_viewed
+        GROUP BY product_id
+      ),
+      wishlist_cte AS (
+        SELECT product_id, COUNT(*)::int AS wishlist_count
+        FROM wishlist
+        GROUP BY product_id
+      ),
+      orders_cte AS (
+        SELECT pv.product_id,
+               SUM(oi.quantity)::int                             AS units_sold,
+               COALESCE(SUM(oi.quantity * oi.price::numeric), 0)::numeric AS revenue
+        FROM order_items oi
+        JOIN product_variants pv ON pv.id = oi.product_variant_id
+        GROUP BY pv.product_id
+      ),
+      stock_cte AS (
+        SELECT product_id, SUM(stock_quantity)::int AS total_stock
+        FROM product_variants
+        GROUP BY product_id
+      )
     SELECT
       p.id,
       p.name_en,
@@ -258,20 +283,19 @@ router.get("/admin/analytics/product-performance", requireAuth, requireRole("adm
       p.sale_price,
       p.featured,
       p.created_at,
-      COUNT(DISTINCT rv.user_id)::int          AS view_count,
-      COUNT(DISTINCT wl.id)::int               AS wishlist_count,
-      COALESCE(SUM(oi.quantity), 0)::int       AS units_sold,
-      COALESCE(SUM(oi.quantity * oi.price::numeric), 0)::numeric AS revenue,
-      SUM(pv.stock_quantity)::int              AS total_stock
+      COALESCE(v.view_count, 0)     AS view_count,
+      COALESCE(w.wishlist_count, 0) AS wishlist_count,
+      COALESCE(o.units_sold, 0)     AS units_sold,
+      COALESCE(o.revenue, 0)        AS revenue,
+      COALESCE(s.total_stock, 0)    AS total_stock
     FROM products p
-    LEFT JOIN recently_viewed rv   ON rv.product_id = p.id
-    LEFT JOIN wishlist wl           ON wl.product_id = p.id
-    LEFT JOIN product_variants pv   ON pv.product_id = p.id
-    LEFT JOIN order_items oi        ON oi.product_variant_id = pv.id
+    LEFT JOIN views_cte   v ON v.product_id   = p.id
+    LEFT JOIN wishlist_cte w ON w.product_id  = p.id
+    LEFT JOIN orders_cte  o ON o.product_id   = p.id
+    LEFT JOIN stock_cte   s ON s.product_id   = p.id
     WHERE p.active = true
-    GROUP BY p.id
-    ORDER BY view_count DESC
-    LIMIT 100
+    ORDER BY COALESCE(o.revenue, 0) DESC, COALESCE(o.units_sold, 0) DESC
+    LIMIT ${limitParam}
   `);
   res.json((rows.rows as Array<Record<string, unknown>>).map(r => ({
     id: Number(r.id),
