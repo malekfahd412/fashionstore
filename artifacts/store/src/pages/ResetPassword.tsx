@@ -111,85 +111,100 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
-      <div className="w-full max-w-[400px]">
-        <div className="mb-12 text-center">
-          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-8">
+    <div className="min-h-screen flex bg-background">
+      {/* Left Panel: Editorial Brand Image/Pattern */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-midnight overflow-hidden items-center justify-center p-12">
+        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2070')] bg-cover bg-center" />
+        <div className="relative z-10 text-center">
+          <Link href="/" className="inline-block velora-heading text-8xl text-white mb-6 tracking-[0.2em]">
             VELORA
           </Link>
-          <h1 className="font-serif text-3xl font-bold mb-3">{t("reset.title")}</h1>
-          <p className="text-muted-foreground text-sm tracking-wide">{t("reset.subtitle")}</p>
+          <div className="velora-divider bg-white/30" />
+          <p className="text-white/60 velora-label text-sm mt-8">Restoring the standard of excellence.</p>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-3">
-            <label htmlFor="password" className="velora-label block">{t("reset.newPassword")}</label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder={t("reset.minChars")}
-                value={password}
-                onChange={e => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors(prev => ({ ...prev, password: undefined }));
-                }}
-                className={`rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary pr-10 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                disabled={loading}
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                onClick={() => setShowPassword(v => !v)}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+      {/* Right Panel: Clean Form on Ivory Background */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16">
+        <div className="w-full max-w-[400px]">
+          <div className="mb-12">
+            <Link href="/" className="lg:hidden inline-block velora-heading text-4xl mb-8">
+              VELORA
+            </Link>
+            <h1 className="font-serif text-5xl font-bold tracking-tight text-foreground mb-4">{t("reset.title")}</h1>
+            <p className="text-muted-foreground text-sm tracking-wide">{t("reset.subtitle")}</p>
           </div>
 
-          <div className="space-y-3">
-            <label htmlFor="confirm" className="velora-label block">{t("reset.confirmPassword")}</label>
-            <div className="relative">
-              <Input
-                id="confirm"
-                type={showPassword ? "text" : "password"}
-                placeholder={t("reset.repeatPassword")}
-                value={confirm}
-                onChange={e => {
-                  setConfirm(e.target.value);
-                  if (errors.confirm) setErrors(prev => ({ ...prev, confirm: undefined }));
-                }}
-                className={`rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary pr-10 ${errors.confirm ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                disabled={loading}
-                autoComplete="new-password"
-              />
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-1">
+              <label htmlFor="password" className="velora-label block">{t("reset.newPassword")}</label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("reset.minChars")}
+                  value={password}
+                  onChange={e => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors(prev => ({ ...prev, password: undefined }));
+                  }}
+                  className={`rounded-none border-0 border-b border-border bg-transparent px-0 focus-visible:ring-0 focus-visible:border-accent h-12 transition-colors text-foreground pr-10 ${errors.password ? "border-destructive" : ""}`}
+                  disabled={loading}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
+                  onClick={() => setShowPassword(v => !v)}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-[10px] uppercase tracking-wider text-destructive mt-2">{errors.password}</p>}
             </div>
-            {errors.confirm && <p className="text-xs text-destructive">{errors.confirm}</p>}
+
+            <div className="space-y-1">
+              <label htmlFor="confirm" className="velora-label block">{t("reset.confirmPassword")}</label>
+              <div className="relative">
+                <Input
+                  id="confirm"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("reset.repeatPassword")}
+                  value={confirm}
+                  onChange={e => {
+                    setConfirm(e.target.value);
+                    if (errors.confirm) setErrors(prev => ({ ...prev, confirm: undefined }));
+                  }}
+                  className={`rounded-none border-0 border-b border-border bg-transparent px-0 focus-visible:ring-0 focus-visible:border-accent h-12 transition-colors text-foreground pr-10 ${errors.confirm ? "border-destructive" : ""}`}
+                  disabled={loading}
+                  autoComplete="new-password"
+                />
+              </div>
+              {errors.confirm && <p className="text-[10px] uppercase tracking-wider text-destructive mt-2">{errors.confirm}</p>}
+            </div>
+
+            <Button
+              type="submit"
+              className="velora-btn-primary w-full h-14 mt-2"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  {t("reset.resetting")}
+                </span>
+              ) : (
+                t("reset.resetBtn")
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-12 pt-12 border-t border-border text-center">
+            <Link href="/login" className="velora-link inline-flex items-center gap-2">
+              <ArrowLeft className="w-3 h-3" />
+              {t("reset.backToLogin")}
+            </Link>
           </div>
-
-          <Button
-            type="submit"
-            className="velora-btn-primary w-full h-12 mt-2"
-            disabled={loading}
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                {t("reset.resetting")}
-              </span>
-            ) : (
-              t("reset.resetBtn")
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-8 pt-8 border-t border-border text-center flex flex-col gap-4">
-          <Link href="/login" className="inline-flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-3 h-3" />
-            {t("reset.backToLogin")}
-          </Link>
         </div>
       </div>
     </div>

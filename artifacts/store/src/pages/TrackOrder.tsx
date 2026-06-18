@@ -63,7 +63,7 @@ function StatusBadge({ status }: { status: string }) {
   const isCancelled = status === "cancelled";
   const isDelivered = status === "delivered";
   return (
-    <span className={`velora-label px-3 py-1.5 border ${isDelivered ? 'border-primary text-primary' : isCancelled ? 'border-destructive text-destructive' : 'border-border text-foreground'}`}>
+    <span className={`velora-label px-3 py-1.5 border ${isDelivered ? 'border-accent text-accent' : isCancelled ? 'border-primary text-primary' : 'border-border text-foreground'}`}>
       {status.replace(/_/g, " ")}
     </span>
   );
@@ -80,7 +80,7 @@ function PaymentBadge({ order }: { order: Order }) {
 }
 
 function OrderView({ order }: { order: Order }) {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const isCancelled = order.status === "cancelled";
   
   const STEPS = [
@@ -94,14 +94,15 @@ function OrderView({ order }: { order: Order }) {
   ];
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-24">
       {/* Header */}
-      <div className="text-center space-y-6">
-        <h1 className="font-serif text-4xl md:text-5xl font-bold">Order #{order.id}</h1>
-        <p className="text-muted-foreground text-sm uppercase tracking-widest">
+      <div className="text-center space-y-8">
+        <p className="velora-label">ORDER DETAILS</p>
+        <h1 className="velora-heading text-5xl md:text-7xl">Order #{order.id}</h1>
+        <p className="text-muted-foreground text-[10px] uppercase tracking-widest">
           {format(new Date(order.createdAt), "MMMM d, yyyy")}
         </p>
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-4">
           <StatusBadge status={order.status} />
           <PaymentBadge order={order} />
         </div>
@@ -109,43 +110,40 @@ function OrderView({ order }: { order: Order }) {
 
       {/* Cancelled state */}
       {isCancelled ? (
-        <div className="border border-border p-12 text-center space-y-4">
-          <p className="font-serif text-2xl text-destructive">{t("track.cancelled")}</p>
-          <p className="text-sm text-muted-foreground">{t("track.cancelledDesc")}</p>
+        <div className="border border-border p-16 text-center space-y-6 max-w-2xl mx-auto">
+          <p className="velora-heading text-3xl text-primary">{t("track.cancelled")}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{t("track.cancelledDesc")}</p>
         </div>
       ) : (
         /* Timeline */
-        <div className="max-w-md mx-auto">
-          <div className="relative pl-6 md:pl-0">
-            <div className="absolute left-6 md:left-[50%] top-2 bottom-2 w-px bg-border md:-translate-x-1/2" />
-            <div className="space-y-12">
-              {STEPS.map((step, idx) => {
+        <div className="max-w-xl mx-auto">
+          <div className="relative pl-12 md:pl-0">
+            <div className="absolute left-12 md:left-[50%] top-2 bottom-2 w-px bg-border md:-translate-x-1/2" />
+            <div className="space-y-16">
+              {STEPS.map((step) => {
                 const state = stepState(step.key, order.status);
                 const ts = step.tsField ? order[step.tsField] : null;
 
                 return (
-                  <div key={step.key} className={`relative flex items-center md:justify-between ${state === "pending" ? "opacity-40" : "opacity-100"} transition-opacity`}>
+                  <div key={step.key} className={`relative flex items-center md:justify-between ${state === "pending" ? "opacity-30" : "opacity-100"} transition-all duration-500`}>
                     
                     {/* Left text (desktop only) */}
-                    <div className="hidden md:block w-[45%] text-right pr-8">
-                       <p className={`font-serif text-xl ${state === "active" ? "text-primary" : "text-foreground"}`}>{step.label}</p>
+                    <div className="hidden md:block w-[42%] text-right">
+                       <p className={`velora-heading text-2xl transition-colors duration-500 ${state === "active" ? "text-accent" : "text-foreground"}`}>{step.label}</p>
                     </div>
 
                     {/* Dot */}
-                    <div className="absolute left-0 md:left-1/2 -translate-x-1/2 w-3 h-3 bg-background border border-foreground rounded-full z-10 flex items-center justify-center">
-                      {state === "done" && <div className="w-1.5 h-1.5 bg-foreground rounded-full" />}
-                      {state === "active" && <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />}
-                    </div>
+                    <div className={`absolute left-0 md:left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border z-10 transition-colors duration-500 ${state === "done" ? "bg-foreground border-foreground" : state === "active" ? "bg-accent border-accent animate-pulse" : "bg-background border-border"}`} />
 
                     {/* Right text */}
-                    <div className="w-full pl-8 md:pl-8 md:w-[45%]">
-                      <p className={`font-serif text-xl md:hidden mb-1 ${state === "active" ? "text-primary" : "text-foreground"}`}>{step.label}</p>
+                    <div className="w-full pl-12 md:pl-0 md:w-[42%] text-left">
+                      <p className={`velora-heading text-2xl md:hidden mb-2 transition-colors duration-500 ${state === "active" ? "text-accent" : "text-foreground"}`}>{step.label}</p>
                       {ts ? (
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        <p className="velora-label text-muted-foreground">
                           {format(new Date(ts), "MMM d · h:mm a")}
                         </p>
                       ) : state === "active" ? (
-                        <p className="text-xs text-primary uppercase tracking-wider">
+                        <p className="velora-label text-accent">
                           {t("track.inProgress")}
                         </p>
                       ) : null}
@@ -159,8 +157,8 @@ function OrderView({ order }: { order: Order }) {
       )}
 
       {/* Actions */}
-      <div className="flex justify-center pt-8 border-t border-border">
-        <Link href="/dashboard/customer" className="velora-link uppercase tracking-widest text-xs">
+      <div className="flex justify-center pt-12 border-t border-border">
+        <Link href="/dashboard/customer" className="velora-link">
           {t("track.backToOrders")}
         </Link>
       </div>
@@ -174,29 +172,30 @@ function GuestSearch() {
   const [, setLocation] = useLocation();
 
   return (
-    <div className="text-center max-w-md mx-auto space-y-10">
-      <div>
-        <h2 className="font-serif text-4xl font-bold mb-4">{t("track.title")}</h2>
-        <p className="text-muted-foreground text-sm tracking-wide uppercase">{t("track.subtitle")}</p>
+    <div className="text-center max-w-lg mx-auto space-y-12 py-12">
+      <div className="space-y-6">
+        <p className="velora-label text-accent">GUEST SERVICES</p>
+        <h2 className="velora-heading text-5xl md:text-6xl">{t("track.title")}</h2>
+        <p className="text-muted-foreground text-[10px] uppercase tracking-widest leading-loose max-w-xs mx-auto">{t("track.subtitle")}</p>
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-8">
         <input
           type="number"
           value={orderId}
           onChange={e => setOrderId(e.target.value)}
           placeholder={t("track.placeholder")}
-          className="w-full border-b border-border bg-transparent px-0 py-4 text-center text-xl font-serif focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/30 placeholder:font-sans placeholder:text-sm placeholder:uppercase placeholder:tracking-widest"
+          className="w-full border-b border-border bg-transparent px-0 py-6 text-center text-2xl velora-heading focus:outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/20 placeholder:font-sans placeholder:text-[10px] placeholder:uppercase placeholder:tracking-widest"
         />
-        <Button
+        <button
           onClick={() => orderId && setLocation(`/track-order/${orderId}`)}
           disabled={!orderId}
-          className="velora-btn-primary h-14"
+          className="velora-btn-primary w-full h-16"
         >
           {t("track.title")}
-        </Button>
+        </button>
       </div>
-      <div className="pt-8 border-t border-border">
-        <Link href="/login" className="velora-link text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
+      <div className="pt-12 border-t border-border">
+        <Link href="/login" className="velora-link">
           {t("track.signIn")}
         </Link>
       </div>

@@ -68,130 +68,126 @@ export default function CartDrawer() {
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
       <SheetContent
-        className="w-full sm:max-w-[400px] flex flex-col p-0 border-l border-border bg-background"
-        style={{ boxShadow: "-20px 0 60px rgba(0,0,0,0.12)" }}
+        className="w-full sm:max-w-[440px] flex flex-col p-0 border-l border-border bg-background shadow-none"
       >
         <SheetTitle className="sr-only">Shopping Bag</SheetTitle>
 
         {/* Header */}
-        <div className="flex items-start justify-between px-7 pt-8 pb-6 border-b border-border">
+        <div className="flex items-start justify-between px-8 pt-10 pb-8 border-b border-border/50">
           <div>
-            <p className="text-[7px] font-bold tracking-[0.45em] uppercase text-foreground/30 mb-2">VELORA</p>
+            <p className="velora-label text-accent mb-3">VELORA</p>
             <h2
-              className="text-2xl font-bold text-foreground leading-none tracking-[-0.02em]"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              className="text-3xl font-serif italic text-foreground leading-none tracking-tight"
             >
               Your Bag
             </h2>
             {totalItems > 0 && (
-              <p className="text-[9px] text-foreground/35 mt-1.5 tracking-[0.2em] uppercase font-bold">{totalItems} {totalItems === 1 ? "item" : "items"}</p>
+              <p className="velora-label mt-3 opacity-40">{totalItems} {totalItems === 1 ? "item" : "items"}</p>
             )}
           </div>
           <button
             onClick={closeCart}
-            className="w-9 h-9 flex items-center justify-center text-foreground/35 hover:text-foreground transition-colors mt-0.5"
+            className="w-10 h-10 flex items-center justify-center text-foreground/30 hover:text-foreground transition-colors"
             aria-label="Close"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" strokeWidth={1} />
           </button>
         </div>
 
         {/* Items */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-8">
           {isLoading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-5 h-5 border border-foreground/20 border-t-foreground/60 rounded-full animate-spin" />
+              <div className="w-5 h-5 border border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
           ) : items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center px-10 py-24 gap-7">
-              <div className="w-16 h-16 border border-border flex items-center justify-center">
-                <ShoppingBag className="w-6 h-6 text-foreground/20" strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center h-full text-center py-24 gap-8">
+              <div className="w-20 h-20 border border-border flex items-center justify-center">
+                <ShoppingBag className="w-8 h-8 text-foreground/10" strokeWidth={1} />
               </div>
               <div>
                 <p
-                  className="text-xl font-bold text-foreground mb-2.5 tracking-[-0.01em]"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  className="text-2xl font-serif italic text-foreground mb-3"
                 >
                   Your bag is empty
                 </p>
-                <p className="text-xs text-foreground/35 tracking-[0.04em] font-light">Add pieces you love to your bag</p>
+                <p className="text-xs text-muted-foreground font-light tracking-wide">Select your first piece of modern luxury.</p>
               </div>
               <button
                 onClick={() => navigateTo("/products")}
-                className="mt-1 bg-foreground text-background px-10 py-3.5 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors"
+                className="velora-btn-primary"
               >
                 {t("btn.startShopping")}
               </button>
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border/30">
               {items.map((item) => (
-                <div key={item.variantId} className="flex gap-4 px-7 py-6 group/item">
+                <div key={item.variantId} className="flex gap-6 py-8 group/item">
                   <button
                     onClick={() => navigateTo(`/products/${item.productId}`)}
-                    className="w-[68px] shrink-0 bg-secondary dark:bg-card overflow-hidden"
+                    className="w-24 shrink-0 bg-secondary overflow-hidden"
                   >
-                    <div className="overflow-hidden" style={{ aspectRatio: "2/3" }}>
+                    <div className="overflow-hidden" style={{ aspectRatio: "3/4" }}>
                       {item.imageUrl ? (
-                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-105" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="w-4 h-4 text-foreground/18" strokeWidth={1.5} />
+                          <ShoppingBag className="w-6 h-6 text-foreground/10" strokeWidth={1} />
                         </div>
                       )}
                     </div>
                   </button>
 
-                  <div className="flex-1 flex flex-col min-w-0 py-0.5">
-                    <div className="flex justify-between items-start gap-2 mb-2.5">
+                  <div className="flex-1 flex flex-col min-w-0">
+                    <div className="flex justify-between items-start gap-4 mb-3">
                       <button
                         onClick={() => navigateTo(`/products/${item.productId}`)}
-                        className="text-sm font-medium text-foreground leading-snug text-left hover:opacity-60 transition-opacity line-clamp-2 tracking-[0.01em]"
-                        style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                        className="text-base font-serif italic text-foreground leading-snug text-left hover:text-primary transition-colors line-clamp-2"
                       >
                         {language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}
                       </button>
                       <button
                         onClick={() => handleRemove(item.variantId)}
-                        className="text-foreground/28 hover:text-foreground p-0.5 transition-colors shrink-0 mt-0.5 opacity-0 group-hover/item:opacity-100"
+                        className="text-foreground/20 hover:text-destructive p-1 transition-colors shrink-0 -mt-1"
                         aria-label="Remove"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-4 h-4" strokeWidth={1.5} />
                       </button>
                     </div>
 
                     {(item.color || item.size) && (
-                      <p className="text-[8px] tracking-[0.25em] uppercase text-foreground/32 font-bold mb-3.5">
+                      <p className="velora-label opacity-40 mb-4">
                         {[item.color, item.size].filter(Boolean).join(" · ")}
                       </p>
                     )}
 
-                    <div className="mt-auto flex items-center justify-between">
-                      <div className="flex items-center border border-border h-7">
+                    <div className="mt-auto flex items-end justify-between">
+                      <div className="flex items-center border border-border h-8">
                         <button
-                          className="w-7 h-full flex items-center justify-center text-foreground/40 hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-30"
+                          className="w-8 h-full flex items-center justify-center text-foreground/40 hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-20"
                           onClick={() => handleUpdateQuantity(item.variantId, item.quantity - 1)}
                           disabled={item.quantity <= 1}
                         >
-                          <Minus className="w-2.5 h-2.5" />
+                          <Minus className="w-3 h-3" strokeWidth={1.5} />
                         </button>
-                        <span className="w-7 text-center text-xs font-bold text-foreground">{item.quantity}</span>
+                        <span className="w-8 text-center text-xs font-bold text-foreground">{item.quantity}</span>
                         <button
-                          className="w-7 h-full flex items-center justify-center text-foreground/40 hover:text-foreground hover:bg-secondary transition-colors"
+                          className="w-8 h-full flex items-center justify-center text-foreground/40 hover:text-foreground hover:bg-secondary transition-colors"
                           onClick={() => handleUpdateQuantity(item.variantId, item.quantity + 1)}
                         >
-                          <Plus className="w-2.5 h-2.5" />
+                          <Plus className="w-3 h-3" strokeWidth={1.5} />
                         </button>
                       </div>
 
                       <div className="text-right">
                         {item.salePrice ? (
-                          <div>
-                            <span className="text-sm font-bold text-[#C9A227]">{(Number(item.salePrice) * item.quantity).toLocaleString()} EGP</span>
-                            <span className="block text-[10px] line-through text-foreground/25">{(Number(item.price) * item.quantity).toLocaleString()}</span>
+                          <div className="flex flex-col">
+                            <span className="text-base font-medium text-accent">{(Number(item.salePrice) * item.quantity).toLocaleString()} EGP</span>
+                            <span className="text-[10px] line-through text-muted-foreground/50 italic">{(Number(item.price) * item.quantity).toLocaleString()}</span>
                           </div>
                         ) : (
-                          <span className="text-sm font-medium text-foreground">{(Number(item.price) * item.quantity).toLocaleString()} EGP</span>
+                          <span className="text-base font-medium text-foreground">{(Number(item.price) * item.quantity).toLocaleString()} EGP</span>
                         )}
                       </div>
                     </div>
@@ -204,43 +200,41 @@ export default function CartDrawer() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-border bg-background">
-            <div className="px-7 py-5 space-y-2">
+          <div className="border-t border-border bg-background p-8 pt-6">
+            <div className="space-y-3 mb-8">
               <div className="flex justify-between items-center">
-                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/38">Subtotal</span>
-                <span className="text-sm font-medium text-foreground tracking-wide">{subtotal.toLocaleString()} EGP</span>
+                <span className="velora-label opacity-30">Subtotal</span>
+                <span className="text-sm font-medium text-foreground tracking-tight">{subtotal.toLocaleString()} EGP</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/38">Shipping</span>
-                <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#C9A227]">Free</span>
+                <span className="velora-label opacity-30">Shipping</span>
+                <span className="velora-label text-accent">Complimentary</span>
               </div>
-              <div className="h-[1px] bg-border my-2" />
-              <div className="flex justify-between items-center pt-1">
+              <div className="h-[1px] bg-border/50 my-4" />
+              <div className="flex justify-between items-center">
                 <span
-                  className="text-base font-bold text-foreground tracking-[-0.01em]"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  className="text-xl font-serif italic text-foreground"
                 >
                   Total
                 </span>
                 <span
-                  className="text-lg font-bold text-foreground tracking-[-0.01em]"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  className="text-xl font-serif italic text-foreground"
                 >
                   {subtotal.toLocaleString()} EGP
                 </span>
               </div>
             </div>
 
-            <div className="px-7 pb-7 space-y-2.5">
+            <div className="space-y-3">
               <button
-                className="w-full bg-foreground text-background py-4 text-[9px] font-bold tracking-[0.32em] uppercase hover:bg-[#C9A227] hover:text-white transition-colors duration-300 flex items-center justify-center gap-3"
+                className="w-full velora-btn-primary py-4 justify-center"
                 onClick={() => navigateTo("/checkout")}
               >
                 Checkout
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </button>
               <button
-                className="w-full border border-border text-foreground py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:border-foreground/35 transition-colors"
+                className="w-full velora-btn-outline py-4 justify-center border-border/60"
                 onClick={() => navigateTo("/cart")}
               >
                 View Bag

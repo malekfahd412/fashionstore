@@ -84,59 +84,74 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
-      <div className="w-full max-w-[400px]">
-        <div className="mb-12 text-center">
-          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-8">
+    <div className="min-h-screen flex bg-background">
+      {/* Left Panel: Editorial Brand Image/Pattern */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-midnight overflow-hidden items-center justify-center p-12">
+        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=2070')] bg-cover bg-center" />
+        <div className="relative z-10 text-center">
+          <Link href="/" className="inline-block velora-heading text-8xl text-white mb-6 tracking-[0.2em]">
             VELORA
           </Link>
-          <h1 className="font-serif text-3xl font-bold mb-3">{t("forgot.title")}</h1>
-          <p className="text-muted-foreground text-sm tracking-wide">{t("forgot.subtitle")}</p>
+          <div className="velora-divider bg-white/30" />
+          <p className="text-white/60 velora-label text-sm mt-8">Secure your sanctuary.</p>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-3">
-            <label htmlFor="email" className="velora-label block">
-              {t("forgot.emailLabel")}
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={e => {
-                setEmail(e.target.value);
-                if (error) setError("");
-              }}
-              className={`rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
-              disabled={loading}
-              autoFocus
-              autoComplete="email"
-            />
-            {error && <p className="text-xs text-destructive">{error}</p>}
+      {/* Right Panel: Clean Form on Ivory Background */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16">
+        <div className="w-full max-w-[400px]">
+          <div className="mb-12">
+            <Link href="/" className="lg:hidden inline-block velora-heading text-4xl mb-8">
+              VELORA
+            </Link>
+            <h1 className="font-serif text-5xl font-bold tracking-tight text-foreground mb-4">{t("forgot.title")}</h1>
+            <p className="text-muted-foreground text-sm tracking-wide">{t("forgot.subtitle")}</p>
           </div>
 
-          <Button
-            type="submit"
-            className="velora-btn-primary w-full h-12"
-            disabled={loading}
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                {t("forgot.sending")}
-              </span>
-            ) : (
-              t("forgot.sendLink")
-            )}
-          </Button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-10">
+            <div className="space-y-1">
+              <label htmlFor="email" className="velora-label block">
+                {t("forgot.emailLabel")}
+              </label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => {
+                  setEmail(e.target.value);
+                  if (error) setError("");
+                }}
+                className={`rounded-none border-0 border-b border-border bg-transparent px-0 focus-visible:ring-0 focus-visible:border-accent h-12 transition-colors text-foreground ${error ? "border-destructive" : ""}`}
+                disabled={loading}
+                autoFocus
+                autoComplete="email"
+              />
+              {error && <p className="text-[10px] uppercase tracking-wider text-destructive mt-2">{error}</p>}
+            </div>
 
-        <div className="mt-8 pt-8 border-t border-border text-center flex flex-col gap-4">
-          <Link href="/login" className="inline-flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-3 h-3" />
-            {t("forgot.backToLogin")}
-          </Link>
+            <Button
+              type="submit"
+              className="velora-btn-primary w-full h-14"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  {t("forgot.sending")}
+                </span>
+              ) : (
+                t("forgot.sendLink")
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-12 pt-12 border-t border-border text-center">
+            <Link href="/login" className="velora-link inline-flex items-center gap-2">
+              <ArrowLeft className="w-3 h-3" />
+              {t("forgot.backToLogin")}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

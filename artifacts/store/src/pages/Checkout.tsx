@@ -227,8 +227,8 @@ export default function Checkout() {
   const accountInfo = getManualAccountInfo();
 
   const LuxuryField = ({ label, field, placeholder, type = "text" }: { label: string; field: keyof typeof billing; placeholder: string; type?: string }) => (
-    <div>
-      <label className="velora-label block mb-3">{label} *</label>
+    <div className="space-y-2">
+      <label className="velora-label text-muted-foreground/60">{label}</label>
       <input
         id={field}
         type={type}
@@ -238,70 +238,75 @@ export default function Checkout() {
           if (billingErrors[field]) setBillingErrors(prev => ({ ...prev, [field]: undefined }));
         }}
         placeholder={placeholder}
-        className={`w-full h-12 border bg-transparent px-4 text-sm focus:outline-none focus:border-foreground transition-colors ${billingErrors[field] ? "border-destructive" : "border-border"}`}
+        className={`w-full h-12 bg-transparent border-b px-0 text-sm tracking-wide focus:outline-none focus:border-accent transition-all duration-300 placeholder:text-muted-foreground/20 ${billingErrors[field] ? "border-destructive" : "border-border/60"}`}
       />
-      {billingErrors[field] && <p className="velora-label text-destructive mt-2">{billingErrors[field]}</p>}
+      {billingErrors[field] && <p className="text-[10px] text-destructive uppercase tracking-widest mt-2">{billingErrors[field]}</p>}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-24">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <div className="min-h-screen bg-background pt-32 pb-32">
+      <div className="container mx-auto px-6 lg:px-12 max-w-7xl">
         
         {/* Header */}
-        <div className="text-center mb-16">
-          <Link href="/" className="inline-block velora-heading text-3xl hover:opacity-70 transition-opacity mb-8">
-            VELORA
-          </Link>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold mb-8">Checkout</h1>
-          
-          <div className="flex items-center justify-center gap-4 max-w-md mx-auto">
-            {[
-              { n: 1, label: "Shipping" },
-              { n: 2, label: "Payment" },
-              { n: 3, label: "Review" },
-            ].map(({ n, label }, i) => (
-              <div key={n} className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 flex items-center justify-center rounded-full border transition-colors ${
-                    step > n ? "bg-foreground border-foreground text-background" :
-                    step === n ? "border-foreground text-foreground" :
-                    "border-border text-muted-foreground"
-                  }`}>
-                    {step > n ? <Check className="w-4 h-4" /> : <span className="text-sm font-serif">{n}</span>}
+        <div className="mb-20">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-8">
+            <div>
+              <Link href="/" className="inline-block velora-heading text-xl md:text-2xl hover:text-accent transition-colors mb-6 tracking-widest">
+                VELORA
+              </Link>
+              <h1 className="font-serif text-5xl md:text-6xl font-medium tracking-tight">Checkout</h1>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {[
+                { n: 1, label: "Shipping" },
+                { n: 2, label: "Payment" },
+                { n: 3, label: "Review" },
+              ].map(({ n, label }, i) => (
+                <div key={n} className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 flex items-center justify-center border transition-all duration-500 ${
+                      step > n ? "bg-foreground border-foreground text-background" :
+                      step === n ? "border-accent text-accent" :
+                      "border-border/40 text-muted-foreground/40"
+                    }`}>
+                      {step > n ? <Check className="w-4 h-4" /> : <span className="velora-label text-[10px]">{n}</span>}
+                    </div>
+                    <span className={`velora-label text-[9px] ${step >= n ? "text-foreground" : "text-muted-foreground/40"} hidden xl:inline`}>
+                      {label}
+                    </span>
                   </div>
-                  <span className={`velora-label ${step >= n ? "text-foreground" : "text-muted-foreground"} hidden md:inline`}>
-                    {label}
-                  </span>
+                  {i < 2 && <div className={`w-8 md:w-16 h-px transition-colors duration-500 ${step > n ? "bg-foreground" : "bg-border/40"}`} />}
                 </div>
-                {i < 2 && <div className={`w-12 h-px ${step > n ? "bg-foreground" : "bg-border"}`} />}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+          <div className="h-px bg-border w-full" />
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-16">
+        <div className="grid lg:grid-cols-12 gap-20">
           
           {/* Main Content Area */}
           <div className="lg:col-span-7">
             
             {/* Step 1: Shipping */}
             {step === 1 && (
-              <div className="animate-in fade-in duration-500">
-                <h2 className="font-serif text-2xl font-bold mb-8 pb-4 border-b border-border">{t("checkout.shippingInfo")}</h2>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <LuxuryField label={t("checkout.firstName")} field="firstName" placeholder="John" />
-                    <LuxuryField label={t("checkout.lastName")} field="lastName" placeholder="Doe" />
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <h2 className="velora-label text-muted-foreground/60 mb-12 tracking-[0.4em]">{t("checkout.shippingInfo")}</h2>
+                <div className="space-y-10">
+                  <div className="grid grid-cols-2 gap-10">
+                    <LuxuryField label={t("checkout.firstName")} field="firstName" placeholder="First Name" />
+                    <LuxuryField label={t("checkout.lastName")} field="lastName" placeholder="Last Name" />
                   </div>
-                  <LuxuryField label={t("checkout.address")} field="address" placeholder="123 Fashion St, Apt 4B" />
-                  <div className="grid grid-cols-2 gap-6">
-                    <LuxuryField label={t("checkout.city")} field="city" placeholder="Cairo" />
+                  <LuxuryField label={t("checkout.address")} field="address" placeholder="123 Avenue Montaigne" />
+                  <div className="grid grid-cols-2 gap-10">
+                    <LuxuryField label={t("checkout.city")} field="city" placeholder="City" />
                     <LuxuryField label={t("checkout.phone")} field="phone" placeholder="+20 100 000 0000" type="tel" />
                   </div>
                 </div>
-                <div className="mt-12">
-                  <button className="velora-btn-primary w-full h-14 justify-center" onClick={advanceToStep2}>
+                <div className="mt-20">
+                  <button className="velora-btn-primary w-full h-16 justify-center text-[10px] tracking-[0.4em]" onClick={advanceToStep2}>
                     Continue to Payment
                   </button>
                 </div>
@@ -310,13 +315,13 @@ export default function Checkout() {
 
             {/* Step 2: Payment */}
             {step === 2 && (
-              <div className="animate-in fade-in duration-500">
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
-                  <h2 className="font-serif text-2xl font-bold">{t("checkout.paymentMethod")}</h2>
-                  <button onClick={() => setStep(1)} className="velora-link text-muted-foreground">Edit Shipping</button>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="flex items-center justify-between mb-12">
+                  <h2 className="velora-label text-muted-foreground/60 tracking-[0.4em]">{t("checkout.paymentMethod")}</h2>
+                  <button onClick={() => setStep(1)} className="velora-link text-muted-foreground/40 hover:text-foreground">Edit Shipping</button>
                 </div>
                 
-                <div className="space-y-4 mb-12">
+                <div className="grid gap-4 mb-16">
                   {paymentOptions.map(opt => {
                     const Icon = opt.icon;
                     const isActive = paymentMethod === opt.id;
@@ -324,43 +329,45 @@ export default function Checkout() {
                       <div
                         key={opt.id}
                         onClick={() => { setPaymentMethod(opt.id); setReferenceNumber(""); }}
-                        className={`flex items-center gap-6 p-6 border cursor-pointer transition-colors ${isActive ? "border-foreground bg-secondary" : "border-border hover:border-foreground/30"}`}
+                        className={`group flex items-center gap-8 p-8 border transition-all duration-300 cursor-pointer ${isActive ? "border-accent bg-secondary/20" : "border-border/40 hover:border-accent/40"}`}
                       >
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${isActive ? "border-foreground bg-foreground" : "border-border"}`}>
-                          {isActive && <div className="w-2 h-2 rounded-full bg-background" />}
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${isActive ? "border-accent bg-accent" : "border-border/40"}`}>
+                          {isActive && <div className="w-1.5 h-1.5 rounded-full bg-background" />}
                         </div>
                         <div className="flex-1">
-                          <p className="velora-label text-foreground mb-1">{opt.label}</p>
-                          <p className="text-sm text-muted-foreground">{opt.description}</p>
+                          <p className="velora-label text-foreground mb-1 tracking-[0.2em]">{opt.label}</p>
+                          <p className="text-[11px] font-light text-muted-foreground leading-relaxed">{opt.description}</p>
                         </div>
-                        <Icon className={`w-6 h-6 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground/30"}`} strokeWidth={1} />
+                        <Icon className={`w-5 h-5 shrink-0 transition-all duration-500 ${isActive ? "text-accent scale-110" : "text-muted-foreground/20 group-hover:text-muted-foreground/40"}`} strokeWidth={1} />
                       </div>
                     );
                   })}
                 </div>
 
                 {isManual && accountInfo && (
-                  <div className="mb-12 p-8 border border-border bg-secondary space-y-6">
-                    <div>
-                      <p className="velora-label text-muted-foreground mb-3 flex items-center gap-2"><FileText className="w-4 h-4" /> {t("checkout.manualAccountInfo")}</p>
-                      <p className="font-serif text-2xl font-bold tracking-wider">{accountInfo}</p>
+                  <div className="mb-16 p-10 border border-border/40 bg-secondary/10 space-y-10 animate-in fade-in duration-700">
+                    <div className="space-y-4">
+                      <p className="velora-label text-muted-foreground/60 tracking-[0.2em] flex items-center gap-3">
+                        <FileText className="w-3 h-3" /> {t("checkout.manualAccountInfo")}
+                      </p>
+                      <p className="font-serif text-3xl font-medium tracking-tight text-accent">{accountInfo}</p>
                     </div>
-                    <div className="pt-6 border-t border-border">
-                      <label className="velora-label text-foreground block mb-3">{t("checkout.manualReference")}</label>
+                    <div className="pt-10 border-t border-border/40 space-y-4">
+                      <label className="velora-label text-muted-foreground/60 tracking-[0.2em] block">{t("checkout.manualReference")}</label>
                       <input
                         value={referenceNumber}
                         onChange={e => setReferenceNumber(e.target.value)}
                         placeholder={t("checkout.manualReferencePlaceholder")}
-                        className="w-full h-12 border border-border bg-background px-4 text-sm focus:outline-none focus:border-foreground transition-colors"
+                        className="w-full h-12 bg-transparent border-b border-border/60 px-0 text-sm focus:outline-none focus:border-accent transition-all placeholder:text-muted-foreground/20"
                       />
-                      <p className="text-xs text-muted-foreground mt-2">{t("checkout.manualReferenceHint")}</p>
+                      <p className="text-[10px] text-muted-foreground/40 uppercase tracking-widest">{t("checkout.manualReferenceHint")}</p>
                     </div>
                   </div>
                 )}
 
-                <div className="mb-12 border-t border-border pt-12">
-                  <label className="velora-label text-foreground block mb-3">{t("checkout.couponCode")}</label>
-                  <div className="flex gap-0">
+                <div className="mb-16 border-t border-border/40 pt-16">
+                  <label className="velora-label text-muted-foreground/60 tracking-[0.2em] block mb-6">{t("checkout.couponCode")}</label>
+                  <div className="flex gap-0 group">
                     <input
                       value={couponCode}
                       onChange={e => {
@@ -369,32 +376,32 @@ export default function Checkout() {
                         setCouponError("");
                       }}
                       placeholder={t("checkout.enterCoupon")}
-                      className={`flex-1 h-12 border bg-transparent px-4 text-sm font-medium tracking-widest uppercase focus:outline-none focus:border-foreground transition-colors border-r-0 ${couponError ? "border-destructive" : couponApplied ? "border-[#C9A227]" : "border-border"}`}
+                      className={`flex-1 h-12 bg-transparent border-b px-0 text-sm font-medium tracking-widest uppercase focus:outline-none focus:border-accent transition-all border-r-0 ${couponError ? "border-destructive" : couponApplied ? "border-accent" : "border-border/60"}`}
                       disabled={processing}
                     />
                     <button
                       type="button"
                       onClick={handleValidateCoupon}
                       disabled={!couponCode.trim() || processing}
-                      className="px-8 bg-foreground text-background h-12 velora-label text-xs hover:bg-[#C9A227] transition-colors disabled:opacity-50"
+                      className="px-10 bg-foreground text-background h-12 velora-label text-[10px] hover:bg-accent transition-colors disabled:opacity-50"
                     >
                       {t("btn.apply")}
                     </button>
                   </div>
-                  {couponError && <p className="velora-label text-destructive mt-3">{couponError}</p>}
+                  {couponError && <p className="velora-label text-destructive/80 mt-4 tracking-widest">{couponError}</p>}
                   {couponApplied && couponData && (
-                    <p className="velora-label text-[#C9A227] mt-3 flex items-center gap-2">
-                      <Check className="w-4 h-4" />
+                    <p className="velora-label text-accent mt-4 flex items-center gap-3 animate-in fade-in duration-500">
+                      <Check className="w-3 h-3" />
                       {t("checkout.couponApplied")} {couponData.discountType === "percentage" ? `${couponData.discountValue}%` : `${couponData.discountValue} EGP`} {t("checkout.off")}
                     </p>
                   )}
                 </div>
 
-                <div className="flex gap-4">
-                  <button onClick={() => setStep(1)} className="velora-btn-outline flex-1 h-14 justify-center">
+                <div className="flex flex-col md:flex-row gap-6">
+                  <button onClick={() => setStep(1)} className="velora-btn-outline flex-1 h-16 justify-center text-[10px] tracking-[0.4em]">
                     Back
                   </button>
-                  <button className="velora-btn-primary flex-[2] h-14 justify-center" onClick={advanceToStep3}>
+                  <button className="velora-btn-primary flex-[2] h-16 justify-center text-[10px] tracking-[0.4em]" onClick={advanceToStep3}>
                     Review Order
                   </button>
                 </div>
@@ -403,31 +410,34 @@ export default function Checkout() {
 
             {/* Step 3: Review */}
             {step === 3 && (
-              <div className="animate-in fade-in duration-500">
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
-                  <h2 className="font-serif text-2xl font-bold">Review Order</h2>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="flex items-center justify-between mb-12">
+                  <h2 className="velora-label text-muted-foreground/60 tracking-[0.4em]">Review Order</h2>
+                  <button onClick={() => setStep(2)} className="velora-link text-muted-foreground/40 hover:text-foreground">Change Payment</button>
                 </div>
 
-                <div className="space-y-12 mb-12">
+                <div className="space-y-16">
                   {/* Items */}
                   <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <p className="velora-label text-muted-foreground">Order Items</p>
-                      <Link href="/cart" className="velora-link text-muted-foreground">Edit Bag</Link>
+                    <div className="flex items-baseline justify-between mb-8 pb-4 border-b border-border/40">
+                      <p className="velora-label text-muted-foreground/60 tracking-[0.2em]">Order Items</p>
+                      <Link href="/cart" className="velora-link text-[8px] text-muted-foreground/40 hover:text-foreground">Edit Bag</Link>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-10">
                       {cart.items.map(item => (
-                        <div key={item.variantId} className="flex gap-6 pb-6 border-b border-border">
-                          <div className="w-20 bg-muted shrink-0 aspect-[3/4] overflow-hidden">
-                            {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover mix-blend-multiply" />}
+                        <div key={item.variantId} className="flex gap-8 group animate-in fade-in duration-700">
+                          <div className="w-24 bg-secondary shrink-0 aspect-[3/4] overflow-hidden">
+                            {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-serif text-xl font-bold mb-2">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
-                            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
-                              {[item.color, item.size].filter(Boolean).join(" · ")}
-                            </p>
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-muted-foreground">QTY: {item.quantity}</span>
+                          <div className="flex-1 min-w-0 py-1 flex flex-col justify-between">
+                            <div>
+                              <p className="font-serif text-2xl mb-2 tracking-tight">{language === "en" ? item.nameEn : (item.nameAr || item.nameEn)}</p>
+                              <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-light">
+                                {[item.color, item.size].filter(Boolean).join(" · ")}
+                              </p>
+                            </div>
+                            <div className="flex justify-between items-end">
+                              <span className="text-[10px] uppercase tracking-widest text-muted-foreground/40">QTY: {item.quantity}</span>
                               <span className="font-medium">{(Number(item.salePrice || item.price) * item.quantity).toLocaleString()} EGP</span>
                             </div>
                           </div>
@@ -437,90 +447,102 @@ export default function Checkout() {
                   </div>
 
                   {/* Summary grid */}
-                  <div className="grid md:grid-cols-2 gap-8 pt-4">
-                    <div className="border border-border p-6 bg-secondary">
-                      <div className="flex justify-between items-center mb-6">
-                        <p className="velora-label text-muted-foreground">Shipping To</p>
-                        <button onClick={() => setStep(1)} className="velora-link text-muted-foreground">Edit</button>
+                  <div className="grid md:grid-cols-2 gap-10">
+                    <div className="border border-border/40 p-10 bg-secondary/10">
+                      <div className="flex justify-between items-baseline mb-8">
+                        <p className="velora-label text-muted-foreground/60 tracking-[0.2em]">Shipping To</p>
+                        <button onClick={() => setStep(1)} className="velora-link text-[8px] text-muted-foreground/40">Edit</button>
                       </div>
-                      <div className="space-y-1 text-sm leading-relaxed">
-                        <p className="font-medium">{billing.firstName} {billing.lastName}</p>
+                      <div className="space-y-2 text-sm font-light leading-relaxed">
+                        <p className="font-medium tracking-tight uppercase text-[10px]">{billing.firstName} {billing.lastName}</p>
                         <p className="text-muted-foreground">{billing.address}</p>
                         <p className="text-muted-foreground">{billing.city}</p>
                         <p className="text-muted-foreground pt-2">{billing.phone}</p>
                       </div>
                     </div>
-
-                    <div className="border border-border p-6 bg-secondary">
-                      <div className="flex justify-between items-center mb-6">
-                        <p className="velora-label text-muted-foreground">Payment</p>
-                        <button onClick={() => setStep(2)} className="velora-link text-muted-foreground">Edit</button>
+                    <div className="border border-border/40 p-10 bg-secondary/10">
+                      <div className="flex justify-between items-baseline mb-8">
+                        <p className="velora-label text-muted-foreground/60 tracking-[0.2em]">Payment Method</p>
+                        <button onClick={() => setStep(2)} className="velora-link text-[8px] text-muted-foreground/40">Edit</button>
                       </div>
-                      <div className="space-y-2 text-sm">
-                        <p className="font-medium capitalize">{paymentMethod.replace(/_/g, " ")}</p>
+                      <div className="space-y-4">
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-medium">{paymentOptions.find(o => o.id === paymentMethod)?.label}</p>
                         {isManual && referenceNumber && (
-                          <p className="text-muted-foreground">Ref: {referenceNumber}</p>
-                        )}
-                        {couponApplied && couponCode && (
-                          <p className="text-[#C9A227] font-medium pt-2">Code: {couponCode}</p>
+                          <div className="space-y-1">
+                            <p className="velora-label text-[8px] text-muted-foreground/40">Reference</p>
+                            <p className="text-xs font-mono">{referenceNumber}</p>
+                          </div>
                         )}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex gap-4">
-                  <button onClick={() => setStep(2)} disabled={processing} className="velora-btn-outline flex-1 h-14 justify-center disabled:opacity-50">
-                    Back
-                  </button>
-                  <button
-                    className="velora-btn-primary flex-[2] h-14 justify-center"
-                    onClick={handleCheckout}
-                    disabled={processing}
-                  >
-                    {processing ? "Processing..." : t("btn.placeOrder")}
-                  </button>
+                  <div className="pt-10 border-t border-border/40">
+                    <button
+                      className="velora-btn-primary w-full h-16 justify-center text-[10px] tracking-[0.4em] disabled:opacity-50"
+                      onClick={handleCheckout}
+                      disabled={processing}
+                    >
+                      {processing ? "PROCESSING..." : "PLACE ORDER"}
+                    </button>
+                    <p className="text-[9px] text-center text-muted-foreground/40 uppercase tracking-widest mt-6">
+                      By placing this order you agree to our <Link href="/terms" className="underline hover:text-foreground transition-colors">Terms of Service</Link>
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Sidebar Area */}
-          <div className="lg:col-span-5 hidden lg:block">
-             <div className="bg-secondary p-8 border border-border sticky top-32">
-              <h2 className="velora-label border-b border-border pb-4 mb-8 text-foreground">{t("cart.orderSummary")}</h2>
-              
-              <div className="space-y-4 mb-8">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("common.subtotal")}</span>
-                  <span className="font-medium">{cartSubtotal.toLocaleString()} EGP</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-sm font-bold text-destructive">
-                    <span className="uppercase tracking-widest text-[10px]">{t("common.discount")}</span>
-                    <span>−{discount.toLocaleString()} EGP</span>
+          {/* Right Sidebar: Sticky Summary */}
+          <div className="lg:col-span-5">
+            <div className="sticky top-32 space-y-10 animate-in fade-in slide-in-from-right-4 duration-700">
+              <div className="bg-foreground text-background p-10 md:p-12 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 -mr-16 -mt-16 rounded-full blur-3xl" />
+                
+                <h2 className="velora-label text-accent tracking-[0.4em] mb-12 relative z-10">{t("cart.orderSummary")}</h2>
+                
+                <div className="space-y-6 mb-12 relative z-10">
+                  <div className="flex justify-between text-xs font-light">
+                    <span className="text-background/50 uppercase tracking-widest">{t("common.subtotal")}</span>
+                    <span className="tracking-tight">{cartSubtotal.toLocaleString()} EGP</span>
                   </div>
-                )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("common.shipping")}</span>
-                  <span className="velora-label text-[#C9A227]">{t("common.free")}</span>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-xs font-light">
+                      <span className="text-accent uppercase tracking-widest">Discount</span>
+                      <span className="text-accent tracking-tight">−{discount.toLocaleString()} EGP</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-xs font-light">
+                    <span className="text-background/50 uppercase tracking-widest">{t("common.shipping")}</span>
+                    <span className="text-accent uppercase tracking-widest font-medium">{t("common.free")}</span>
+                  </div>
+                </div>
+
+                <div className="pt-10 border-t border-background/10 relative z-10">
+                  <div className="flex justify-between items-end">
+                    <span className="velora-label text-accent tracking-[0.4em] mb-1">{t("common.total")}</span>
+                    <span className="font-serif text-5xl font-medium tracking-tight text-background">
+                      {total.toLocaleString()} <span className="text-sm font-sans font-light text-background/40 ml-1">EGP</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="border-t border-border pt-6 mb-8">
-                <div className="flex justify-between items-center">
-                  <span className="velora-label text-foreground">{t("common.total")}</span>
-                  <span className="font-serif text-3xl font-bold">{total.toLocaleString()} EGP</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border border-border/40 p-6 flex flex-col items-center justify-center text-center gap-3 group hover:border-accent/40 transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-secondary/40 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-background transition-colors duration-500">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <p className="velora-label text-[8px] text-muted-foreground/60 tracking-[0.2em]">Free Express Shipping</p>
+                </div>
+                <div className="border border-border/40 p-6 flex flex-col items-center justify-center text-center gap-3 group hover:border-accent/40 transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-secondary/40 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-background transition-colors duration-500">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <p className="velora-label text-[8px] text-muted-foreground/60 tracking-[0.2em]">14-Day Boutique Returns</p>
                 </div>
               </div>
-
-              {step < 3 && (
-                <div className="border border-border p-4 bg-muted/10 text-center">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest leading-loose">
-                    Complete all steps to place your order.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>

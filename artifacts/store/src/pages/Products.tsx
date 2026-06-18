@@ -68,147 +68,129 @@ export default function Products() {
     <div className="bg-background min-h-screen">
 
       {/* ── Page Header ─────────────────────────────────────────────── */}
-      <div className="bg-secondary dark:bg-[#0d0d0d]">
-        <div className="max-w-screen-xl mx-auto px-6 md:px-12 pt-16 md:pt-24 pb-12 md:pb-16">
-          <p className="text-[8px] font-bold tracking-[0.45em] uppercase text-foreground/25 mb-6">{t("home.shopBy")}</p>
+      <div className="bg-background">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-16 md:pt-24 pb-8 md:pb-12">
+          <p className="velora-label mb-6 text-foreground/40">{t("home.shopBy")}</p>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            <h1
-              className="text-[clamp(3rem,7vw,6rem)] font-bold text-foreground leading-[0.87] tracking-[-0.03em]"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
+            <h1 className="velora-heading text-[clamp(2.5rem,8vw,5rem)] leading-[0.85] text-foreground">
               {t("products.title")}
             </h1>
-            <p className="text-[9px] text-foreground/35 tracking-[0.25em] uppercase font-bold mb-1">{productCountLabel}</p>
+            <p className="velora-label text-foreground/35 mb-1">{productCountLabel}</p>
           </div>
+          <div className="velora-divider ml-0 mt-8" />
         </div>
       </div>
 
-      {/* ── Category Tabs ────────────────────────────────────────────── */}
-      {(categories ?? []).length > 0 && (
-        <div className="border-b border-border bg-background">
-          <div className="max-w-screen-xl mx-auto px-6 md:px-12">
-            <div className="flex items-center gap-0 overflow-x-auto no-scrollbar">
+      {/* ── Filter & Sort Bar ────────────────────────────────────────── */}
+      <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-6 flex flex-col md:flex-row items-center gap-8 justify-between">
+          <div className="flex flex-wrap items-center gap-8">
+            <button
+              onClick={() => { setCategoryId("all"); setPage(1); }}
+              className={`velora-link pb-1 transition-all ${
+                categoryId === "all" ? "text-foreground border-b border-foreground" : "text-foreground/40"
+              }`}
+            >
+              {t("products.allCategories")}
+            </button>
+            {(categories ?? []).map(cat => (
               <button
-                onClick={() => { setCategoryId("all"); setPage(1); }}
-                className={`shrink-0 py-4 px-5 text-[9px] font-bold tracking-[0.22em] uppercase border-b-[1.5px] transition-all ${
-                  categoryId === "all"
-                    ? "border-foreground text-foreground"
-                    : "border-transparent text-foreground/35 hover:text-foreground"
+                key={cat.id}
+                onClick={() => { setCategoryId(cat.id.toString()); setPage(1); }}
+                className={`velora-link pb-1 transition-all whitespace-nowrap ${
+                  categoryId === cat.id.toString() ? "text-foreground border-b border-foreground" : "text-foreground/40"
                 }`}
               >
-                {t("products.allCategories")}
+                {language === "en" ? cat.nameEn : cat.nameAr}
               </button>
-              {(categories ?? []).map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => { setCategoryId(cat.id.toString()); setPage(1); }}
-                  className={`shrink-0 py-4 px-5 text-[9px] font-bold tracking-[0.22em] uppercase border-b-[1.5px] transition-all whitespace-nowrap ${
-                    categoryId === cat.id.toString()
-                      ? "border-foreground text-foreground"
-                      : "border-transparent text-foreground/35 hover:text-foreground"
-                  }`}
-                >
-                  {language === "en" ? cat.nameEn : cat.nameAr}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
-        </div>
-      )}
 
-      {/* ── Filter Bar ──────────────────────────────────────────────── */}
-      <div className="sticky top-16 z-30 bg-background border-b border-border">
-        <div className="max-w-screen-xl mx-auto px-6 md:px-12 py-3.5 flex items-center gap-3 justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-8">
             {/* Search */}
-            <div className="relative">
-              <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/28 pointer-events-none" />
+            <div className="relative group">
+              <Search className="absolute start-0 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/40 pointer-events-none group-focus-within:text-accent transition-colors" />
               <input
                 type="search"
                 placeholder={t("products.searchPlaceholder")}
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
-                className="w-52 h-9 ps-9 pe-3 text-[11px] border border-border bg-secondary dark:bg-card focus:outline-none focus:border-foreground/35 transition-colors placeholder:text-foreground/28 tracking-[0.04em]"
+                className="w-40 md:w-56 h-8 ps-6 pe-2 text-[10px] tracking-widest uppercase bg-transparent border-b border-border/50 focus:border-accent outline-none transition-all placeholder:text-foreground/20"
               />
             </div>
 
-            {/* Active filter pills */}
-            {searchInput && (
-              <span className="flex items-center gap-1.5 text-[8px] font-bold tracking-[0.18em] uppercase bg-foreground text-background px-3 py-1.5">
-                "{searchInput}"
-                <button onClick={() => setSearchInput("")}><X className="w-2.5 h-2.5" /></button>
-              </span>
-            )}
-
-            {hasActiveFilters && (
+            {/* Sort Dropdown */}
+            <div className="relative">
               <button
-                onClick={clearFilters}
-                className="flex items-center gap-1.5 text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/35 hover:text-foreground transition-colors"
+                onClick={() => setSortOpen(o => !o)}
+                className="velora-link flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors"
               >
-                <X className="w-3 h-3" />
-                {t("products.clearFilters")}
+                {currentSort?.label ?? t("products.sortBy")}
+                <span className={`text-[8px] transition-transform duration-300 ${sortOpen ? 'rotate-180' : ''}`}>▼</span>
               </button>
-            )}
-          </div>
-
-          {/* Sort */}
-          <div className="relative">
-            <button
-              onClick={() => { setSortOpen(o => !o); }}
-              className="flex items-center gap-2 h-9 px-4 text-[9px] font-bold tracking-[0.2em] uppercase border border-border bg-background hover:border-foreground/35 transition-colors"
-            >
-              <SlidersHorizontal className="w-3 h-3 text-foreground/40" />
-              {currentSort?.label ?? t("products.sortBy")}
-            </button>
-            {sortOpen && (
-              <div className="absolute top-full right-0 mt-1 w-56 bg-background border border-border z-40 shadow-lg">
-                {sortOptions.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => { setSortBy(opt.value); setPage(1); setSortOpen(false); }}
-                    className={`w-full text-left px-5 py-3.5 text-[9px] font-bold tracking-[0.18em] uppercase transition-colors ${
-                      sortBy === opt.value ? "bg-foreground text-background" : "text-foreground/45 hover:bg-secondary hover:text-foreground"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
+              {sortOpen && (
+                <div className="absolute top-full right-0 mt-4 w-56 bg-background border border-border shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                  {sortOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSortBy(opt.value); setPage(1); setSortOpen(false); }}
+                      className={`w-full text-left px-6 py-4 velora-label transition-colors ${
+                        sortBy === opt.value ? "bg-accent text-accent-foreground" : "text-foreground/60 hover:bg-secondary hover:text-foreground"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Active Filter Pills */}
+      {hasActiveFilters && (
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 flex flex-wrap gap-4 items-center">
+          {searchInput && (
+            <span className="velora-label flex items-center gap-2 bg-foreground text-background px-3 py-2">
+              "{searchInput}"
+              <button onClick={() => setSearchInput("")}><X className="w-2.5 h-2.5" /></button>
+            </span>
+          )}
+          <button
+            onClick={clearFilters}
+            className="velora-label text-foreground/40 hover:text-foreground transition-colors flex items-center gap-2"
+          >
+            <X className="w-3 h-3" />
+            {t("products.clearFilters")}
+          </button>
+        </div>
+      )}
+
       {/* ── Product Grid ─────────────────────────────────────────────── */}
-      <div className="max-w-screen-xl mx-auto px-6 md:px-12 py-14 md:py-20">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-16 md:py-24">
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-20">
             {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
           </div>
         ) : productsData?.products.length === 0 ? (
           <div className="text-center py-40">
-            <div className="w-12 h-[1px] bg-foreground/15 mx-auto mb-12" />
-            <h3
-              className="text-3xl font-bold mb-5 text-foreground tracking-[-0.02em]"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
+            <div className="velora-divider mb-12" />
+            <h3 className="velora-heading text-4xl mb-6 text-foreground">
               {t("products.noProductsFound")}
             </h3>
-            <p className="text-foreground/35 text-[9px] tracking-[0.28em] uppercase font-bold mb-12">
+            <p className="velora-label text-foreground/40 mb-12">
               {hasActiveFilters ? t("products.tryAdjusting") : t("products.noProductsYet")}
             </p>
             {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="border border-foreground/18 px-12 py-4 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300"
-              >
+              <button onClick={clearFilters} className="velora-btn-outline">
                 {t("btn.clearFilters")}
               </button>
             )}
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-20">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-20">
               {productsData?.products.map(product => (
                 <ProductCard
                   key={product.id}
@@ -229,23 +211,23 @@ export default function Products() {
             </div>
 
             {totalPages > 1 && (
-              <div className="mt-28 flex justify-center items-center gap-1.5">
+              <div className="mt-32 flex justify-center items-center gap-4">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="h-11 px-10 border border-border text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-foreground hover:text-background hover:border-foreground transition-all disabled:opacity-20 disabled:pointer-events-none"
+                  className="velora-btn-outline px-8 py-3 disabled:opacity-20"
                 >
                   {t("common.previous")}
                 </button>
-                <div className="flex gap-1 mx-2">
+                <div className="flex gap-2">
                   {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                     const p = totalPages <= 7 ? i + 1 : i === 0 ? 1 : i === 6 ? totalPages : page - 2 + i;
                     return (
                       <button
                         key={p}
                         onClick={() => setPage(p)}
-                        className={`w-11 h-11 text-[9px] font-bold tracking-widest transition-all ${
-                          page === p ? "bg-foreground text-background" : "border border-border hover:border-foreground/35 text-foreground/40 hover:text-foreground"
+                        className={`w-10 h-10 velora-label transition-all ${
+                          page === p ? "bg-foreground text-background" : "border border-border text-foreground/40 hover:border-foreground/40 hover:text-foreground"
                         }`}
                       >
                         {p}
@@ -256,7 +238,7 @@ export default function Products() {
                 <button
                   onClick={() => setPage(p => p + 1)}
                   disabled={page >= totalPages}
-                  className="h-11 px-10 border border-border text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-foreground hover:text-background hover:border-foreground transition-all disabled:opacity-20 disabled:pointer-events-none"
+                  className="velora-btn-outline px-8 py-3 disabled:opacity-20"
                 >
                   {t("common.next")}
                 </button>

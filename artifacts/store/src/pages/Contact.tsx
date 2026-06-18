@@ -84,99 +84,128 @@ export default function Contact() {
   ].filter(s => s.href);
 
   return (
-    <div className="bg-background min-h-screen pt-24 pb-16">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="text-center mb-20">
-          <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6">{isAr ? "تواصل معنا" : "Contact"}</h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto uppercase tracking-widest">
-            {isAr ? "نحن هنا للمساعدة. تواصل معنا وسنرد عليك في أقرب وقت ممكن." : "We are here to assist you. Reach out to our team."}
+    <div className="bg-background min-h-screen pt-32 pb-32">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="text-center mb-32">
+          <p className="velora-label text-accent mb-6">CLIENT SERVICES</p>
+          <h1 className="velora-heading text-6xl md:text-8xl mb-8">{isAr ? "تواصل معنا" : "Let's Talk."}</h1>
+          <p className="text-muted-foreground text-[10px] uppercase tracking-[0.2em] max-w-xl mx-auto leading-loose">
+            {isAr ? "نحن هنا للمساعدة. تواصل معنا وسنرد عليك في أقرب وقت ممكن." : "Our client advisors are available to assist you with any inquiries or bespoke requests."}
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+        <div className="grid lg:grid-cols-2 gap-24 lg:gap-32">
           {/* Form Side */}
-          <div className="order-2 lg:order-1">
-            <h2 className="font-serif text-2xl font-bold mb-8">{isAr ? "أرسل رسالة" : "Send a Message"}</h2>
+          <div className="order-2 lg:order-1 bg-white border border-border p-10 md:p-16">
+            <h2 className="velora-heading text-3xl mb-12">{isAr ? "أرسل رسالة" : "Send a Message"}</h2>
 
             {sent ? (
-              <div className="border border-border p-12 text-center space-y-4">
-                <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="py-12 text-center space-y-8">
+                <div className="w-16 h-16 bg-accent text-accent-foreground rounded-full flex items-center justify-center mx-auto transition-transform duration-500 scale-110">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-                <h3 className="font-serif text-2xl">{isAr ? "تم الاستلام" : "Received"}</h3>
-                <p className="text-muted-foreground text-sm tracking-wide">{isAr ? "سنرد عليك خلال 1-2 يوم عمل." : "We'll get back to you within 1–2 business days."}</p>
-                <button onClick={() => setSent(false)} className="velora-link mt-8 text-xs uppercase tracking-widest">
-                  {isAr ? "إرسال رسالة أخرى" : "Send another"}
-                </button>
+                <div className="space-y-4">
+                  <h3 className="velora-heading text-3xl">{isAr ? "تم الاستلام" : "Received"}</h3>
+                  <p className="text-muted-foreground text-[10px] uppercase tracking-widest">{isAr ? "سنرد عليك خلال 1-2 يوم عمل." : "We'll get back to you within 1–2 business days."}</p>
+                </div>
+                <div className="pt-8">
+                  <button onClick={() => setSent(false)} className="velora-link">
+                    {isAr ? "إرسال رسالة أخرى" : "Send another inquiry"}
+                  </button>
+                </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="velora-label">{isAr ? "الاسم *" : "Name *"}</label>
-                    <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={isAr ? "اسمك الكامل" : "Jane Doe"} className="rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary bg-transparent" required />
+              <form onSubmit={handleSubmit} className="space-y-12">
+                <div className="grid sm:grid-cols-2 gap-12">
+                  <div className="space-y-4">
+                    <label className="velora-label">{isAr ? "الاسم *" : "FULL NAME *"}</label>
+                    <Input 
+                      value={form.name} 
+                      onChange={e => setForm(f => ({ ...f, name: e.target.value }))} 
+                      placeholder={isAr ? "اسمك الكامل" : "Jane Doe"} 
+                      className="w-full bg-transparent border-b border-border pb-4 text-sm font-light outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/20 rounded-none h-auto border-t-0 border-x-0 focus-visible:ring-0 focus-visible:border-accent" 
+                      required 
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <label className="velora-label">{isAr ? "رقم الهاتف" : "Phone"}</label>
-                    <Input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder={isAr ? "+20 1xx xxx xxxx" : "+20 1xx xxx xxxx"} className="rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary bg-transparent" />
+                  <div className="space-y-4">
+                    <label className="velora-label">{isAr ? "رقم الهاتف" : "PHONE"}</label>
+                    <Input 
+                      type="tel" 
+                      value={form.phone} 
+                      onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} 
+                      placeholder={isAr ? "+20 1xx xxx xxxx" : "+20 1xx xxx xxxx"} 
+                      className="w-full bg-transparent border-b border-border pb-4 text-sm font-light outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/20 rounded-none h-auto border-t-0 border-x-0 focus-visible:ring-0 focus-visible:border-accent" 
+                    />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="velora-label">{isAr ? "البريد الإلكتروني *" : "Email *"}</label>
-                  <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder={isAr ? "بريدك الإلكتروني" : "jane@example.com"} className="rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary bg-transparent" required />
+                <div className="space-y-4">
+                  <label className="velora-label">{isAr ? "البريد الإلكتروني *" : "EMAIL ADDRESS *"}</label>
+                  <Input 
+                    type="email" 
+                    value={form.email} 
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))} 
+                    placeholder={isAr ? "بريدك الإلكتروني" : "jane@example.com"} 
+                    className="w-full bg-transparent border-b border-border pb-4 text-sm font-light outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/20 rounded-none h-auto border-t-0 border-x-0 focus-visible:ring-0 focus-visible:border-accent" 
+                    required 
+                  />
                 </div>
-                <div className="space-y-2">
-                  <label className="velora-label">{isAr ? "الموضوع" : "Subject"}</label>
-                  <Input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} placeholder={isAr ? "موضوع رسالتك" : "Order Inquiry"} className="rounded-none h-12 border-border focus-visible:ring-1 focus-visible:ring-primary bg-transparent" />
+                <div className="space-y-4">
+                  <label className="velora-label">{isAr ? "الموضوع" : "SUBJECT"}</label>
+                  <Input 
+                    value={form.subject} 
+                    onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} 
+                    placeholder={isAr ? "موضوع رسالتك" : "Order Inquiry"} 
+                    className="w-full bg-transparent border-b border-border pb-4 text-sm font-light outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/20 rounded-none h-auto border-t-0 border-x-0 focus-visible:ring-0 focus-visible:border-accent" 
+                  />
                 </div>
-                <div className="space-y-2">
-                  <label className="velora-label">{isAr ? "الرسالة *" : "Message *"}</label>
+                <div className="space-y-4">
+                  <label className="velora-label">{isAr ? "الرسالة *" : "MESSAGE *"}</label>
                   <textarea
                     value={form.message}
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                     placeholder={isAr ? "اكتب رسالتك هنا..." : "How can we help you?"}
-                    rows={5}
+                    rows={4}
                     required
                     minLength={5}
-                    className="w-full border border-border bg-transparent px-3 py-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary resize-none rounded-none"
+                    className="w-full bg-transparent border-b border-border pb-4 text-sm font-light outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/20 resize-none"
                   />
                 </div>
-                <Button type="submit" disabled={loading} className="velora-btn-primary w-full h-12 mt-4">
-                  {loading ? (isAr ? "جاري الإرسال..." : "Sending...") : (isAr ? "إرسال الرسالة" : "Submit")}
+                <Button type="submit" disabled={loading} className="velora-btn-primary w-full h-14 mt-8">
+                  {loading ? (isAr ? "جاري الإرسال..." : "SENDING...") : (isAr ? "إرسال الرسالة" : "SEND MESSAGE")}
                 </Button>
               </form>
             )}
           </div>
 
           {/* Info Side */}
-          <div className="order-1 lg:order-2 space-y-16 lg:pl-12">
+          <div className="order-1 lg:order-2 space-y-20 lg:pt-16 lg:pl-16">
             <div>
-              <h2 className="font-serif text-2xl font-bold mb-8">{isAr ? "المقر الرئيسي" : "Headquarters"}</h2>
+              <h2 className="velora-heading text-3xl mb-12">{isAr ? "المقر الرئيسي" : "Our Maison"}</h2>
               {contactItems.length > 0 ? (
-                <div className="space-y-8">
+                <div className="space-y-12">
                   {contactItems.map(({ label, value }) => (
                     <div key={label}>
-                      <h3 className="velora-label text-muted-foreground mb-2">{label}</h3>
-                      <p className="text-sm font-medium leading-relaxed">{value}</p>
+                      <h3 className="velora-label text-accent mb-4">{label}</h3>
+                      <p className="text-lg font-light leading-relaxed">{value}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm tracking-wide">
-                  {isAr ? "تواصل معنا عبر النموذج." : "Please use the form to get in touch."}
+                <p className="text-muted-foreground text-[10px] uppercase tracking-widest">
+                  {isAr ? "تواصل معنا عبر النموذج." : "Please use the form to get in touch with our concierge."}
                 </p>
               )}
             </div>
 
             <div>
-              <h2 className="font-serif text-2xl font-bold mb-8">{isAr ? "ساعات العمل" : "Business Hours"}</h2>
-              <div className="space-y-4 text-sm font-medium">
+              <h2 className="velora-heading text-3xl mb-12">{isAr ? "ساعات العمل" : "Concierge Hours"}</h2>
+              <div className="space-y-6 text-[13px] font-light">
                 <div className="flex justify-between border-b border-border pb-4">
-                  <span className="text-muted-foreground uppercase tracking-wider text-xs">{isAr ? "الأحد – الخميس" : "Sunday – Thursday"}</span>
+                  <span className="velora-label text-muted-foreground">{isAr ? "الأحد – الخميس" : "Sunday – Thursday"}</span>
                   <span>{isAr ? "9 ص – 6 م" : "9:00 AM – 6:00 PM"}</span>
                 </div>
                 <div className="flex justify-between border-b border-border pb-4">
-                  <span className="text-muted-foreground uppercase tracking-wider text-xs">{isAr ? "الجمعة – السبت" : "Friday – Saturday"}</span>
+                  <span className="velora-label text-muted-foreground">{isAr ? "الجمعة – السبت" : "Friday – Saturday"}</span>
                   <span>{isAr ? "10 ص – 4 م" : "10:00 AM – 4:00 PM"}</span>
                 </div>
               </div>
@@ -184,10 +213,10 @@ export default function Contact() {
 
             {socials.length > 0 && (
               <div>
-                <h2 className="font-serif text-2xl font-bold mb-8">{isAr ? "تابعنا" : "Social"}</h2>
-                <div className="flex flex-col gap-4">
+                <h2 className="velora-heading text-3xl mb-12">{isAr ? "تابعنا" : "Social Presence"}</h2>
+                <div className="flex flex-col gap-6">
                   {socials.map((s) => (
-                    <a key={s.key} href={s.href} target="_blank" rel="noopener noreferrer" className="velora-link text-xs uppercase tracking-widest self-start">
+                    <a key={s.key} href={s.href} target="_blank" rel="noopener noreferrer" className="velora-link self-start">
                       {s.label}
                     </a>
                   ))}

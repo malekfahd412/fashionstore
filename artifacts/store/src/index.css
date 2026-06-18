@@ -67,7 +67,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ── LIGHT MODE ─────────────────────────────────────────────────────── */
+/* ── LIGHT MODE — Velora Luxury Palette ─────────────────────────────── */
 :root {
   --button-outline: rgba(0,0,0,.10);
   --badge-outline: rgba(0,0,0,.05);
@@ -75,60 +75,68 @@
   --elevate-1: rgba(0,0,0,.02);
   --elevate-2: rgba(0,0,0,.05);
 
-  /* Brand palette */
-  --velora-bg: #F8F6F2;
-  --velora-ink: #111111;
+  /* Brand palette — exact spec */
+  --velora-ivory:        #F7F3EE;
+  --velora-midnight:     #0F172A;
+  --velora-oxblood:      #5B1E2D;
+  --velora-oxblood-hover:#7A2841;
+  --velora-gold:         #C8A96B;
+  --velora-gold-hover:   #D4B87A;
+  --velora-charcoal:     #1A1A1A;
+
+  /* Legacy aliases kept for compatibility */
+  --velora-bg:             #F7F3EE;
+  --velora-ink:            #0F172A;
   --velora-secondary-text: #5A5A5A;
-  --velora-accent: #8A6A43;
-  --velora-accent-hover: #A8834F;
-  --velora-gold: #C9A227;
-  --velora-border: #E6E0D8;
-  --velora-success: #2F855A;
-  --velora-danger: #C53030;
+  --velora-accent:         #5B1E2D;
+  --velora-accent-hover:   #7A2841;
+  --velora-border:         #E8E2DA;
+  --velora-success:        #2F855A;
+  --velora-danger:         #C53030;
 
   /* Tailwind tokens — light */
-  --background: 40 33% 97%;        /* #F8F6F2 */
-  --foreground: 0 0% 7%;           /* #111111 */
-  --border: 33 25% 89%;            /* #E6E0D8 */
-  --input: 33 20% 85%;
+  --background: 33 37% 95%;       /* Ivory #F7F3EE */
+  --foreground: 222 47% 11%;      /* Midnight Blue #0F172A */
+  --border: 33 20% 88%;
+  --input: 33 20% 84%;
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 7%;
-  --card-border: 33 25% 89%;
+  --card-foreground: 222 47% 11%;
+  --card-border: 33 20% 88%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 7%;
-  --popover-border: 33 25% 89%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 33 20% 88%;
 
-  --primary: 0 0% 7%;
+  --primary: 345 50% 24%;         /* Oxblood #5B1E2D */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 40 20% 94%;
-  --secondary-foreground: 0 0% 7%;
+  --secondary: 33 25% 91%;
+  --secondary-foreground: 222 47% 11%;
 
-  --muted: 40 20% 94%;
-  --muted-foreground: 0 0% 35%;
+  --muted: 33 25% 92%;
+  --muted-foreground: 222 20% 40%;
 
-  --accent: 38 55% 37%;            /* #8A6A43 */
-  --accent-foreground: 0 0% 100%;
+  --accent: 40 46% 60%;           /* Champagne Gold #C8A96B */
+  --accent-foreground: 0 0% 7%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --ring: 0 0% 7%;
+  --ring: 222 47% 11%;
 
-  --sidebar: 40 33% 97%;
-  --sidebar-foreground: 0 0% 7%;
-  --sidebar-border: 33 25% 89%;
-  --sidebar-primary: 0 0% 7%;
+  --sidebar: 33 37% 95%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-border: 33 20% 88%;
+  --sidebar-primary: 345 50% 24%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 40 20% 94%;
-  --sidebar-accent-foreground: 0 0% 7%;
-  --sidebar-ring: 0 0% 7%;
+  --sidebar-accent: 33 25% 91%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-ring: 222 47% 11%;
 
-  --chart-1: 0 0% 7%;
-  --chart-2: 46 67% 47%;
-  --chart-3: 0 0% 45%;
+  --chart-1: 222 47% 11%;
+  --chart-2: 40 46% 60%;
+  --chart-3: 222 20% 40%;
   --chart-4: 0 0% 70%;
   --chart-5: 0 72% 51%;
 
@@ -138,7 +146,7 @@
   --radius: 0rem;
 }
 
-/* ── DARK MODE ──────────────────────────────────────────────────────── */
+/* ── DARK MODE — Black / Charcoal Luxury ────────────────────────────── */
 .dark {
   --button-outline: rgba(255,255,255,.10);
   --badge-outline: rgba(255,255,255,.05);
@@ -147,55 +155,55 @@
   --elevate-2: rgba(255,255,255,.09);
 
   /* Brand palette — dark */
-  --velora-bg: #0B0B0B;
-  --velora-ink: #FFFFFF;
-  --velora-secondary-text: #B0B0B0;
-  --velora-accent: #C9A227;
-  --velora-accent-hover: #E0B93A;
-  --velora-border: #2A2A2A;
+  --velora-bg:             #0F0F0F;
+  --velora-ink:            #F7F3EE;
+  --velora-secondary-text: #A0A0A0;
+  --velora-accent:         #C8A96B;
+  --velora-accent-hover:   #D4B87A;
+  --velora-border:         #2A2A2A;
 
   /* Tailwind tokens — dark */
-  --background: 0 0% 4%;           /* #0B0B0B */
-  --foreground: 0 0% 96%;          /* #F5F5F5 */
-  --border: 0 0% 16%;              /* #2A2A2A */
-  --input: 0 0% 18%;
+  --background: 0 0% 6%;          /* Near-black */
+  --foreground: 33 37% 95%;       /* Ivory */
+  --border: 0 0% 18%;
+  --input: 0 0% 20%;
 
-  --card: 0 0% 7%;                 /* #111111 */
-  --card-foreground: 0 0% 96%;
-  --card-border: 0 0% 16%;
+  --card: 0 0% 9%;
+  --card-foreground: 33 37% 95%;
+  --card-border: 0 0% 18%;
 
-  --popover: 0 0% 7%;
-  --popover-foreground: 0 0% 96%;
-  --popover-border: 0 0% 16%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 33 37% 95%;
+  --popover-border: 0 0% 18%;
 
-  --primary: 46 67% 47%;           /* #C9A227 gold */
+  --primary: 40 46% 60%;           /* Champagne Gold in dark mode */
   --primary-foreground: 0 0% 7%;
 
-  --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 96%;
+  --secondary: 0 0% 13%;
+  --secondary-foreground: 33 37% 95%;
 
-  --muted: 0 0% 14%;
-  --muted-foreground: 0 0% 58%;    /* #949494 */
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 58%;
 
-  --accent: 46 67% 47%;            /* #C9A227 */
+  --accent: 40 46% 60%;            /* Champagne Gold */
   --accent-foreground: 0 0% 7%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --ring: 46 67% 47%;
+  --ring: 40 46% 60%;
 
-  --sidebar: 0 0% 6%;
-  --sidebar-foreground: 0 0% 96%;
-  --sidebar-border: 0 0% 16%;
-  --sidebar-primary: 46 67% 47%;
+  --sidebar: 0 0% 7%;
+  --sidebar-foreground: 33 37% 95%;
+  --sidebar-border: 0 0% 18%;
+  --sidebar-primary: 40 46% 60%;
   --sidebar-primary-foreground: 0 0% 7%;
-  --sidebar-accent: 0 0% 14%;
-  --sidebar-accent-foreground: 0 0% 96%;
-  --sidebar-ring: 46 67% 47%;
+  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent-foreground: 33 37% 95%;
+  --sidebar-ring: 40 46% 60%;
 
-  --chart-1: 46 67% 47%;
-  --chart-2: 0 0% 96%;
+  --chart-1: 40 46% 60%;
+  --chart-2: 33 37% 95%;
   --chart-3: 0 0% 58%;
   --chart-4: 0 0% 35%;
   --chart-5: 0 72% 55%;
@@ -226,6 +234,7 @@ html {
     letter-spacing: 0.01em;
   }
   h1, h2, h3 {
+    font-family: 'Playfair Display', Georgia, serif;
     letter-spacing: -0.02em;
   }
 }
@@ -239,10 +248,10 @@ html {
   font-weight: 700;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: rgba(17,17,17,0.28);
+  color: rgba(15,23,42,0.38);
 }
 .dark .velora-label {
-  color: rgba(255,255,255,0.28);
+  color: rgba(247,243,238,0.38);
 }
 
 .velora-heading {
@@ -252,8 +261,9 @@ html {
   letter-spacing: -0.03em;
 }
 
+/* Primary CTA — Oxblood in light, Gold in dark */
 .velora-btn-primary {
-  background: #111111;
+  background: #5B1E2D;
   color: #ffffff;
   font-size: 9px;
   font-weight: 700;
@@ -268,26 +278,26 @@ html {
   gap: 0.75rem;
 }
 .dark .velora-btn-primary {
-  background: #C9A227;
-  color: #0B0B0B;
+  background: #C8A96B;
+  color: #0F0F0F;
 }
 .velora-btn-primary:hover {
-  background: #C9A227;
+  background: #7A2841;
 }
 .dark .velora-btn-primary:hover {
-  background: #E0B93A;
-  color: #0B0B0B;
+  background: #D4B87A;
+  color: #0F0F0F;
 }
 
 .velora-btn-outline {
   background: transparent;
-  color: #111111;
+  color: #0F172A;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   padding: 1rem 2.5rem;
-  border: 1px solid rgba(17,17,17,0.2);
+  border: 1px solid rgba(15,23,42,0.25);
   cursor: pointer;
   transition: all 0.25s ease;
   display: inline-flex;
@@ -295,18 +305,18 @@ html {
   gap: 0.75rem;
 }
 .dark .velora-btn-outline {
-  color: #ffffff;
-  border-color: rgba(255,255,255,0.2);
+  color: #F7F3EE;
+  border-color: rgba(247,243,238,0.25);
 }
 .velora-btn-outline:hover {
-  background: #111111;
+  background: #5B1E2D;
   color: #ffffff;
-  border-color: #111111;
+  border-color: #5B1E2D;
 }
 .dark .velora-btn-outline:hover {
-  background: #C9A227;
-  color: #0B0B0B;
-  border-color: #C9A227;
+  background: #C8A96B;
+  color: #0F0F0F;
+  border-color: #C8A96B;
 }
 
 /* Animated underline for links */
@@ -316,12 +326,12 @@ html {
   font-weight: 700;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: rgba(17,17,17,0.35);
+  color: rgba(15,23,42,0.40);
   text-decoration: none;
   padding-bottom: 2px;
 }
 .dark .velora-link {
-  color: rgba(255,255,255,0.35);
+  color: rgba(247,243,238,0.40);
 }
 .velora-link::after {
   content: '';
@@ -330,12 +340,31 @@ html {
   left: 0;
   width: 0;
   height: 1px;
-  background: #111111;
+  background: #0F172A;
   transition: width 0.3s ease;
 }
 .dark .velora-link::after {
-  background: #C9A227;
+  background: #C8A96B;
 }
-.velora-link:hover { color: #111111; }
-.dark .velora-link:hover { color: #C9A227; }
+.velora-link:hover { color: #0F172A; }
+.dark .velora-link:hover { color: #C8A96B; }
 .velora-link:hover::after { width: 100%; }
+
+/* ── Luxury section divider ─────────────────────────────────────────── */
+.velora-divider {
+  width: 48px;
+  height: 1px;
+  background: #C8A96B;
+  margin: 1.5rem auto;
+}
+
+/* ── Scroll reveal base (JS applies opacity/transform via style) ───── */
+.velora-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.85s ease, transform 0.85s ease;
+}
+.velora-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

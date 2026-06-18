@@ -122,11 +122,16 @@ export default function Cart() {
 
   if (isEmpty) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-24 text-center">
-        <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mb-8" strokeWidth={1} />
-        <h1 className="font-serif text-5xl font-bold mb-6">{t("cart.empty")}</h1>
-        <p className="text-muted-foreground mb-10 max-w-md">{t("cart.emptyDesc")}</p>
-        <Link href="/products" className="velora-btn-primary px-10 h-14">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6 py-24 text-center">
+        <div className="relative mb-12">
+          <ShoppingBag className="h-24 w-24 text-muted-foreground/10" strokeWidth={0.5} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-px bg-accent/40" />
+          </div>
+        </div>
+        <h1 className="font-serif text-5xl md:text-7xl mb-8 tracking-tighter">{t("cart.empty")}</h1>
+        <p className="text-muted-foreground mb-12 max-w-sm font-light leading-relaxed">{t("cart.emptyDesc")}</p>
+        <Link href="/products" className="velora-btn-primary px-12 h-14">
           {t("btn.startShopping")}
         </Link>
       </div>
@@ -148,89 +153,96 @@ export default function Cart() {
   const checkoutUrl = coupon ? `/checkout?coupon=${encodeURIComponent(coupon.code)}` : "/checkout";
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-24">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="flex items-end justify-between border-b border-border pb-8 mb-12">
-          <h1 className="font-serif text-4xl md:text-5xl font-bold">{t("cart.title")}</h1>
-          <span className="velora-label text-muted-foreground">
-            {totalItems} {totalItems === 1 ? t("common.item") : t("common.items")}
-          </span>
+    <div className="min-h-screen bg-background pt-32 pb-32">
+      <div className="container mx-auto px-6 lg:px-12 max-w-7xl">
+        <div className="mb-20">
+          <div className="flex items-baseline justify-between mb-4">
+            <h1 className="font-serif text-5xl md:text-6xl font-medium tracking-tight">{t("cart.title")}</h1>
+            <span className="velora-label text-muted-foreground/60">
+              {totalItems} {totalItems === 1 ? t("common.item") : t("common.items")}
+            </span>
+          </div>
+          <div className="h-px bg-border w-full" />
         </div>
 
         {!user && (
-          <div className="mb-12 border border-primary/20 bg-primary/5 p-6 flex items-center gap-4">
-            <LogIn className="w-5 h-5 text-primary shrink-0" />
-            <p className="text-sm font-medium">
+          <div className="mb-16 border-l-2 border-primary bg-secondary/30 p-8 flex items-center gap-6 animate-in fade-in slide-in-from-left duration-700">
+            <LogIn className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+            <p className="text-sm tracking-wide">
               {t("cart.guestBanner")}{" "}
-              <Link href="/login" className="velora-link font-bold">{t("cart.loginToSave")}</Link>
+              <Link href="/login" className="velora-link ml-2">{t("cart.loginToSave")}</Link>
             </p>
           </div>
         )}
 
-        <div className="grid lg:grid-cols-12 gap-16 lg:gap-24">
+        <div className="grid lg:grid-cols-12 gap-20">
           {/* Left: Items */}
-          <div className="lg:col-span-8 space-y-12">
-            {items.map(item => (
-              <div key={item.variantId} className="flex gap-6 pb-12 border-b border-border group">
-                <Link href={`/products/${item.productId}`} className="w-32 md:w-40 aspect-[3/4] bg-muted shrink-0 overflow-hidden relative block">
-                  {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700" />}
-                </Link>
-                <div className="flex-1 flex flex-col pt-2">
-                  <div className="flex justify-between items-start gap-4 mb-4">
-                    <Link href={`/products/${item.productId}`} className="font-serif text-2xl font-bold hover:opacity-70 transition-opacity line-clamp-2">
-                      {language === 'en' ? item.nameEn : (item.nameAr || item.nameEn)}
-                    </Link>
-                    <div className="text-right shrink-0">
-                      {item.salePrice ? (
-                        <>
-                          <div className="font-bold text-destructive text-lg">{Number(item.salePrice).toLocaleString()} EGP</div>
-                          <div className="text-xs line-through text-muted-foreground mt-1">{Number(item.price).toLocaleString()} EGP</div>
-                        </>
-                      ) : (
-                        <div className="font-bold text-lg">{Number(item.price).toLocaleString()} EGP</div>
-                      )}
+          <div className="lg:col-span-8">
+            <div className="space-y-0">
+              {items.map(item => (
+                <div key={item.variantId} className="flex gap-8 py-10 border-b border-border first:pt-0 group animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <Link href={`/products/${item.productId}`} className="w-32 md:w-48 aspect-[3/4] bg-secondary shrink-0 overflow-hidden relative block">
+                    {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />}
+                  </Link>
+                  <div className="flex-1 flex flex-col py-1">
+                    <div className="flex justify-between items-start gap-4 mb-6">
+                      <div className="space-y-2">
+                        <Link href={`/products/${item.productId}`} className="font-serif text-2xl md:text-3xl hover:text-accent transition-colors block">
+                          {language === 'en' ? item.nameEn : (item.nameAr || item.nameEn)}
+                        </Link>
+                        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs uppercase tracking-widest text-muted-foreground/80 font-light">
+                          {item.color && <span>{t("common.color")}: <span className="text-foreground">{item.color}</span></span>}
+                          {item.size && <span>{t("common.size")}: <span className="text-foreground">{item.size}</span></span>}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {item.salePrice ? (
+                          <>
+                            <div className="font-medium text-lg text-accent">{Number(item.salePrice).toLocaleString()} EGP</div>
+                            <div className="text-[10px] uppercase tracking-widest line-through text-muted-foreground/40 mt-1">{Number(item.price).toLocaleString()} EGP</div>
+                          </>
+                        ) : (
+                          <div className="font-medium text-lg">{Number(item.price).toLocaleString()} EGP</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2 mb-auto text-sm">
-                    {item.color && <p><span className="velora-label text-muted-foreground mr-2">{t("common.color")}:</span> <span className="font-medium">{item.color}</span></p>}
-                    {item.size && <p><span className="velora-label text-muted-foreground mr-2">{t("common.size")}:</span> <span className="font-medium">{item.size}</span></p>}
-                  </div>
-
-                  <div className="flex items-center justify-between mt-8">
-                    <div className="flex items-center border border-border h-12 w-32">
+                    
+                    <div className="mt-auto flex items-center justify-between">
+                      <div className="flex items-center border border-border h-10 w-28">
+                        <button
+                          className="w-8 h-full flex items-center justify-center hover:bg-secondary transition-colors disabled:opacity-30"
+                          onClick={() => user ? handleUpdateQuantity(item.variantId, item.quantity - 1) : guest.updateItem(item.variantId, item.quantity - 1)}
+                          disabled={user ? updateMutation.isPending || item.quantity <= 1 : item.quantity <= 1}
+                        >−</button>
+                        <div className="flex-1 text-center text-xs font-medium">{item.quantity}</div>
+                        <button
+                          className="w-8 h-full flex items-center justify-center hover:bg-secondary transition-colors disabled:opacity-30"
+                          onClick={() => user ? handleUpdateQuantity(item.variantId, item.quantity + 1) : guest.updateItem(item.variantId, item.quantity + 1)}
+                          disabled={user ? updateMutation.isPending : false}
+                        >+</button>
+                      </div>
                       <button
-                        className="w-10 h-full flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50"
-                        onClick={() => user ? handleUpdateQuantity(item.variantId, item.quantity - 1) : guest.updateItem(item.variantId, item.quantity - 1)}
-                        disabled={user ? updateMutation.isPending || item.quantity <= 1 : item.quantity <= 1}
-                      >−</button>
-                      <div className="flex-1 text-center font-bold text-sm">{item.quantity}</div>
-                      <button
-                        className="w-10 h-full flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50"
-                        onClick={() => user ? handleUpdateQuantity(item.variantId, item.quantity + 1) : guest.updateItem(item.variantId, item.quantity + 1)}
-                        disabled={user ? updateMutation.isPending : false}
-                      >+</button>
+                        className="velora-link text-muted-foreground/60 hover:text-destructive flex items-center gap-2 group/btn"
+                        onClick={() => user ? handleRemove(item.variantId) : guest.removeItem(item.variantId)}
+                        disabled={user ? removeMutation.isPending : false}
+                      >
+                        <Trash2 className="h-3 w-3" strokeWidth={1.5} /> 
+                        <span className="text-[10px]">{t("btn.remove")}</span>
+                      </button>
                     </div>
-                    <button
-                      className="velora-link text-muted-foreground hover:text-destructive flex items-center gap-2"
-                      onClick={() => user ? handleRemove(item.variantId) : guest.removeItem(item.variantId)}
-                      disabled={user ? removeMutation.isPending : false}
-                    >
-                      <Trash2 className="h-3 w-3" /> {t("btn.remove")}
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex justify-between items-center py-12">
               <Link href="/products" className="velora-link text-foreground">
                 {t("btn.continueShopping")}
               </Link>
               <button
                 onClick={() => user ? handleClear() : guest.clear()}
                 disabled={user ? clearMutation.isPending : false}
-                className="velora-link text-muted-foreground hover:text-destructive disabled:opacity-50"
+                className="velora-link text-muted-foreground/40 hover:text-destructive disabled:opacity-20"
               >
                 {t("btn.clearCart")}
               </button>
@@ -239,76 +251,84 @@ export default function Cart() {
 
           {/* Right: Summary */}
           <div className="lg:col-span-4">
-            <div className="bg-secondary p-8 border border-border sticky top-32">
-              <h2 className="velora-label border-b border-border pb-4 mb-8 text-foreground">{t("cart.orderSummary")}</h2>
+            <div className="bg-secondary/40 p-10 border border-border/50 sticky top-32 animate-in fade-in slide-in-from-right-4 duration-700">
+              <h2 className="velora-label border-b border-border/50 pb-6 mb-10 text-foreground tracking-[0.4em]">{t("cart.orderSummary")}</h2>
 
               {/* Coupon */}
-              <div className="mb-8">
+              <div className="mb-10">
                 {coupon ? (
-                  <div className="flex items-center justify-between border border-[#C9A227] bg-[#C9A227]/5 px-4 py-3">
-                    <span className="velora-label text-[#C9A227]">{coupon.code} {t("cart.applied")}</span>
-                    <button onClick={handleRemoveCoupon} className="text-[#C9A227] hover:opacity-70 transition-opacity">
-                      <X className="h-4 w-4" />
+                  <div className="flex items-center justify-between border border-accent/30 bg-accent/5 px-4 py-4">
+                    <span className="velora-label text-accent font-medium">{coupon.code} {t("cart.applied")}</span>
+                    <button onClick={handleRemoveCoupon} className="text-accent hover:opacity-70 transition-opacity">
+                      <X className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                   </div>
                 ) : (
-                  <div className="flex gap-0">
+                  <div className="flex gap-0 group">
                     <Input
                       placeholder={t("cart.enterCode")}
                       value={couponInput}
                       onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
                       onKeyDown={e => e.key === "Enter" && handleApplyCoupon()}
-                      className="rounded-none border-border bg-background h-12 text-sm uppercase tracking-widest focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary border-r-0"
+                      className="rounded-none border-border bg-background h-12 text-[10px] uppercase tracking-[0.2em] focus-visible:ring-0 focus-visible:border-accent border-r-0 transition-all placeholder:text-muted-foreground/30"
                     />
                     <button
                       onClick={handleApplyCoupon}
                       disabled={couponLoading || !couponInput.trim()}
-                      className="px-6 bg-foreground text-background h-12 velora-label text-xs hover:bg-[#C9A227] transition-colors disabled:opacity-50"
+                      className="px-8 bg-foreground text-background h-12 velora-label text-[10px] hover:bg-accent transition-colors disabled:opacity-50"
                     >
                       {couponLoading ? "..." : t("btn.apply")}
                     </button>
                   </div>
                 )}
-                {couponError && <p className="velora-label text-destructive mt-3">{couponError}</p>}
+                {couponError && <p className="velora-label text-destructive/80 mt-4 tracking-widest">{couponError}</p>}
               </div>
 
               {/* Totals */}
-              <div className="space-y-4 mb-8">
+              <div className="space-y-5 mb-10 border-b border-border/50 pb-10">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("common.subtotal")}</span>
-                  <span className="font-medium">{subtotal.toLocaleString()} EGP</span>
+                  <span className="text-muted-foreground font-light">{t("common.subtotal")}</span>
+                  <span className="font-medium tracking-tight">{subtotal.toLocaleString()} EGP</span>
                 </div>
                 {discount > 0 && (
-                  <div className="flex justify-between text-sm font-bold text-destructive">
-                    <span className="uppercase tracking-widest text-[10px]">{t("common.discount")}</span>
-                    <span>−{discount.toLocaleString()} EGP</span>
+                  <div className="flex justify-between text-sm font-medium text-destructive">
+                    <span className="uppercase tracking-[0.2em] text-[10px]">{t("common.discount")}</span>
+                    <span className="tracking-tight">−{discount.toLocaleString()} EGP</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("common.shipping")}</span>
-                  <span className="velora-label text-[#C9A227]">{t("common.free")}</span>
+                  <span className="text-muted-foreground font-light">{t("common.shipping")}</span>
+                  <span className="velora-label text-accent tracking-[0.2em]">{t("common.free")}</span>
                 </div>
               </div>
 
-              <div className="border-t border-border pt-6 mb-8">
-                <div className="flex justify-between items-center">
-                  <span className="velora-label text-foreground">{t("common.total")}</span>
-                  <span className="font-serif text-3xl font-bold">{total.toLocaleString()} EGP</span>
+              <div className="mb-12">
+                <div className="flex justify-between items-end">
+                  <span className="velora-label text-foreground tracking-[0.4em] mb-1">{t("common.total")}</span>
+                  <span className="font-serif text-4xl font-medium tracking-tight">{total.toLocaleString()} EGP</span>
                 </div>
               </div>
 
               {user ? (
                 <button
-                  className="velora-btn-primary w-full h-14 justify-center"
+                  className="velora-btn-primary w-full h-16 justify-center text-[10px] tracking-[0.4em]"
                   onClick={() => setLocation(checkoutUrl)}
                 >
                   {t("btn.proceedToCheckout")}
                 </button>
               ) : (
-                <Link href="/login" className="velora-btn-primary w-full h-14 justify-center">
+                <Link href="/login" className="velora-btn-primary w-full h-16 justify-center text-[10px] tracking-[0.4em]">
                   {t("btn.loginToCheckout")}
                 </Link>
               )}
+              
+              <div className="mt-8 flex items-center justify-between text-[8px] uppercase tracking-[0.2em] text-muted-foreground/50">
+                <span>Secure Checkout</span>
+                <span>•</span>
+                <span>Free Shipping</span>
+                <span>•</span>
+                <span>Easy Returns</span>
+              </div>
             </div>
           </div>
         </div>

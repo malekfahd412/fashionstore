@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSEO } from "@/hooks/useSEO";
 import { useQuery } from "@tanstack/react-query";
@@ -65,56 +66,57 @@ export default function FAQ() {
   });
 
   return (
-    <div className="bg-background min-h-screen pt-24 pb-24">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-16">
-          <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6">{isAr ? "الأسئلة الشائعة" : "FAQ"}</h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-widest">
-            {isAr ? "ابحث عن إجابات لأكثر الأسئلة شيوعاً" : "Frequently Asked Questions"}
+    <div className="bg-background min-h-screen pt-32 pb-32">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="text-center mb-24">
+          <p className="velora-label text-accent mb-6">INFORMATION CENTER</p>
+          <h1 className="velora-heading text-6xl md:text-8xl mb-8">{isAr ? "الأسئلة الشائعة" : "Knowledge."}</h1>
+          <p className="text-muted-foreground text-[10px] uppercase tracking-[0.2em] max-w-xl mx-auto leading-loose">
+            {isAr ? "ابحث عن إجابات لأكثر الأسئلة شيوعاً" : "Everything you need to know about the Velora experience, from curation to delivery."}
           </p>
         </div>
 
-        <div className="relative mb-12 max-w-xl mx-auto">
+        <div className="relative mb-16 max-w-2xl mx-auto">
           <input
             type="text"
             value={search}
             onChange={e => { setSearch(e.target.value); setOpenId(null); }}
-            placeholder={isAr ? "ابحث في الأسئلة..." : "SEARCH QUESTIONS..."}
-            className="w-full border-b border-border bg-transparent px-0 py-4 text-xs uppercase tracking-widest focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/50"
+            placeholder={isAr ? "ابحث في الأسئلة..." : "SEARCH KNOWLEDGE BASE..."}
+            className="w-full border-b border-border bg-transparent px-0 py-6 text-[10px] uppercase tracking-[0.25em] focus:outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/30"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute end-0 top-1/2 -translate-y-1/2 text-xs uppercase text-muted-foreground hover:text-foreground">
+            <button onClick={() => setSearch("")} className="absolute end-0 top-1/2 -translate-y-1/2 velora-link">
               {isAr ? "مسح" : "CLEAR"}
             </button>
           )}
         </div>
 
-        <div className="flex flex-wrap gap-6 mb-16 justify-center">
+        <div className="flex flex-wrap gap-8 mb-20 justify-center">
           {CATEGORIES.map(cat => (
             <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setOpenId(null); }}
-              className={`text-xs uppercase tracking-widest transition-colors pb-1 border-b ${activeCategory === cat.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+              className={`text-[10px] uppercase tracking-[0.2em] transition-all duration-300 pb-2 border-b-2 ${activeCategory === cat.id ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
               {isAr ? cat.ar : cat.en}
             </button>
           ))}
         </div>
 
         {filtered.length === 0 ? (
-          <div className="text-center py-20 border-y border-border">
-            <p className="text-muted-foreground uppercase tracking-widest text-xs">{isAr ? "لا توجد نتائج." : "No results found."}</p>
+          <div className="text-center py-32 border-y border-border">
+            <p className="velora-label text-muted-foreground">{isAr ? "لا توجد نتائج." : "No inquiries match your search."}</p>
           </div>
         ) : (
-          <div className="border-t border-border">
+          <div className="max-w-4xl mx-auto border-t border-border">
             {filtered.map(faq => (
               <div key={faq.id} className="border-b border-border">
                 <button onClick={() => setOpenId(openId === faq.id ? null : faq.id)}
-                  className="w-full flex items-center justify-between py-6 text-left hover:text-primary transition-colors group">
-                  <span className="font-serif text-xl md:text-2xl font-bold pr-8">{isAr ? faq.questionAr : faq.questionEn}</span>
-                  <span className="shrink-0 text-2xl font-light text-muted-foreground group-hover:text-primary transition-colors">
+                  className="w-full flex items-center justify-between py-10 text-left hover:text-accent transition-colors group">
+                  <span className="velora-heading text-2xl md:text-3xl pr-12">{isAr ? faq.questionAr : faq.questionEn}</span>
+                  <span className="shrink-0 text-3xl font-light text-muted-foreground group-hover:text-accent transition-colors">
                     {openId === faq.id ? "−" : "+"}
                   </span>
                 </button>
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openId === faq.id ? "max-h-96 pb-8 opacity-100" : "max-h-0 opacity-0"}`}>
-                  <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl pr-12">
+                <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openId === faq.id ? "max-h-[500px] pb-12 opacity-100" : "max-h-0 opacity-0"}`}>
+                  <p className="text-muted-foreground text-base font-light leading-relaxed max-w-3xl">
                     {isAr ? faq.answerAr : faq.answerEn}
                   </p>
                 </div>
@@ -123,15 +125,18 @@ export default function FAQ() {
           </div>
         )}
 
-        <div className="mt-24 text-center space-y-6">
-          <h3 className="font-serif text-2xl font-bold">{isAr ? "لم تجد إجابتك؟" : "Still have questions?"}</h3>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-            {isAr ? "فريق الدعم لدينا مستعد للمساعدة. تواصل معنا في أي وقت." : "Our support team is ready to assist you with any inquiries."}
-          </p>
+        <div className="mt-32 text-center space-y-10 border-t border-border pt-32">
+          <div className="space-y-4">
+            <p className="velora-label text-accent">BESPOKE ASSISTANCE</p>
+            <h3 className="velora-heading text-4xl">{isAr ? "لم تجد إجابتك؟" : "Still seeking clarity?"}</h3>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed font-light">
+              {isAr ? "فريق الدعم لدينا مستعد للمساعدة. تواصل معنا في أي وقت." : "Our dedicated client advisors are available to provide personal guidance for any specific requirements."}
+            </p>
+          </div>
           <div className="pt-4">
-            <a href="/contact" className="velora-btn-outline inline-flex items-center justify-center px-8 h-12 uppercase tracking-widest text-xs">
-              {isAr ? "تواصل معنا" : "Contact Us"}
-            </a>
+            <Link href="/contact" className="velora-btn-outline px-12 h-14">
+              {isAr ? "تواصل معنا" : "CONTACT CONCIERGE"}
+            </Link>
           </div>
         </div>
       </div>

@@ -142,10 +142,10 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
 
   return (
     <>
-      <Link href={`/products/${id}`} className="group block">
+      <Link href={`/products/${id}`} className="group block h-full">
         <div
-          className="relative overflow-hidden bg-secondary dark:bg-[#1C1C1C] mb-4"
-          style={{ aspectRatio: "2/3" }}
+          className="relative overflow-hidden bg-background mb-4"
+          style={{ aspectRatio: "3/4" }}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
@@ -153,19 +153,19 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
             <img
               src={imageUrl}
               alt={displayName}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+              className="w-full h-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-105"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/20">{t("product.noImage")}</span>
+            <div className="w-full h-full flex items-center justify-center bg-secondary">
+              <span className="velora-label opacity-20">{t("product.noImage")}</span>
             </div>
           )}
 
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
+          <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
             {savePct && (
-              <span className="bg-foreground text-background text-[8px] font-bold px-2 py-1 tracking-[0.22em] uppercase">
+              <span className="bg-primary text-primary-foreground text-[8px] font-bold px-2 py-1 tracking-[0.2em] uppercase">
                 −{savePct}%
               </span>
             )}
@@ -175,29 +175,29 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
           {/* Wishlist — always visible on mobile, hover on desktop */}
           <button
             onClick={handleWishlist}
-            className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-background transition-all duration-200 md:opacity-0 md:pointer-events-none ${
+            className={`absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300 md:opacity-0 md:pointer-events-none ${
               hovered || isWishlisted ? "md:opacity-100 md:pointer-events-auto" : ""
             }`}
             aria-label={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}
           >
-            <Heart className={`w-3.5 h-3.5 transition-colors ${isWishlisted ? "fill-foreground text-foreground" : "text-foreground"}`} />
+            <Heart className={`w-4 h-4 transition-colors ${isWishlisted ? "fill-primary text-primary" : "text-foreground"}`} strokeWidth={1.5} />
           </button>
 
           {/* Bottom CTA — Quick Add or Quick View */}
           <div
-            className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${hovered ? "translate-y-0 opacity-100" : "md:translate-y-full md:opacity-0 md:pointer-events-none"}`}
+            className={`absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out ${hovered ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
           >
             {canQuickAdd ? (
               <button
                 onClick={handleQuickAdd}
-                className="w-full bg-foreground text-background text-[8px] font-bold tracking-[0.28em] uppercase py-3.5 hover:bg-[#C9A227] hover:text-white transition-colors duration-200"
+                className="w-full bg-primary text-primary-foreground text-[9px] font-bold tracking-[0.3em] uppercase py-4 hover:bg-primary/90 transition-colors duration-300"
               >
                 {t("btn.quickAdd")}
               </button>
             ) : hasVariants ? (
               <button
                 onClick={handleQuickView}
-                className="w-full bg-foreground text-background text-[8px] font-bold tracking-[0.28em] uppercase py-3.5 hover:bg-[#C9A227] hover:text-white transition-colors duration-200"
+                className="w-full bg-primary text-primary-foreground text-[9px] font-bold tracking-[0.3em] uppercase py-4 hover:bg-primary/90 transition-colors duration-300"
               >
                 Quick View
               </button>
@@ -205,29 +205,32 @@ export default function ProductCard({ id, nameEn, nameAr, price, salePrice, imag
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <h3
-            className="text-sm font-medium leading-snug tracking-wide text-foreground line-clamp-1 group-hover:opacity-60 transition-opacity duration-300"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-          >
-            {displayName}
-          </h3>
+        <div className="space-y-2">
+          <div className="flex justify-between items-start gap-4">
+            <h3
+              className="text-lg font-serif italic text-foreground leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-1"
+            >
+              {displayName}
+            </h3>
+          </div>
+          
           {hasRating && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map(i => (
-                <span key={i} className={`text-[9px] ${i <= Math.round(averageRating!) ? "text-[#C9A227]" : "text-foreground/15"}`}>★</span>
+                <span key={i} className={`text-[10px] ${i <= Math.round(averageRating!) ? "text-accent" : "text-border"}`}>★</span>
               ))}
-              <span className="text-[9px] text-foreground/30 tracking-wide">({reviewCount})</span>
+              <span className="text-[9px] text-muted-foreground tracking-widest ml-1 font-bold">({reviewCount})</span>
             </div>
           )}
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-3">
             {displaySalePrice ? (
               <>
-                <span className="text-sm font-semibold text-[#C9A227] tracking-wide">{displaySalePrice} EGP</span>
-                <span className="line-through text-xs text-foreground/30 tracking-wide">{displayPrice} EGP</span>
+                <span className="text-base font-medium text-accent tracking-tight">{displaySalePrice} EGP</span>
+                <span className="line-through text-xs text-muted-foreground/60 tracking-tight font-light">{displayPrice} EGP</span>
               </>
             ) : (
-              <span className="text-sm font-medium text-foreground tracking-wide">{displayPrice} EGP</span>
+              <span className="text-base font-medium text-foreground tracking-tight">{displayPrice} EGP</span>
             )}
           </div>
         </div>

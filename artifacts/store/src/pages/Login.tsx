@@ -54,111 +54,132 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-16 px-4">
-      <div className="w-full max-w-[440px] space-y-10">
-        <div className="text-center space-y-4">
-          <Link href="/" className="inline-block velora-heading text-4xl hover:opacity-70 transition-opacity">
+    <div className="min-h-screen flex bg-background">
+      {/* Left Panel: Editorial Brand Image/Pattern */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-midnight overflow-hidden items-center justify-center p-12">
+        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=2070')] bg-cover bg-center" />
+        <div className="relative z-10 text-center">
+          <Link href="/" className="inline-block velora-heading text-8xl text-white mb-6 tracking-[0.2em]">
             VELORA
           </Link>
-          <h1 className="font-serif text-3xl font-bold tracking-tight">{t("nav.login")}</h1>
-          <p className="text-muted-foreground text-sm tracking-wide">{t("auth.welcomeBack")}</p>
+          <div className="velora-divider bg-white/30" />
+          <p className="text-white/60 velora-label text-sm mt-8">Exquisite luxury for the modern era.</p>
         </div>
+      </div>
 
-        <div className="space-y-6">
-          <GoogleButton onSuccess={() => setLocation(redirectTo)} label="signin_with" />
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase tracking-widest">
-              <span className="bg-background px-4 text-muted-foreground">{t("auth.orWithEmail")}</span>
-            </div>
+      {/* Right Panel: Clean Form on Ivory Background */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16">
+        <div className="w-full max-w-[440px] space-y-10">
+          <div className="space-y-4">
+            <Link href="/" className="lg:hidden inline-block velora-heading text-4xl mb-8">
+              VELORA
+            </Link>
+            <h1 className="font-serif text-5xl font-bold tracking-tight text-foreground">{t("nav.login")}</h1>
+            <p className="text-muted-foreground text-sm tracking-wide">{t("auth.welcomeBack")}</p>
           </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="velora-label">{t("auth.email")}</FormLabel>
-                    <FormControl>
-                      <Input className="rounded-none border-border focus-visible:ring-1 focus-visible:ring-primary h-12" type="email" placeholder={t("auth.emailPlaceholder")} autoComplete="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between mb-1">
-                      <FormLabel className="velora-label mb-0">{t("auth.password")}</FormLabel>
-                      <Link href="/forgot-password" className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
-                        {t("auth.forgotPassword")}
-                      </Link>
-                    </div>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder={t("auth.passwordPlaceholder")}
-                          autoComplete="current-password"
-                          className="rounded-none border-border focus-visible:ring-1 focus-visible:ring-primary h-12 pr-10"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          tabIndex={-1}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          onClick={() => setShowPassword(v => !v)}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="space-y-8">
+            <GoogleButton onSuccess={() => setLocation(redirectTo)} label="signin_with" />
 
-              <div className="flex items-start gap-3 border border-border p-4 bg-muted/10">
-                <div className="relative flex items-center justify-center mt-0.5">
-                  <input
-                    type="checkbox"
-                    id="remember-device"
-                    checked={rememberDevice}
-                    onChange={(e) => setRememberDevice(e.target.checked)}
-                    className="peer appearance-none w-4 h-4 border border-foreground/20 checked:bg-foreground checked:border-foreground transition-colors cursor-pointer"
-                  />
-                  <ShieldCheck className="absolute w-2.5 h-2.5 text-background opacity-0 peer-checked:opacity-100 pointer-events-none" />
-                </div>
-                <div className="space-y-1 leading-none flex-1">
-                  <label htmlFor="remember-device" className="text-xs font-bold uppercase tracking-widest cursor-pointer text-foreground block">
-                    {t("auth.rememberDevice")}
-                  </label>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {t("auth.rememberDeviceDesc")}
-                  </p>
-                </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
               </div>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
+                <span className="bg-background px-4 text-muted-foreground/60">{t("auth.orWithEmail")}</span>
+              </div>
+            </div>
 
-              <Button type="submit" className="velora-btn-primary w-full h-12 text-sm mt-4" disabled={loginMutation.isPending}>
-                {loginMutation.isPending ? t("auth.signingIn") : t("nav.login")}
-              </Button>
-            </form>
-          </Form>
-        </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="velora-label">{t("auth.email")}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          className="rounded-none border-0 border-b border-border bg-transparent px-0 focus-visible:ring-0 focus-visible:border-accent h-12 transition-colors text-foreground" 
+                          type="email" 
+                          placeholder={t("auth.emailPlaceholder")} 
+                          autoComplete="email" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-[10px] uppercase tracking-wider" />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="velora-label">{t("auth.password")}</FormLabel>
+                        <Link href="/forgot-password" className="velora-link lowercase italic normal-case tracking-normal font-light">
+                          {t("auth.forgotPassword")}
+                        </Link>
+                      </div>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder={t("auth.passwordPlaceholder")}
+                            autoComplete="current-password"
+                            className="rounded-none border-0 border-b border-border bg-transparent px-0 focus-visible:ring-0 focus-visible:border-accent h-12 pr-10 transition-colors text-foreground"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            tabIndex={-1}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
+                            onClick={() => setShowPassword(v => !v)}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-[10px] uppercase tracking-wider" />
+                    </FormItem>
+                  )}
+                />
 
-        <div className="text-center text-sm text-muted-foreground pt-4">
-          {t("auth.dontHaveAccount")}{" "}
-          <Link href="/register" className="velora-link text-primary font-medium">
-            {t("nav.register")}
-          </Link>
+                <div className="flex items-start gap-4 p-5 bg-secondary/30">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input
+                      type="checkbox"
+                      id="remember-device"
+                      checked={rememberDevice}
+                      onChange={(e) => setRememberDevice(e.target.checked)}
+                      className="peer appearance-none w-4 h-4 border border-foreground/20 checked:bg-primary checked:border-primary transition-colors cursor-pointer"
+                    />
+                    <ShieldCheck className="absolute w-2.5 h-2.5 text-primary-foreground opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                  </div>
+                  <div className="space-y-1 leading-none flex-1">
+                    <label htmlFor="remember-device" className="velora-label cursor-pointer text-foreground block mb-0 leading-none">
+                      {t("auth.rememberDevice")}
+                    </label>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
+                      {t("auth.rememberDeviceDesc")}
+                    </p>
+                  </div>
+                </div>
+
+                <Button type="submit" className="velora-btn-primary w-full h-14" disabled={loginMutation.isPending}>
+                  {loginMutation.isPending ? t("auth.signingIn") : t("nav.login")}
+                </Button>
+              </form>
+            </Form>
+
+            <div className="text-center text-[11px] uppercase tracking-widest text-muted-foreground pt-4">
+              {t("auth.dontHaveAccount")}{" "}
+              <Link href="/register" className="velora-link text-primary ml-2">
+                {t("nav.register")}
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
