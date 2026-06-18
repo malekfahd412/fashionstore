@@ -294,7 +294,7 @@ router.get("/admin/analytics/products", requireAuth, requireRole("admin"), async
     LEFT JOIN orders_cte  o ON o.product_id   = p.id
     LEFT JOIN stock_cte   s ON s.product_id   = p.id
     WHERE p.active = true
-    ORDER BY COALESCE(o.revenue, 0) DESC, COALESCE(o.units_sold, 0) DESC
+    ORDER BY COALESCE(v.view_count, 0) DESC, COALESCE(o.revenue, 0) DESC, COALESCE(o.units_sold, 0) DESC
     LIMIT ${limitParam}
   `);
   res.json((rows.rows as Array<Record<string, unknown>>).map(r => ({
