@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "GJx9IzhrvEeOZm4quiZzG"
@@ -102,3 +101,9 @@ id = "92nErRbktopi-5avtT9Sv"
 uri = "file://artifacts/mockup-sandbox/public/images/cat-accessories.png"
 type = "image"
 title = "Accessories clean background"
+
+[[outputs]]
+id = "8SPd4gpf2Dmi6X2_GaZAt"
+uri = "file://docs/audit/PART1-executive-architecture-database.md"
+type = "text"
+title = "PART 1 — Executive Summary · Architecture · Database Audit"
