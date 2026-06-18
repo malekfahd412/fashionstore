@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, productsTable, productVariantsTable, productImagesTable, categoriesTable, usersTable, reviewsTable } from "@workspace/db";
-import { eq, and, ilike, gte, lte, desc, asc, count, avg, inArray, SQL } from "drizzle-orm";
+import { eq, and, ilike, gte, lte, desc, asc, count, avg, inArray, SQL, sql } from "drizzle-orm";
 import { requireAuth, requireRole, optionalAuth } from "../middlewares/auth";
 import {
   CreateProductBody, UpdateProductBody, GetProductParams, UpdateProductParams,
@@ -137,6 +137,33 @@ router.get("/products/:id/related", async (req, res): Promise<void> => {
     .where(and(eq(productsTable.categoryId, product.categoryId), eq(productsTable.active, true)))
     .orderBy(desc(productsTable.createdAt)).limit(7);
   res.json(await batchEnrichProducts(related.filter(p => p.id !== id)));
+});
+
+router.get("/products/:id/recommendations", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) { res.json([]); return; }
+  const [product] = await db.select({ categoryId: productsTable.categoryId }).from(productsTable).where(eq(productsTable.id, id));
+  if (!product) { res.json([]); return; }
+  const recs = await db.select().from(productsTable)
+    .where(and(eq(productsTable.categoryId, product.categoryId), eq(productsTable.active, true)))
+    .orderBy(desc(productsTable.updatedAt)).limit(9);
+  res.json(await batchEnrichProducts(recs.filter(p => p.id !== id).slice(0, 8)));
+});
+
+router.get("/products/:id/complete-the-look", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) { res.json([]); return; }
+  const [product] = await db.select({ categoryId: productsTable.categoryId }).from(productsTable).where(eq(productsTable.id, id));
+  if (!product) { res.json([]); return; }
+  const items = await db.select().from(productsTable)
+    .where(and(
+      sql`${productsTable.categoryId} != ${product.categoryId}`,
+      eq(productsTable.active, true)
+    ))
+    .orderBy(desc(productsTable.featured), desc(productsTable.createdAt)).limit(4);
+  res.json(await batchEnrichProducts(items));
 });
 
 router.post("/products", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {

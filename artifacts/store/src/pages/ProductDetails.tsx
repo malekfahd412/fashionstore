@@ -15,8 +15,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGuestCart } from "@/hooks/useGuestCart";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useCartDrawer } from "@/contexts/CartDrawerContext";
-import { Heart, Truck, RotateCcw, ShieldCheck, ChevronLeft, ChevronRight, Star, PenLine, Trash2, CheckCircle2, X, Bell, Minus, Plus } from "lucide-react";
+import { Heart, Truck, RotateCcw, ShieldCheck, Star, PenLine, Trash2, CheckCircle2, X, Bell, Minus, Plus, Share2, Copy, Check } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
+import ImageGallery from "@/components/product/ImageGallery";
+import VariantSwatches from "@/components/product/VariantSwatches";
+import SizeSelector from "@/components/product/SizeSelector";
+import { ProductBadge, computeBadge } from "@/components/product/ProductBadge";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -102,11 +106,10 @@ export default function ProductDetails() {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
-  const [activeImage, setActiveImage] = useState<string>("");
-  const [activeImageIdx, setActiveImageIdx] = useState(0);
-  const [zoomed, setZoomed] = useState(false);
-  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
-  const imageRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [showSharePanel, setShowSharePanel] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [reviewSort, setReviewSort] = useState("newest");
   const [reviewPage, setReviewPage] = useState(1);
@@ -123,6 +126,28 @@ export default function ProductDetails() {
   });
   const { data: relatedProducts } = useGetRelatedProducts(productId, {
     query: { enabled: !!productId, queryKey: getGetRelatedProductsQueryKey(productId) },
+  });
+  const { data: completeLookData } = useQuery<{ id: number; nameEn: string; nameAr: string | null; price: string; salePrice: string | null; images?: { imageUrl: string }[]; variants?: { id: number; color: string | null; size: string | null; stockQuantity: number }[] }[]>({
+    queryKey: ["complete-the-look", productId],
+    queryFn: async () => {
+      const res = await fetch(`${BASE}/api/products/${productId}/complete-the-look`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!productId,
+    staleTime: 300_000,
+  });
+  const { data: recentlyViewedData } = useQuery<{ productId: number; nameEn: string; nameAr: string | null; imageUrl: string | null; price: number | null; salePrice: number | null }[]>({
+    queryKey: ["recently-viewed-list", user?.id],
+    queryFn: async () => {
+      const token = localStorage.getItem("auth_token");
+      if (!token) return [];
+      const res = await fetch(`${BASE}/api/recently-viewed`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user,
+    staleTime: 60_000,
   });
   const { data: wishlist } = useGetWishlist({
     query: { enabled: !!user, queryKey: getGetWishlistQueryKey() },
@@ -179,13 +204,6 @@ export default function ProductDetails() {
   const isWishlisted = !!wishlist?.some(w => w.productId === productId);
 
   useEffect(() => {
-    if (product?.images?.[0] && !activeImage) {
-      setActiveImage(product.images[0].imageUrl);
-      setActiveImageIdx(0);
-    }
-  }, [product]);
-
-  useEffect(() => {
     if (user && productId) {
       const token = localStorage.getItem("auth_token");
       fetch(`${BASE}/api/recently-viewed/${productId}`, {
@@ -195,21 +213,29 @@ export default function ProductDetails() {
     }
   }, [user, productId]);
 
-  const handleImageSelect = (url: string, idx: number) => { setActiveImage(url); setActiveImageIdx(idx); };
-  const handlePrevImage = () => {
-    if (!product?.images) return;
-    const idx = (activeImageIdx - 1 + product.images.length) % product.images.length;
-    handleImageSelect(product.images[idx].imageUrl, idx);
+  useEffect(() => {
+    const el = ctaRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try { await navigator.share({ title: name, url }); return; } catch { /* cancelled */ }
+    }
+    setShowSharePanel(v => !v);
   };
-  const handleNextImage = () => {
-    if (!product?.images) return;
-    const idx = (activeImageIdx + 1) % product.images.length;
-    handleImageSelect(product.images[idx].imageUrl, idx);
-  };
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current) return;
-    const rect = imageRef.current.getBoundingClientRect();
-    setZoomPos({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 });
+  const handleCopy = () => {
+    void navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   const colors = [...new Set((product?.variants || []).map(v => v.color))].filter(Boolean) as string[];
@@ -423,64 +449,17 @@ export default function ProductDetails() {
 
           {/* ── Gallery (sticky) ─────────────────────────────────────────── */}
           <div className="lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col lg:justify-start lg:pt-10 py-8 lg:py-10 lg:overflow-hidden">
-            <div
-              ref={imageRef}
-              className={`relative bg-secondary overflow-hidden ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
-              style={{ aspectRatio: "3/4" }}
-              onClick={() => setZoomed(v => !v)}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={() => setZoomed(false)}
-            >
-              {activeImage ? (
-                <img
-                  src={activeImage}
-                  alt={name ?? ""}
-                  className="w-full h-full object-cover transition-transform duration-150"
-                  style={zoomed ? { transform: "scale(2.2)", transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`, transition: "transform 0.1s ease" } : {}}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-foreground/20 text-xs tracking-[0.2em] uppercase">{t("product.noImage")}</div>
-              )}
-
-              {savePct && (
-                <div className="absolute top-5 start-5 bg-foreground text-background text-[9px] font-bold px-3 py-1.5 tracking-[0.2em] uppercase">
-                  −{savePct}%
-                </div>
-              )}
-
-              {product.images && product.images.length > 1 && (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
-                    className="absolute start-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-background/80 backdrop-blur hover:bg-background flex items-center justify-center transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
-                    className="absolute end-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-background/80 backdrop-blur hover:bg-background flex items-center justify-center transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Thumbnails */}
-            {product.images && product.images.length > 1 && (
-              <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
-                {product.images.map((img, idx) => (
-                  <button
-                    key={img.id}
-                    onClick={() => handleImageSelect(img.imageUrl, idx)}
-                    className={`w-16 shrink-0 bg-secondary overflow-hidden transition-all duration-200 ${activeImageIdx === idx ? "ring-1 ring-foreground" : "opacity-45 hover:opacity-100"}`}
-                    style={{ aspectRatio: "3/4" }}
-                  >
-                    <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+            <ImageGallery
+              images={(product.images ?? []).map(img => ({ id: img.id, imageUrl: img.imageUrl }))}
+              productName={name ?? ""}
+              savePct={savePct}
+              badge={(() => {
+                const totalStock = (product.variants ?? []).reduce((s, v) => s + v.stockQuantity, 0);
+                const badge = computeBadge({ createdAt: product.createdAt, salePrice: product.salePrice, totalStock, featured: product.featured });
+                if (!badge || badge === "sale") return null;
+                return <ProductBadge type={badge} />;
+              })()}
+            />
           </div>
 
           {/* ── Product Info ──────────────────────────────────────────────── */}
@@ -528,59 +507,22 @@ export default function ProductDetails() {
 
             <div className="space-y-8 mb-10">
               {/* Colors */}
-              {colors.length > 0 && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground">{t("common.color")}</p>
-                    {selectedColor && <span className="text-[9px] tracking-[0.2em] uppercase text-foreground/40 font-medium">{selectedColor}</span>}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {colors.map(color => (
-                      <button
-                        key={color}
-                        onClick={() => handleColorSelect(color)}
-                        title={color}
-                        className={`w-9 h-9 relative transition-all duration-200 ${selectedColor === color ? "ring-2 ring-foreground ring-offset-2" : "ring-1 ring-foreground/20 hover:ring-foreground/40"}`}
-                        style={{ backgroundColor: color.toLowerCase() }}
-                      >
-                        <span className="sr-only">{color}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <VariantSwatches
+                colors={colors}
+                selected={selectedColor}
+                onSelect={handleColorSelect}
+                label={t("common.color")}
+              />
 
               {/* Sizes */}
-              {sizes.length > 0 && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-foreground">{t("common.size")}</p>
-                    <button className="text-[9px] tracking-[0.18em] uppercase text-foreground/35 font-bold hover:text-foreground transition-colors border-b border-border pb-0.5">Size Guide</button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {sizes.map(size => {
-                      const unavailable = availableSizesForColor !== null && !availableSizesForColor.has(size);
-                      return (
-                        <button
-                          key={size}
-                          disabled={unavailable}
-                          onClick={() => !unavailable && setSelectedSize(size)}
-                          className={`min-w-[3rem] h-11 px-4 text-xs font-bold tracking-[0.12em] uppercase transition-all relative ${
-                            selectedSize === size
-                              ? "bg-foreground text-background border border-foreground"
-                              : unavailable
-                              ? "border border-border text-foreground/18 cursor-not-allowed"
-                              : "border border-border text-foreground hover:border-[#111111]"
-                          }`}
-                        >
-                          {size}
-                          {unavailable && <span className="absolute inset-0 flex items-center justify-center pointer-events-none"><span className="w-full h-[1px] bg-foreground/12 rotate-45 transform origin-center absolute" /></span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <SizeSelector
+                sizes={sizes}
+                selected={selectedSize}
+                onSelect={setSelectedSize}
+                variants={(product.variants ?? []).map(v => ({ size: v.size ?? "", color: v.color, stockQuantity: v.stockQuantity }))}
+                selectedColor={selectedColor}
+                label={t("common.size")}
+              />
 
               {/* Quantity */}
               <div>
@@ -598,7 +540,7 @@ export default function ProductDetails() {
             </div>
 
             {/* CTA */}
-            <div className="flex gap-3 mb-10">
+            <div ref={ctaRef} className="flex gap-3 mb-10">
               {isOutOfStock ? (
                 user ? (
                   isSubscribed ? (
@@ -646,6 +588,46 @@ export default function ProductDetails() {
               >
                 <Heart className={`w-4 h-4 transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500" : "text-foreground/40"}`} />
               </button>
+
+              <div className="relative">
+                <button
+                  className="w-12 h-full py-4 px-3 border border-border hover:border-foreground/40 transition-colors shrink-0 flex items-center justify-center"
+                  onClick={handleShare}
+                  aria-label="Share"
+                >
+                  <Share2 className="w-4 h-4 text-foreground/40" />
+                </button>
+                {showSharePanel && (
+                  <div className="absolute end-0 top-full mt-2 bg-background border border-border shadow-lg p-4 w-60 z-20">
+                    <p className="text-[8px] font-bold tracking-[0.3em] uppercase text-foreground/30 mb-3">Share This Item</p>
+                    <button
+                      onClick={handleCopy}
+                      className="w-full flex items-center gap-3 py-2.5 px-3 border border-border hover:bg-secondary transition-colors text-xs text-foreground"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? "Copied!" : "Copy Link"}
+                    </button>
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1.5 w-full flex items-center gap-3 py-2.5 px-3 border border-border hover:bg-secondary transition-colors text-xs text-foreground"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                      Facebook
+                    </a>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(name + " " + window.location.href)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1.5 w-full flex items-center gap-3 py-2.5 px-3 border border-border hover:bg-secondary transition-colors text-xs text-foreground"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                      WhatsApp
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Shipping & Policy */}
@@ -776,7 +758,64 @@ export default function ProductDetails() {
         </div>
       </section>
 
-      {/* ── Related Products ─────────────────────────────────────────────── */}
+      {/* ── Complete the Look ────────────────────────────────────────────── */}
+      {(completeLookData ?? []).length > 0 && (
+        <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6 md:px-10">
+          <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-foreground/28 mb-5">Style It With</p>
+          <h2
+            className="text-3xl md:text-4xl font-bold text-foreground mb-14 leading-[0.92]"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+          >
+            Complete the Look
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-12">
+            {(completeLookData ?? []).map(p => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                nameEn={p.nameEn}
+                nameAr={p.nameAr}
+                price={p.price}
+                salePrice={p.salePrice}
+                imageUrl={p.images?.[0]?.imageUrl}
+                variants={p.variants}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Recently Viewed ───────────────────────────────────────────────── */}
+      {user && (recentlyViewedData ?? []).filter(r => r.productId !== productId).length > 0 && (
+        <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6 md:px-10">
+          <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-foreground/28 mb-5">Your Journey</p>
+          <h2
+            className="text-3xl md:text-4xl font-bold text-foreground mb-14 leading-[0.92]"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+          >
+            Recently Viewed
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-12">
+            {(recentlyViewedData ?? [])
+              .filter(r => r.productId !== productId)
+              .slice(0, 4)
+              .map(r => (
+                <ProductCard
+                  key={r.productId}
+                  id={r.productId}
+                  nameEn={r.nameEn}
+                  nameAr={r.nameAr}
+                  price={r.price ?? 0}
+                  salePrice={r.salePrice}
+                  imageUrl={r.imageUrl}
+                  variants={[]}
+                />
+              ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── You May Also Like ─────────────────────────────────────────────── */}
       {(relatedProducts ?? []).length > 0 && (
         <section className="py-20 md:py-28 max-w-screen-xl mx-auto px-6 md:px-10">
           <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-foreground/28 mb-5">You May Also Like</p>
@@ -793,6 +832,34 @@ export default function ProductDetails() {
           </div>
         </section>
       )}
+
+      {/* ── Sticky Mobile CTA ─────────────────────────────────────────────── */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden transition-transform duration-300 ${showStickyBar ? "translate-y-0" : "translate-y-full"}`}
+        style={{ fontFamily: "'Inter', sans-serif" }}
+      >
+        <div className="bg-background border-t border-border px-4 py-3 flex items-center gap-3 shadow-2xl">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-foreground truncate" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{name}</p>
+            <p className="text-xs text-[#C9A227] font-semibold">
+              {displaySalePrice ? `${displaySalePrice} EGP` : `${displayPrice} EGP`}
+            </p>
+          </div>
+          {isOutOfStock ? (
+            <button className="shrink-0 px-6 py-3 border border-border text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/40 cursor-not-allowed" disabled>
+              Sold Out
+            </button>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={addToCartMutation.isPending}
+              className="shrink-0 px-6 py-3 bg-foreground text-background text-[9px] font-bold tracking-[0.25em] uppercase hover:bg-[#C9A227] transition-colors disabled:opacity-40"
+            >
+              {addToCartMutation.isPending ? "..." : t("btn.addToCart")}
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* ── Review Modal ─────────────────────────────────────────────────── */}
       {showReviewModal && (

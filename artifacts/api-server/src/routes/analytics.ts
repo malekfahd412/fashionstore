@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, usersTable, productsTable, orderItemsTable, productVariantsTable, categoriesTable } from "@workspace/db";
+import { db, ordersTable, usersTable, productsTable, orderItemsTable, productVariantsTable, categoriesTable, recentlyViewedTable, wishlistTable } from "@workspace/db";
 import { eq, gte, lte, count, sum, avg, desc, and, sql, inArray } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 
@@ -245,6 +245,48 @@ router.get("/analytics/vendor-summary", requireAuth, requireRole("vendor", "admi
     pendingOrders: 0,
     lowStockProducts: Number(r.low_stock) || 0,
   });
+});
+
+// ── Product performance (admin) ───────────────────────────────────────────────
+router.get("/admin/analytics/product-performance", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
+  const rows = await db.execute(sql`
+    SELECT
+      p.id,
+      p.name_en,
+      p.name_ar,
+      p.price,
+      p.sale_price,
+      p.featured,
+      p.created_at,
+      COUNT(DISTINCT rv.user_id)::int          AS view_count,
+      COUNT(DISTINCT wl.id)::int               AS wishlist_count,
+      COALESCE(SUM(oi.quantity), 0)::int       AS units_sold,
+      COALESCE(SUM(oi.quantity * oi.price::numeric), 0)::numeric AS revenue,
+      SUM(pv.stock_quantity)::int              AS total_stock
+    FROM products p
+    LEFT JOIN recently_viewed rv   ON rv.product_id = p.id
+    LEFT JOIN wishlist wl           ON wl.product_id = p.id
+    LEFT JOIN product_variants pv   ON pv.product_id = p.id
+    LEFT JOIN order_items oi        ON oi.product_variant_id = pv.id
+    WHERE p.active = true
+    GROUP BY p.id
+    ORDER BY view_count DESC
+    LIMIT 100
+  `);
+  res.json((rows.rows as Array<Record<string, unknown>>).map(r => ({
+    id: Number(r.id),
+    nameEn: r.name_en as string,
+    nameAr: r.name_ar as string,
+    price: Number(r.price),
+    salePrice: r.sale_price ? Number(r.sale_price) : null,
+    featured: Boolean(r.featured),
+    createdAt: r.created_at as string,
+    viewCount: Number(r.view_count),
+    wishlistCount: Number(r.wishlist_count),
+    unitsSold: Number(r.units_sold),
+    revenue: Number(r.revenue),
+    totalStock: Number(r.total_stock),
+  })));
 });
 
 export default router;

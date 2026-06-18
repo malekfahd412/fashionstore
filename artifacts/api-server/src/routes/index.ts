@@ -29,6 +29,7 @@ import abandonedCartsRouter from "./abandoned-carts";
 import recentlyViewedRouter from "./recently-viewed";
 import savedCouponsRouter from "./saved-coupons";
 import stockNotificationsRouter from "./stock-notifications";
+import seedRouter from "./seed";
 
 const router: IRouter = Router();
 
@@ -62,5 +63,6 @@ router.use(abandonedCartsRouter);
 router.use(recentlyViewedRouter);
 router.use(savedCouponsRouter);
 router.use(stockNotificationsRouter);
+router.use(seedRouter);
 
 export default router;
