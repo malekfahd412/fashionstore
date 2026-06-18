@@ -30,6 +30,7 @@ import recentlyViewedRouter from "./recently-viewed";
 import savedCouponsRouter from "./saved-coupons";
 import stockNotificationsRouter from "./stock-notifications";
 import seedRouter from "./seed";
+import aiRouter from "./ai";
 
 const router: IRouter = Router();
 
@@ -64,5 +65,6 @@ router.use(recentlyViewedRouter);
 router.use(savedCouponsRouter);
 router.use(stockNotificationsRouter);
 router.use(seedRouter);
+router.use(aiRouter);
 
 export default router;

@@ -2,6 +2,7 @@ import React from "react";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import CartDrawer from "@/components/CartDrawer";
+import { AIConcierge } from "@/components/AIConcierge";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
+      <AIConcierge />
     </div>
   );
 }
