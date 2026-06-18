@@ -21,6 +21,11 @@ const ReviewUpdateSchema = z.object({
   comment: z.string().min(10).max(2000).optional(),
 });
 
+const ModerateSchema = z.object({
+  status: z.enum(["approved", "rejected"]),
+  moderationNote: z.string().max(500).optional(),
+});
+
 async function enrichReviews(rawReviews: Array<typeof reviewsTable.$inferSelect>) {
   if (!rawReviews.length) return [];
 
@@ -61,7 +66,7 @@ async function hasVerifiedPurchase(userId: number, productId: number): Promise<{
   return { verified: rows.length > 0, orderId: rows[0]?.orderId ?? null };
 }
 
-// GET /products/:id/reviews — with stats, pagination, sorting
+// GET /products/:id/reviews — public; only approved reviews shown
 router.get("/products/:id/reviews", optionalAuth, async (req, res): Promise<void> => {
   const { id: productId } = IdParam.parse(req.params);
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -75,6 +80,12 @@ router.get("/products/:id/reviews", optionalAuth, async (req, res): Promise<void
     sort === "lowest" ? asc(reviewsTable.rating) :
     desc(reviewsTable.createdAt);
 
+  // Public: only show approved reviews
+  const publicWhere = and(
+    eq(reviewsTable.productId, productId),
+    eq(reviewsTable.status, "approved"),
+  );
+
   const [statsRows, reviews, totalRows] = await Promise.all([
     db.select({
       avgRating: avg(reviewsTable.rating),
@@ -84,13 +95,13 @@ router.get("/products/:id/reviews", optionalAuth, async (req, res): Promise<void
       dist3: sql<number>`COUNT(*) FILTER (WHERE ${reviewsTable.rating} = 3)`,
       dist4: sql<number>`COUNT(*) FILTER (WHERE ${reviewsTable.rating} = 4)`,
       dist5: sql<number>`COUNT(*) FILTER (WHERE ${reviewsTable.rating} = 5)`,
-    }).from(reviewsTable).where(eq(reviewsTable.productId, productId)),
+    }).from(reviewsTable).where(publicWhere),
     db.select().from(reviewsTable)
-      .where(eq(reviewsTable.productId, productId))
+      .where(publicWhere)
       .orderBy(orderBy)
       .limit(limit)
       .offset(offset),
-    db.select({ c: count() }).from(reviewsTable).where(eq(reviewsTable.productId, productId)),
+    db.select({ c: count() }).from(reviewsTable).where(publicWhere),
   ]);
 
   const statsRow = statsRows[0];
@@ -136,7 +147,7 @@ router.get("/products/:id/reviews", optionalAuth, async (req, res): Promise<void
   });
 });
 
-// POST /products/:id/reviews — create review
+// POST /products/:id/reviews — create review (starts as pending)
 router.post("/products/:id/reviews", requireAuth, async (req, res): Promise<void> => {
   const { id: productId } = IdParam.parse(req.params);
   const parsed = ReviewInputSchema.safeParse(req.body);
@@ -145,7 +156,6 @@ router.post("/products/:id/reviews", requireAuth, async (req, res): Promise<void
   const { rating, title, comment, orderId } = parsed.data;
   const userId = req.user!.id;
 
-  // Check for duplicate review by this user for this product
   const [existing] = await db.select().from(reviewsTable)
     .where(and(eq(reviewsTable.productId, productId), eq(reviewsTable.userId, userId)));
   if (existing) { res.status(409).json({ error: "You have already reviewed this product" }); return; }
@@ -153,7 +163,6 @@ router.post("/products/:id/reviews", requireAuth, async (req, res): Promise<void
   const { verified, orderId: derivedOrderId } = await hasVerifiedPurchase(userId, productId);
   if (!verified) { res.status(403).json({ error: "You can only review products from delivered orders you have purchased" }); return; }
 
-  // If orderId is provided, verify it belongs to the user and contains the product and is delivered
   if (orderId) {
     const [specificOrder] = await db
       .select({ id: ordersTable.id })
@@ -178,6 +187,7 @@ router.post("/products/:id/reviews", requireAuth, async (req, res): Promise<void
     title: title ?? null,
     comment: comment ?? null,
     verifiedPurchase: true,
+    status: "pending",
   }).returning();
 
   const [enriched] = await enrichReviews([review]);
@@ -193,7 +203,7 @@ router.get("/reviews/my", requireAuth, async (req, res): Promise<void> => {
   res.json(enriched);
 });
 
-// PATCH /reviews/:id — edit own review
+// PATCH /reviews/:id — edit own review (resets to pending for re-moderation)
 router.patch("/reviews/:id", requireAuth, async (req, res): Promise<void> => {
   const { id } = IdParam.parse(req.params);
   const parsed = ReviewUpdateSchema.safeParse(req.body);
@@ -204,7 +214,7 @@ router.patch("/reviews/:id", requireAuth, async (req, res): Promise<void> => {
   if (review.userId !== req.user!.id) { res.status(403).json({ error: "Forbidden" }); return; }
 
   const { rating, title, comment } = parsed.data;
-  const updates: Partial<typeof reviewsTable.$inferInsert> = {};
+  const updates: Partial<typeof reviewsTable.$inferInsert> = { status: "pending" };
   if (rating !== undefined) updates.rating = rating;
   if (title !== undefined) updates.title = title;
   if (comment !== undefined) updates.comment = comment;
@@ -226,19 +236,20 @@ router.delete("/reviews/:id", requireAuth, async (req, res): Promise<void> => {
   res.json({ message: "Review deleted" });
 });
 
-// GET /admin/reviews — admin review management
+// GET /admin/reviews — admin review management with status filter
 router.get("/admin/reviews", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
-
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const ratingFilter = req.query.rating ? Number(req.query.rating) : undefined;
   const productIdFilter = req.query.productId ? Number(req.query.productId) : undefined;
   const search = req.query.search ? String(req.query.search) : undefined;
+  const statusFilter = req.query.status ? String(req.query.status) : undefined;
 
   const conditions = [];
   if (ratingFilter) conditions.push(eq(reviewsTable.rating, ratingFilter));
   if (productIdFilter) conditions.push(eq(reviewsTable.productId, productIdFilter));
+  if (statusFilter) conditions.push(eq(reviewsTable.status, statusFilter));
   if (search) {
     conditions.push(or(
       ilike(reviewsTable.comment, `%${search}%`),
@@ -263,6 +274,27 @@ router.get("/admin/reviews", requireAuth, requireRole("admin"), async (req, res)
     page,
     limit,
   });
+});
+
+// PATCH /admin/reviews/:id/moderate — approve or reject a review
+router.patch("/admin/reviews/:id/moderate", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+  const { id } = IdParam.parse(req.params);
+  const parsed = ModerateSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [review] = await db.select().from(reviewsTable).where(eq(reviewsTable.id, id));
+  if (!review) { res.status(404).json({ error: "Review not found" }); return; }
+
+  const [updated] = await db.update(reviewsTable)
+    .set({
+      status: parsed.data.status,
+      moderationNote: parsed.data.moderationNote ?? null,
+    })
+    .where(eq(reviewsTable.id, id))
+    .returning();
+
+  const [enriched] = await enrichReviews([updated]);
+  res.json(enriched);
 });
 
 export default router;

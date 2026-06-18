@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@sentry/node": "^10.58.0",
     "@types/pdfkit": "^0.17.6",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",

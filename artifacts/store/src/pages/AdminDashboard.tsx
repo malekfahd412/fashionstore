@@ -5,10 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
 import {
   useGetAnalyticsSummary, useGetOrderStatusBreakdown, useGetSalesTimeline, useListOrders,
-  useAdminListReviews, useDeleteReview,
-  getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey, getListOrdersQueryKey, getAdminListReviewsQueryKey, getGetMyReviewsQueryKey,
+  getGetAnalyticsSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey, getListOrdersQueryKey,
 } from "@workspace/api-client-react";
-import { Star, Trash2, CheckCircle2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { format } from "date-fns";
 import { useSEO } from "@/hooks/useSEO";
@@ -21,6 +19,7 @@ import AdminCouponsTab from "@/components/admin/AdminCouponsTab";
 import AdminBannersTab from "@/components/admin/AdminBannersTab";
 import AdminProductsTab from "@/components/admin/AdminProductsTab";
 import AdminManualPaymentsTab from "@/components/admin/AdminManualPaymentsTab";
+import AdminReviewsTab from "@/components/admin/AdminReviewsTab";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -741,176 +740,6 @@ function AdminNewsletterTab() {
   );
 }
 
-function AdminReviewsTab() {
-  const qc = useQueryClient();
-  const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [ratingFilter, setRatingFilter] = useState("");
-  const [page, setPage] = useState(1);
-  const LIMIT = 20;
-
-  const params = {
-    page,
-    limit: LIMIT,
-    ...(search ? { search } : {}),
-    ...(ratingFilter ? { rating: Number(ratingFilter) } : {}),
-  };
-
-  const { data, isLoading, refetch } = useAdminListReviews(params, {
-    query: { queryKey: [...getAdminListReviewsQueryKey(params)] },
-  });
-
-  const deleteMutation = useDeleteReview();
-
-  const handleDelete = (id: number) => {
-    if (!confirm("Delete this review?")) return;
-    deleteMutation.mutate({ id }, {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getAdminListReviewsQueryKey() });
-        qc.invalidateQueries({ queryKey: getGetMyReviewsQueryKey() });
-        refetch();
-      },
-    });
-  };
-
-  const reviews = data?.reviews ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / LIMIT);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-3xl font-bold font-serif">Reviews</h1>
-        <span className="text-sm text-muted-foreground">{total} total</span>
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="flex flex-1 min-w-48 gap-2">
-          <input
-            type="text"
-            placeholder="Search reviews..."
-            value={searchInput}
-            onChange={e => setSearchInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter") { setSearch(searchInput); setPage(1); } }}
-            className="flex-1 border border-border px-4 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <button
-            onClick={() => { setSearch(searchInput); setPage(1); }}
-            className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
-            Search
-          </button>
-        </div>
-        <select
-          value={ratingFilter}
-          onChange={e => { setRatingFilter(e.target.value); setPage(1); }}
-          className="border border-border px-3 py-2 text-sm bg-background focus:outline-none min-w-36"
-        >
-          <option value="">All Ratings</option>
-          {[5, 4, 3, 2, 1].map(r => (
-            <option key={r} value={r}>{r} Star{r !== 1 ? "s" : ""}</option>
-          ))}
-        </select>
-        {(search || ratingFilter) && (
-          <button
-            onClick={() => { setSearch(""); setSearchInput(""); setRatingFilter(""); setPage(1); }}
-            className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground border border-border"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
-      {/* Table */}
-      <div className="border border-border bg-card overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 text-center text-muted-foreground">Loading reviews…</div>
-        ) : !reviews.length ? (
-          <div className="p-12 text-center">
-            <Star className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No reviews found.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted text-muted-foreground text-xs uppercase">
-                <tr>
-                  {['#', 'Product', 'Customer', 'Rating', 'Title', 'Comment', 'Verified', 'Date', ''].map(h => (
-                    <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {(reviews as Array<{
-                  id: number; productId: number; userId: number; rating: number;
-                  title?: string | null; comment?: string | null; verifiedPurchase: boolean;
-                  createdAt: string; userName?: string; productNameEn?: string | null;
-                }>).map(r => (
-                  <tr key={r.id} className="hover:bg-muted/20">
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{r.id}</td>
-                    <td className="px-4 py-3">
-                      <Link href={`/products/${r.productId}`} className="text-xs hover:underline text-primary max-w-[120px] block truncate">
-                        {r.productNameEn ?? `#${r.productId}`}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.userName ?? `User #${r.userId}`}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span className="font-medium text-sm">{r.rating}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs max-w-[120px] truncate">{r.title ?? <span className="text-muted-foreground">—</span>}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground max-w-[200px] truncate">{r.comment ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      {r.verifiedPurchase ? (
-                        <CheckCircle2 className="w-4 h-4 text-[#C9A227]" />
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(r.createdAt), "MMM d, yyyy")}</td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => handleDelete(r.id)}
-                        disabled={deleteMutation.isPending}
-                        className="p-1 text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-            className="px-3 py-1.5 text-sm border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            ← Prev
-          </button>
-          <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage(p => p + 1)}
-            className="px-3 py-1.5 text-sm border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Next →
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Admin Support Tab ────────────────────────────────────────────────────────
 type SupportTicketAdmin = { id: number; userId: number; subject: string; category: string; status: string; priority: string; createdAt: string; updatedAt: string; userName?: string; userEmail?: string };

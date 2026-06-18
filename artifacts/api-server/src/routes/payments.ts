@@ -209,7 +209,12 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
       res.status(401).json({ error: "Invalid HMAC" }); return;
     }
   } else {
-    logger.warn("PAYMOB_HMAC_SECRET not set — webhook HMAC verification skipped (set in production)");
+    const isProduction = (process.env.NODE_ENV ?? "development") === "production";
+    if (isProduction) {
+      logger.error("PAYMOB_HMAC_SECRET is not set in production — rejecting unverified webhook");
+      res.status(503).json({ error: "Webhook verification is not configured. Set PAYMOB_HMAC_SECRET." }); return;
+    }
+    logger.warn("PAYMOB_HMAC_SECRET not set — webhook HMAC verification skipped (required in production)");
   }
 
   const body = req.body as { type?: string; obj?: Record<string, unknown> };

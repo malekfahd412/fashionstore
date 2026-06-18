@@ -224,9 +224,30 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
         if (coupon.startDate && coupon.startDate > now) throw Object.assign(new Error("Coupon not yet active"), { status: 400 });
         if (coupon.endDate && coupon.endDate < now) throw Object.assign(new Error("Coupon has expired"), { status: 400 });
         if (coupon.usageLimit != null && coupon.usageCount >= coupon.usageLimit) throw Object.assign(new Error("Coupon usage limit reached"), { status: 400 });
-        discount = coupon.discountType === "percentage"
-          ? Math.min((subtotal * Number(coupon.discountValue)) / 100, subtotal)
-          : Math.min(Number(coupon.discountValue), subtotal);
+
+        // Minimum order amount check
+        const minOrderAmount = coupon.minOrderAmount != null ? Number(coupon.minOrderAmount) : null;
+        if (minOrderAmount !== null && subtotal < minOrderAmount) {
+          throw Object.assign(new Error(`Minimum order amount of ${minOrderAmount.toFixed(2)} EGP required for this coupon`), { status: 400 });
+        }
+
+        // One-use-per-user check
+        if (coupon.oneUsePerUser) {
+          const [prevUse] = await tx.select({ id: ordersTable.id })
+            .from(ordersTable)
+            .where(and(eq(ordersTable.userId, req.user!.id), eq(ordersTable.couponCode, couponCode)))
+            .limit(1);
+          if (prevUse) throw Object.assign(new Error("You have already used this coupon"), { status: 400 });
+        }
+
+        // Calculate discount, then cap at maxDiscountAmount if set
+        let rawDiscount = coupon.discountType === "percentage"
+          ? (subtotal * Number(coupon.discountValue)) / 100
+          : Number(coupon.discountValue);
+        const maxDiscountAmount = coupon.maxDiscountAmount != null ? Number(coupon.maxDiscountAmount) : null;
+        if (maxDiscountAmount !== null) rawDiscount = Math.min(rawDiscount, maxDiscountAmount);
+        discount = Math.min(rawDiscount, subtotal);
+
         await tx.update(couponsTable).set({ usageCount: coupon.usageCount + 1 }).where(eq(couponsTable.id, coupon.id));
       }
 

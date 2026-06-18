@@ -8,7 +8,9 @@ type Coupon = {
   code: string;
   discountType: "percentage" | "fixed";
   discountValue: number;
-  minOrderValue: number | null;
+  minOrderAmount: number | null;
+  maxDiscountAmount: number | null;
+  oneUsePerUser: boolean;
   usageLimit: number | null;
   usageCount: number;
   startDate: string | null;
@@ -21,7 +23,9 @@ type CouponForm = {
   code: string;
   discountType: "percentage" | "fixed";
   discountValue: string;
-  minOrderValue: string;
+  minOrderAmount: string;
+  maxDiscountAmount: string;
+  oneUsePerUser: boolean;
   usageLimit: string;
   startDate: string;
   endDate: string;
@@ -29,7 +33,8 @@ type CouponForm = {
 };
 
 const EMPTY_FORM: CouponForm = {
-  code: "", discountType: "percentage", discountValue: "", minOrderValue: "",
+  code: "", discountType: "percentage", discountValue: "",
+  minOrderAmount: "", maxDiscountAmount: "", oneUsePerUser: false,
   usageLimit: "", startDate: "", endDate: "", active: true,
 };
 
@@ -77,23 +82,30 @@ function CouponModal({
               <select value={form.discountType} onChange={set("discountType")}
                 className="w-full border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary">
                 <option value="percentage">Percentage (%)</option>
-                <option value="fixed">Fixed Amount ($)</option>
+                <option value="fixed">Fixed Amount (EGP)</option>
               </select>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Discount Value * {form.discountType === "percentage" ? "(%)" : "($)"}
+                Discount Value * {form.discountType === "percentage" ? "(%)" : "(EGP)"}
               </label>
               <input value={form.discountValue} onChange={set("discountValue")} type="number" min="0" step="0.01" placeholder="0"
                 className="w-full border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Min Order Value ($)</label>
-              <input value={form.minOrderValue} onChange={set("minOrderValue")} type="number" min="0" step="0.01" placeholder="No minimum"
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Min Order Amount (EGP)</label>
+              <input value={form.minOrderAmount} onChange={set("minOrderAmount")} type="number" min="0" step="0.01" placeholder="No minimum"
                 className="w-full border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Usage Limit</label>
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {form.discountType === "percentage" ? "Max Discount Cap (EGP)" : "Max Discount (EGP)"}
+              </label>
+              <input value={form.maxDiscountAmount} onChange={set("maxDiscountAmount")} type="number" min="0" step="0.01" placeholder="No cap"
+                className="w-full border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Usage Limit (total)</label>
               <input value={form.usageLimit} onChange={set("usageLimit")} type="number" min="0" placeholder="Unlimited"
                 className="w-full border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
@@ -108,10 +120,16 @@ function CouponModal({
                 className="w-full border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
           </div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" checked={form.active} onChange={set("active")} className="w-4 h-4" />
-            <span className="text-sm font-medium">Active (customers can use this coupon)</span>
-          </label>
+          <div className="space-y-2 border-t border-border pt-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={form.oneUsePerUser} onChange={set("oneUsePerUser")} className="w-4 h-4" />
+              <span className="text-sm font-medium">One use per customer (each user can only use this once)</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={form.active} onChange={set("active")} className="w-4 h-4" />
+              <span className="text-sm font-medium">Active (customers can use this coupon)</span>
+            </label>
+          </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
         </div>
         <div className="flex gap-3 justify-end p-6 border-t border-border">
@@ -146,7 +164,9 @@ export default function AdminCouponsTab() {
       code: c.code,
       discountType: c.discountType,
       discountValue: String(c.discountValue),
-      minOrderValue: c.minOrderValue != null ? String(c.minOrderValue) : "",
+      minOrderAmount: c.minOrderAmount != null ? String(c.minOrderAmount) : "",
+      maxDiscountAmount: c.maxDiscountAmount != null ? String(c.maxDiscountAmount) : "",
+      oneUsePerUser: c.oneUsePerUser,
       usageLimit: c.usageLimit != null ? String(c.usageLimit) : "",
       startDate: c.startDate ? c.startDate.slice(0, 10) : "",
       endDate: c.endDate ? c.endDate.slice(0, 10) : "",
@@ -159,7 +179,9 @@ export default function AdminCouponsTab() {
       code: f.code.toUpperCase(),
       discountType: f.discountType,
       discountValue: Number(f.discountValue),
-      minOrderValue: f.minOrderValue ? Number(f.minOrderValue) : null,
+      minOrderAmount: f.minOrderAmount ? Number(f.minOrderAmount) : null,
+      maxDiscountAmount: f.maxDiscountAmount ? Number(f.maxDiscountAmount) : null,
+      oneUsePerUser: f.oneUsePerUser,
       usageLimit: f.usageLimit ? Number(f.usageLimit) : null,
       startDate: f.startDate || null,
       endDate: f.endDate || null,
@@ -222,8 +244,8 @@ export default function AdminCouponsTab() {
             <table className="w-full text-sm">
               <thead className="bg-muted text-muted-foreground text-xs uppercase">
                 <tr>
-                  {["Code", "Type", "Value", "Min Order", "Used / Limit", "Expiry", "Status", "Actions"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left">{h}</th>
+                  {["Code", "Type", "Value", "Min Order", "Max Cap", "1-Use/User", "Used / Limit", "Expiry", "Status", "Actions"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -237,8 +259,18 @@ export default function AdminCouponsTab() {
                       <td className="px-4 py-3 font-bold">
                         {c.discountType === "percentage" ? `${c.discountValue}%` : `${c.discountValue.toFixed(2)} EGP`}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {c.minOrderValue ? `${c.minOrderValue} EGP` : "—"}
+                      <td className="px-4 py-3 text-muted-foreground text-xs">
+                        {c.minOrderAmount ? `${c.minOrderAmount.toFixed(0)} EGP` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">
+                        {c.maxDiscountAmount ? `${c.maxDiscountAmount.toFixed(0)} EGP` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {c.oneUsePerUser ? (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-sm">Yes</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span className={c.usageLimit && c.usageCount >= c.usageLimit ? "text-red-600 font-bold" : ""}>
@@ -281,7 +313,7 @@ export default function AdminCouponsTab() {
                 })}
                 {coupons?.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No coupons yet. Create one above.</td>
+                    <td colSpan={10} className="px-4 py-12 text-center text-muted-foreground">No coupons yet. Create one above.</td>
                   </tr>
                 )}
               </tbody>

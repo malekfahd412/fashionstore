@@ -1,6 +1,9 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { bootstrapFirstAdmin } from "./bootstrap/firstAdmin";
+import { initSentry } from "./lib/sentry";
+
+void initSentry();
 
 // ── Optional environment variable check ────────────────────────────────────────
 // These vars are not required to start but unlock specific features.
