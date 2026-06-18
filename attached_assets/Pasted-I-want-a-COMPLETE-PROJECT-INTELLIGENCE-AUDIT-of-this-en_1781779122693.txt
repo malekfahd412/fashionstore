@@ -1,0 +1,262 @@
+I want a COMPLETE PROJECT INTELLIGENCE AUDIT of this entire codebase.
+
+Do NOT make any code changes.
+
+Your task is to inspect EVERY file, route, database table, component, page, integration, workflow, background process, environment variable, and feature in the repository and generate a full technical report.
+
+I want the report to be exhaustive and extremely detailed.
+
+For every feature, explain:
+
+* What it does
+* How it works internally
+* Which files are involved
+* Which API endpoints are involved
+* Which database tables are involved
+* Which frontend pages/components use it
+* Whether it is fully functional, partially functional, or unused
+* Any missing configuration required
+* Any hidden dependencies
+* Any security concerns
+* Any performance concerns
+* Any technical debt
+* Any duplicated implementations
+* Any dead code
+* Any orphaned database tables
+* Any orphaned routes
+* Any orphaned components
+* Any environment variables required
+
+Generate the report in the following sections:
+
+# 1. Executive Summary
+
+* What the project is
+* Current maturity level
+* Production readiness score
+* Biggest strengths
+* Biggest weaknesses
+
+# 2. Architecture Overview
+
+* Monorepo structure
+* Frontend architecture
+* Backend architecture
+* Database architecture
+* Authentication architecture
+* State management architecture
+* API architecture
+
+# 3. Database Audit
+
+For EVERY table:
+
+* Purpose
+* Columns
+* Relationships
+* Usage status
+* CRUD routes using it
+* Frontend screens using it
+
+Also identify:
+
+* Unused tables
+* Tables with no frontend
+* Tables with no API usage
+* Tables that should be merged
+
+# 4. API Audit
+
+For EVERY route:
+
+* Method
+* Path
+* Purpose
+* Auth requirements
+* Tables touched
+* Frontend pages consuming it
+* Production status
+
+Identify:
+
+* Unused routes
+* Duplicate routes
+* Missing validation
+* Missing authorization
+* Missing rate limiting
+
+# 5. Frontend Audit
+
+For EVERY page:
+
+* Purpose
+* Route
+* Components used
+* APIs called
+* React Query usage
+* State management
+* Translation coverage
+* Dark mode support
+* Mobile responsiveness
+
+Identify:
+
+* Dead pages
+* Dead components
+* Unused hooks
+* Unused contexts
+
+# 6. Authentication & Security Audit
+
+Explain:
+
+* Login flow
+* Registration flow
+* JWT flow
+* Refresh token flow
+* Device recognition flow
+* Google login status
+* Email verification status
+* Password reset status
+* Session management
+
+Identify:
+
+* Security gaps
+* Privilege escalation risks
+* Missing protections
+
+# 7. E-commerce Feature Audit
+
+Explain every feature:
+
+Products
+Categories
+Variants
+Images
+Cart
+Wishlist
+Coupons
+Orders
+Payments
+Manual Payments
+Paymob
+Reviews
+Notifications
+FAQs
+Newsletter
+Contact
+Support Tickets
+Abandoned Cart
+Recently Viewed
+Saved Coupons
+Vendor System
+Admin System
+
+For each:
+
+* Status
+* Completeness %
+* Missing capabilities
+
+# 8. Third-Party Integrations Audit
+
+For every integration:
+
+* Current status
+* Configuration status
+* Required secrets
+* Whether it is actually being used
+
+Check:
+
+* Cloudinary
+* Resend
+* Google OAuth
+* Paymob
+* WhatsApp
+* Analytics
+* Any others
+
+# 9. Real-Time & Data Sync Audit
+
+Explain:
+
+* Which pages update instantly
+* Which pages require refresh
+* Which pages use React Query invalidation
+* Which pages need polling
+* Which pages should use WebSockets
+
+# 10. UX & Business Audit
+
+Analyze the actual business readiness:
+
+* Customer experience
+* Vendor experience
+* Admin experience
+* Conversion funnel
+* Checkout flow
+* Mobile experience
+
+Identify:
+
+* Revenue-impacting issues
+* UX bottlenecks
+* Missing trust elements
+* Missing conversion features
+
+# 11. Technical Debt Report
+
+List every:
+
+* FIXME
+* TODO
+* HACK
+* duplicate implementation
+* suspicious code path
+* over-engineered section
+* under-engineered section
+
+# 12. Production Readiness Checklist
+
+Score each category 0-10:
+
+Security
+Performance
+Scalability
+Maintainability
+Developer Experience
+UX
+SEO
+Accessibility
+Analytics
+Monitoring
+Payments
+Notifications
+
+# 13. Roadmap
+
+Generate:
+
+Critical fixes (must do before launch)
+High priority improvements
+Medium priority improvements
+Low priority improvements
+
+Then generate:
+
+Phase 11
+Phase 12
+Phase 13
+Phase 14
+Phase 15
+
+with exact implementation details.
+
+IMPORTANT:
+I do not want summaries.
+I want a complete technical encyclopedia of the project.
+
+Read every reachable file before generating the report.
+Show evidence and file references for all conclusions.
