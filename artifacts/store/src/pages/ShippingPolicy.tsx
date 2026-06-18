@@ -1,8 +1,10 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { Link } from "wouter";
 
 export default function ShippingPolicy() {
   const { language } = useLanguage();
+  useSEO({ title: language === 'ar' ? "سياسة الشحن" : "Shipping Policy", description: "Information about Velora's shipping methods and times." });
   const isAr = language === "ar";
 
   const sections = [

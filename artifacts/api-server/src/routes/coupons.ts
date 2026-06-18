@@ -26,8 +26,9 @@ router.post("/coupons/validate", optionalAuth, async (req, res): Promise<void> =
   const [coupon] = await db.select().from(couponsTable).where(eq(couponsTable.code, parsed.data.code));
   if (!coupon || !coupon.active) { res.status(404).json({ error: "Invalid coupon" }); return; }
   const now = new Date();
+  if (coupon.startDate && coupon.startDate > now) { res.status(400).json({ error: "Coupon not yet active" }); return; }
   if (coupon.endDate && coupon.endDate < now) { res.status(400).json({ error: "Coupon expired" }); return; }
-  if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) { res.status(400).json({ error: "Coupon usage limit reached" }); return; }
+  if (coupon.usageLimit != null && coupon.usageCount >= coupon.usageLimit) { res.status(400).json({ error: "Coupon usage limit reached" }); return; }
   res.json(formatCoupon(coupon));
 });
 

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import {
   useGetVendorSummary, useListProducts, useListOrders, useGetSalesTimeline, useGetTopProducts,
   useCreateProduct, useUpdateProduct, useListCategories,
@@ -18,6 +19,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function VendorDashboard() {
   const { user } = useAuth();
+  useSEO({ title: "Vendor Dashboard", description: "Manage your products and orders on Velora." });
   const [, setLocation] = useLocation();
   const { language } = useLanguage();
   const { toast } = useToast();

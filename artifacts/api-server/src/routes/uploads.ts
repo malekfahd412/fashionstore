@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { upload, uploadImage, deleteImage, isCloudinaryConfigured } from "../lib/cloudinary";
 import { requireAuth, requireRole } from "../middlewares/auth";
-import { db, productImagesTable } from "@workspace/db";
+import { db, productImagesTable, productsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 
 const router: IRouter = Router();
@@ -50,6 +50,16 @@ router.delete(
     const [img] = await db.select().from(productImagesTable).where(eq(productImagesTable.id, imageId));
     if (!img) { res.status(404).json({ error: "Image not found" }); return; }
 
+    // Vendor isolation for deletion
+    if (req.user!.role === "vendor") {
+      const [product] = await db.select({ vendorId: productsTable.vendorId })
+        .from(productsTable).where(eq(productsTable.id, img.productId));
+      if (!product || product.vendorId !== req.user!.id) {
+        res.status(403).json({ error: "Forbidden: you can only delete images of your own products" });
+        return;
+      }
+    }
+
     // Delete from Cloudinary if we have the publicId
     if (img.cloudinaryPublicId) {
       await deleteImage(img.cloudinaryPublicId);
@@ -70,6 +80,16 @@ router.patch(
 
     const [img] = await db.select().from(productImagesTable).where(eq(productImagesTable.id, imageId));
     if (!img) { res.status(404).json({ error: "Image not found" }); return; }
+
+    // Vendor isolation for primary image selection
+    if (req.user!.role === "vendor") {
+      const [product] = await db.select({ vendorId: productsTable.vendorId })
+        .from(productsTable).where(eq(productsTable.id, img.productId));
+      if (!product || product.vendorId !== req.user!.id) {
+        res.status(403).json({ error: "Forbidden: you can only manage images of your own products" });
+        return;
+      }
+    }
 
     // Unset all primary for this product, then set this one
     await db.update(productImagesTable).set({ isPrimary: false }).where(eq(productImagesTable.productId, img.productId));

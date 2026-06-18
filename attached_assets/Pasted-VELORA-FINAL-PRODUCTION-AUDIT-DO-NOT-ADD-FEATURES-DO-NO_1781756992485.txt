@@ -1,0 +1,190 @@
+VELORA FINAL PRODUCTION AUDIT
+
+DO NOT ADD FEATURES.
+DO NOT REDESIGN ANYTHING.
+DO NOT CHANGE DATABASE STRUCTURE.
+
+Your task is to validate the entire application as if it will go live tomorrow.
+
+==================================================
+PHASE 1 — END TO END TESTING
+============================
+
+Test every customer flow:
+
+* Register
+* Login
+* Google Login
+* Logout
+* Forgot Password
+* Reset Password
+* Product Browsing
+* Search
+* Wishlist
+* Add To Cart
+* Cart Update
+* Checkout
+* Order Placement
+* Order Tracking
+* Reviews
+* Contact Form
+* Support Tickets
+* Newsletter Subscription
+* Customer Dashboard
+
+==================================================
+PHASE 2 — ADMIN TESTING
+=======================
+
+Test every admin tab:
+
+* Dashboard
+* Products
+* Categories
+* Orders
+* Coupons
+* Reviews
+* Users
+* FAQ
+* Contact Messages
+* Support Tickets
+* Newsletter
+* Manual Payments
+* Banners
+* Settings
+* Security
+
+Verify:
+
+Create
+Edit
+Delete
+Status Changes
+
+==================================================
+PHASE 3 — VENDOR TESTING
+========================
+
+Test:
+
+* Create Product
+* Edit Product
+* Delete Product
+* Order Visibility
+* Analytics
+* Revenue Calculations
+
+Verify vendor isolation.
+
+==================================================
+PHASE 4 — PERFORMANCE AUDIT
+===========================
+
+Run:
+
+* Lighthouse
+* Bundle Analysis
+* React Query audit
+* Re-render audit
+
+Report:
+
+* LCP
+* CLS
+* INP
+* FCP
+
+Identify slow pages.
+
+==================================================
+PHASE 5 — SEO AUDIT
+===================
+
+Verify:
+
+* Dynamic titles
+* Dynamic descriptions
+* Sitemap
+* Robots.txt
+* Product Schema
+* FAQ Schema
+* Open Graph
+* Twitter Cards
+
+Report missing items.
+
+==================================================
+PHASE 6 — SECURITY AUDIT
+========================
+
+Verify:
+
+* Authentication
+* Authorization
+* Vendor isolation
+* Admin isolation
+* Rate limiting
+* Input validation
+* File upload security
+
+==================================================
+PHASE 7 — MOBILE AUDIT
+======================
+
+Test:
+
+320px
+375px
+390px
+768px
+
+Report:
+
+* Overflow
+* Broken layouts
+* Cut text
+* Horizontal scrolling
+
+==================================================
+PHASE 8 — DEAD CODE AUDIT
+=========================
+
+Find:
+
+* Unused components
+* Unused hooks
+* Unused routes
+* Unused API endpoints
+
+==================================================
+PHASE 9 — PRODUCTION READINESS SCORE
+====================================
+
+Provide:
+
+Security score
+Performance score
+SEO score
+UX score
+Mobile score
+Code quality score
+
+==================================================
+IMPORTANT
+=========
+
+Fix only real bugs.
+
+Do not add features.
+
+Do not redesign pages.
+
+Do not create new tables.
+
+At the end provide:
+
+1. Every bug found.
+2. Every fix applied.
+3. Remaining blockers before launch.
+4. Production readiness percentage.
+5. Manual setup still required (Google, Paymob, Cloudinary, WhatsApp, Email, etc.).

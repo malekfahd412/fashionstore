@@ -1,7 +1,9 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function Terms() {
   const { language } = useLanguage();
+  useSEO({ title: language === 'ar' ? "الشروط والأحكام" : "Terms & Conditions", description: "Read the terms and conditions for using Velora." });
   const isAr = language === "ar";
 
   const sections = [

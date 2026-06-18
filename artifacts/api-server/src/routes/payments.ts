@@ -234,6 +234,14 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
       .where(eq(paymentsTable.id, payment.id));
 
     if (success) {
+      // Find our payment record again to be sure (within the check)
+      const [p] = await db.select().from(paymentsTable).where(eq(paymentsTable.id, payment.id));
+      if (p.status === "paid") {
+        logger.info({ transactionId }, "Paymob webhook: Payment already processed (idempotency)");
+        res.json({ received: true });
+        return;
+      }
+
       // Advance order to "paid" — aligned with canonical status pipeline
       const [order] = await db.update(ordersTable)
         .set({ status: "paid", paidAt: new Date() })

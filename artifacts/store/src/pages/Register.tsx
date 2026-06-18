@@ -7,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useRegister } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -31,6 +32,7 @@ export default function Register() {
   const [, setLocation] = useLocation();
   const { login: setAuthData } = useAuth();
   const { t } = useLanguage();
+  useSEO({ title: t("nav.register"), description: "Create a new Velora account." });
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
 

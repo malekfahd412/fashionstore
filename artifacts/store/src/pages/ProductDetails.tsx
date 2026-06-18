@@ -367,8 +367,38 @@ export default function ProductDetails() {
   const name = language === "en" ? product.nameEn : (product.nameAr || product.nameEn);
   const description = language === "en" ? product.descriptionEn : (product.descriptionAr || product.descriptionEn);
 
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": name,
+    "description": description,
+    "image": product.images?.map(img => img.imageUrl),
+    "sku": String(product.id),
+    "brand": {
+      "@type": "Brand",
+      "name": "Velora"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": window.location.href,
+      "priceCurrency": "EGP",
+      "price": product.salePrice ?? product.price,
+      "availability": selectionComplete && isOutOfStock ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
+    },
+    ...(reviewsData && reviewsData.stats.totalReviews > 0 ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": reviewsData.stats.averageRating,
+        "reviewCount": reviewsData.stats.totalReviews
+      }
+    } : {})
+  };
+
   return (
     <div className="bg-background" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <script type="application/ld+json">
+        {JSON.stringify(productSchema)}
+      </script>
 
       {/* Breadcrumb */}
       <div className="border-b border-border">

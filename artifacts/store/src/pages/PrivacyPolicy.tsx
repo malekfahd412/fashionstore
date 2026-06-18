@@ -1,7 +1,9 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function PrivacyPolicy() {
   const { language } = useLanguage();
+  useSEO({ title: language === 'ar' ? "سياسة الخصوصية" : "Privacy Policy", description: "Learn about how Velora collects and uses your data." });
   const isAr = language === "ar";
 
   const sections = [

@@ -3,6 +3,7 @@ import { useLocation, Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
+import { useSEO } from "@/hooks/useSEO";
 import { ArrowLeft } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -94,6 +95,7 @@ function PaymentStatusBadge({ order }: { order: Order }) {
 
 export default function OrderTracking() {
   const { id } = useParams<{ id: string }>();
+  useSEO({ title: `Track Order #${id}`, description: "View your order details and tracking status." });
   const { user } = useAuth();
   const [, setLocation] = useLocation();
 

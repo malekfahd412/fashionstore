@@ -1,9 +1,11 @@
 import { useListCategories } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { Link } from "wouter";
 
 export default function Categories() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  useSEO({ title: t("nav.categories"), description: "Explore Velora's collections and categories." });
   const { data: categories, isLoading } = useListCategories();
 
   return (

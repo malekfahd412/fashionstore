@@ -1,8 +1,10 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { Link } from "wouter";
 
 export default function Returns() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  useSEO({ title: language === 'ar' ? "سياسة الإرجاع والاستبدال" : "Returns & Exchanges", description: "Learn about Velora's return and exchange policies." });
   const isAr = language === "ar";
 
   const sections = [

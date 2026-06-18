@@ -11,6 +11,7 @@ import {
 import { Star, Trash2, CheckCircle2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { format } from "date-fns";
+import { useSEO } from "@/hooks/useSEO";
 import SettingsPanel from "@/components/SettingsPanel";
 import SecurityPanel from "@/components/SecurityPanel";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
@@ -89,6 +90,7 @@ function StatCard({ label, value, sub, subColor }: { label: string; value: strin
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  useSEO({ title: "Admin Panel", description: "Velora administration and analytics." });
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [auditSearch, setAuditSearch] = useState("");

@@ -3,11 +3,13 @@ import { useSearch, useLocation } from "wouter";
 import { CheckCircle2, XCircle, Clock, ArrowRight, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export default function PaymentCallback() {
   const { t } = useLanguage();
+  useSEO({ title: "Payment Status", description: "Verifying your payment." });
   const search = useSearch();
   const [, setLocation] = useLocation();
   const [status, setStatus] = useState<"loading" | "success" | "failed" | "pending">("loading");

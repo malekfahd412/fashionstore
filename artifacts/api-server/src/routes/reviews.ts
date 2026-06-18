@@ -145,12 +145,30 @@ router.post("/products/:id/reviews", requireAuth, async (req, res): Promise<void
   const { rating, title, comment, orderId } = parsed.data;
   const userId = req.user!.id;
 
+  // Check for duplicate review by this user for this product
   const [existing] = await db.select().from(reviewsTable)
     .where(and(eq(reviewsTable.productId, productId), eq(reviewsTable.userId, userId)));
   if (existing) { res.status(409).json({ error: "You have already reviewed this product" }); return; }
 
   const { verified, orderId: derivedOrderId } = await hasVerifiedPurchase(userId, productId);
-  if (!verified) { res.status(403).json({ error: "You can only review products from delivered orders" }); return; }
+  if (!verified) { res.status(403).json({ error: "You can only review products from delivered orders you have purchased" }); return; }
+
+  // If orderId is provided, verify it belongs to the user and contains the product and is delivered
+  if (orderId) {
+    const [specificOrder] = await db
+      .select({ id: ordersTable.id })
+      .from(ordersTable)
+      .innerJoin(orderItemsTable, eq(orderItemsTable.orderId, ordersTable.id))
+      .innerJoin(productVariantsTable, eq(productVariantsTable.id, orderItemsTable.productVariantId))
+      .where(and(
+        eq(ordersTable.id, orderId),
+        eq(ordersTable.userId, userId),
+        eq(ordersTable.status, "delivered"),
+        eq(productVariantsTable.productId, productId)
+      ))
+      .limit(1);
+    if (!specificOrder) { res.status(400).json({ error: "Invalid orderId for this product" }); return; }
+  }
 
   const [review] = await db.insert(reviewsTable).values({
     productId,

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import GoogleButton from "@/components/GoogleButton";
+import { useSEO } from "@/hooks/useSEO";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -24,6 +25,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { login: setAuthData } = useAuth();
   const { t } = useLanguage();
+  useSEO({ title: t("nav.login"), description: "Log in to your Velora account." });
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(true);

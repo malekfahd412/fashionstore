@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { useQuery } from "@tanstack/react-query";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -35,7 +36,8 @@ const FALLBACK_FAQS: FaqItem[] = [
 ];
 
 export default function FAQ() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  useSEO({ title: t("home.faqTitle"), description: "Frequently asked questions about Velora orders, shipping, and more." });
   const isAr = language === "ar";
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");

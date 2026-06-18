@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export default function ForgotPassword() {
   const { t } = useTranslation();
+  useSEO({ title: t("forgot.title"), description: "Reset your Velora account password." });
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);

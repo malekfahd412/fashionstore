@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetCart, useUpdateCartItem, useRemoveFromCart, useClearCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { Input } from "@/components/ui/input";
 import { Trash2, ShoppingBag, X, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ type CouponData = { discountType: "percentage" | "fixed"; discountValue: number;
 
 export default function Cart() {
   const { language, t } = useLanguage();
+  useSEO({ title: t("cart.title"), description: "View and manage items in your Velora shopping cart." });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();

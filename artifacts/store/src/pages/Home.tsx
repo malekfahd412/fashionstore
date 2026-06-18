@@ -60,6 +60,19 @@ export default function Home() {
   const banners = (bannersRaw ?? []).filter(b => b.active);
   const hero = banners[0];
 
+  const faqSchema = faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": language === "en" ? faq.questionEn : faq.questionAr,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": language === "en" ? faq.answerEn : faq.answerAr
+      }
+    }))
+  } : null;
+
   const marqueeItems = [
     t("home.trust1"),
     t("home.trust2"),
@@ -71,6 +84,11 @@ export default function Home() {
 
   return (
     <div className="bg-background">
+      {faqSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(faqSchema)}
+        </script>
+      )}
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="relative h-[100dvh] min-h-[640px] overflow-hidden bg-[#0d0d0d]">

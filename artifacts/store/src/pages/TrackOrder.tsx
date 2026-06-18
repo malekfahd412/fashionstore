@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { format, addDays } from "date-fns";
-import { ArrowLeft } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -206,6 +206,7 @@ function GuestSearch() {
 
 export default function TrackOrder() {
   const { t } = useTranslation();
+  useSEO({ title: t("track.title"), description: "Track your Velora order status." });
   const { orderId } = useParams<{ orderId: string }>();
   const token = localStorage.getItem("auth_token");
 
@@ -220,7 +221,7 @@ export default function TrackOrder() {
   return (
     <div className="bg-background min-h-screen pt-24 pb-24">
       <div className="container mx-auto px-4 max-w-4xl">
-        {!token && !orderId && <GuestSearch />}
+        {!token && <GuestSearch />}
 
         {token && isLoading && (
           <div className="flex justify-center py-32 text-xs uppercase tracking-widest text-muted-foreground animate-pulse">

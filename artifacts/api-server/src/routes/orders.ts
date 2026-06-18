@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable, userAddressesTable, storeSettingsTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable, userAddressesTable, storeSettingsTable, cartItemsTable } from "@workspace/db";
 import { eq, and, SQL, desc, inArray, gt, isNull, lte } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, ListOrdersQueryParams } from "@workspace/api-zod";
@@ -112,7 +112,9 @@ router.get("/orders", requireAuth, async (req, res): Promise<void> => {
   if (status) conditions.push(eq(ordersTable.status, status));
 
   // Vendor filter: only return orders that contain at least one item from that vendor's products
-  const effectiveVendorId = vendorId ?? (req.user!.role === "vendor" ? undefined : undefined);
+  const isVendor = req.user!.role === "vendor";
+  const effectiveVendorId = isVendor ? req.user!.id : (vendorId ? Number(vendorId) : undefined);
+  
   if (effectiveVendorId) {
     const vendorOrderIds = await db
       .selectDistinct({ orderId: orderItemsTable.orderId })
@@ -144,7 +146,25 @@ router.get("/orders/:id", requireAuth, async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
-  if (req.user!.role === "customer" && order.userId !== req.user!.id) { res.status(403).json({ error: "Forbidden" }); return; }
+  
+  if (req.user!.role === "customer" && order.userId !== req.user!.id) { 
+    res.status(403).json({ error: "Forbidden" }); return; 
+  }
+  
+  if (req.user!.role === "vendor") {
+    const vendorItems = await db.select({ id: orderItemsTable.id })
+      .from(orderItemsTable)
+      .innerJoin(productVariantsTable, eq(orderItemsTable.productVariantId, productVariantsTable.id))
+      .innerJoin(productsTable, eq(productVariantsTable.productId, productsTable.id))
+      .where(and(eq(orderItemsTable.orderId, order.id), eq(productsTable.vendorId, req.user!.id)))
+      .limit(1);
+    
+    if (vendorItems.length === 0) {
+      res.status(403).json({ error: "Forbidden: You don't have products in this order" });
+      return;
+    }
+  }
+
   res.json(await enrichOrder(order));
 });
 
@@ -200,7 +220,9 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
           and(eq(couponsTable.code, couponCode), eq(couponsTable.active, true))
         );
         if (!coupon) throw Object.assign(new Error("Invalid coupon code"), { status: 400 });
-        if (coupon.endDate && coupon.endDate < new Date()) throw Object.assign(new Error("Coupon has expired"), { status: 400 });
+        const now = new Date();
+        if (coupon.startDate && coupon.startDate > now) throw Object.assign(new Error("Coupon not yet active"), { status: 400 });
+        if (coupon.endDate && coupon.endDate < now) throw Object.assign(new Error("Coupon has expired"), { status: 400 });
         if (coupon.usageLimit != null && coupon.usageCount >= coupon.usageLimit) throw Object.assign(new Error("Coupon usage limit reached"), { status: 400 });
         discount = coupon.discountType === "percentage"
           ? Math.min((subtotal * Number(coupon.discountValue)) / 100, subtotal)
@@ -236,6 +258,9 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
         title: "Order Placed",
         message: `Your order #${newOrder.id} has been placed successfully. Total: ${totalPrice.toFixed(2)} EGP`,
       });
+
+      // ── Step 6: Clear cart after order ───────────────────────────────────────
+      await tx.delete(cartItemsTable).where(eq(cartItemsTable.userId, req.user!.id));
 
       return newOrder;
     });
@@ -337,6 +362,21 @@ router.patch("/orders/:id", requireAuth, requireRole("admin", "vendor"), async (
 
   const [before] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!before) { res.status(404).json({ error: "Order not found" }); return; }
+
+  // Vendor isolation for status updates
+  if (req.user!.role === "vendor") {
+    const vendorItems = await db.select({ id: orderItemsTable.id })
+      .from(orderItemsTable)
+      .innerJoin(productVariantsTable, eq(orderItemsTable.productVariantId, productVariantsTable.id))
+      .innerJoin(productsTable, eq(productVariantsTable.productId, productsTable.id))
+      .where(and(eq(orderItemsTable.orderId, before.id), eq(productsTable.vendorId, req.user!.id)))
+      .limit(1);
+    
+    if (vendorItems.length === 0) {
+      res.status(403).json({ error: "Forbidden: You can only update orders containing your products" });
+      return;
+    }
+  }
 
   const newStatus = parsed.data.status;
   const { trackingNote } = req.body as { trackingNote?: string };

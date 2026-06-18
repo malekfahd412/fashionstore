@@ -3,6 +3,7 @@ import { useLocation, useSearch, Link } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetCart, useCreateOrder, getGetCartQueryKey, getListOrdersQueryKey, getGetAnalyticsSummaryQueryKey, getGetVendorSummaryQueryKey, getGetOrderStatusBreakdownQueryKey, getGetSalesTimelineQueryKey } from "@workspace/api-client-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/use-toast";
 import { Check, CreditCard, Banknote, Building, Smartphone, FileText, ChevronRight } from "lucide-react";
 
@@ -28,6 +29,7 @@ const MANUAL_METHODS: ManualMethod[] = ["vodafone_cash", "etisalat_cash", "insta
 export default function Checkout() {
   const [, setLocation] = useLocation();
   const { t, language } = useLanguage();
+  useSEO({ title: "Checkout", description: "Complete your order at Velora." });
   const { toast } = useToast();
   const qc = useQueryClient();
   const { data: cart, isLoading } = useGetCart();
@@ -74,13 +76,18 @@ export default function Checkout() {
     }).catch(() => setCouponError("Failed to validate coupon"));
   }, [search]);
 
+  useEffect(() => {
+    if (!isLoading && (!cart || !cart.items?.length)) {
+      setLocation("/cart");
+    }
+  }, [isLoading, cart, setLocation]);
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">{t("common.loading")}</div>;
   }
   
-  if (!cart || !cart.items?.length) { 
-    setLocation("/cart"); 
-    return null; 
+  if (!cart || !cart.items?.length) {
+    return null;
   }
 
   const isPaymob = paymentMethod === "card" || paymentMethod === "meeza";
