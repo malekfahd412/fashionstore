@@ -1,0 +1,167 @@
+Perform a FULL production-grade audit of the entire Velora codebase.
+
+Your goal is NOT to add features.
+
+Your goal is to find and fix every bug, inconsistency, broken flow, edge case, runtime issue, UX issue, data issue, security issue, and production risk.
+
+Audit ALL areas:
+
+AUTHENTICATION
+
+* Login
+* Register
+* Google Login
+* Password Reset
+* Session Persistence
+* Role Guards
+* Unauthorized Access
+* Logout
+
+CUSTOMER
+
+* Product browsing
+* Search
+* Filters
+* Wishlist
+* Cart
+* Checkout
+* Orders
+* Order Tracking
+* Reviews
+* Dashboard
+* Support Tickets
+
+VENDOR
+
+* Product CRUD
+* Inventory
+* Orders
+* Dashboard
+* Analytics
+
+ADMIN
+
+* Products
+* Categories
+* Coupons
+* Orders
+* Reviews
+* Users
+* Banners
+* FAQ
+* Settings
+* Security Center
+* Manual Payments
+
+PAYMENTS
+
+* Paymob
+* Cash on Delivery
+* Payment Status Updates
+* Webhooks
+* Failed Payments
+* Duplicate Payments
+
+NOTIFICATIONS
+
+* Email
+* WhatsApp
+* Order Status Notifications
+* Support Replies
+
+DATABASE
+
+* Foreign Keys
+* Cascades
+* Missing Indexes
+* Duplicate Data Risks
+* Validation Issues
+* Race Conditions
+
+API
+
+* Error Handling
+* Missing Try/Catch
+* Invalid Inputs
+* Missing Validation
+* Missing Authorization Checks
+* Rate Limiting
+* Broken Endpoints
+
+FRONTEND
+
+* Console Errors
+* React Warnings
+* Hydration Issues
+* Broken States
+* Infinite Re-renders
+* Memory Leaks
+* Loading States
+* Empty States
+* Mobile Responsiveness
+* Dark Mode Consistency
+* RTL Arabic Support
+
+REACT QUERY
+
+* Missing Invalidations
+* Stale Data
+* Duplicate Fetches
+* Cache Problems
+* Optimistic Update Failures
+
+SECURITY
+
+* XSS
+* CSRF
+* Broken Authorization
+* Sensitive Data Exposure
+* Environment Variable Leaks
+* Missing Sanitization
+
+PERFORMANCE
+
+* Large Re-renders
+* Unnecessary API Calls
+* Bundle Size Problems
+* Slow Queries
+* N+1 Query Problems
+
+SEO
+
+* Meta Tags
+* Open Graph
+* Structured Data
+* Sitemap
+* Canonical URLs
+
+TESTING
+
+* Simulate complete customer journey:
+  Register → Login → Browse → Add To Cart → Checkout → Payment → Order Tracking → Review
+
+* Simulate complete vendor journey
+
+* Simulate complete admin journey
+
+For every issue found:
+
+1. Explain the root cause.
+2. Fix it.
+3. Verify the fix.
+4. Continue searching for more issues.
+
+Do NOT stop at the first bug.
+
+Continue auditing until no critical, major, or medium severity issues remain.
+
+At the end provide:
+
+* Critical Issues Fixed
+* Major Issues Fixed
+* Minor Issues Fixed
+* Remaining Risks
+* Production Readiness Score (/100)
+
+Do not add new features.
+Only stabilize, secure, optimize, and fix the platform.

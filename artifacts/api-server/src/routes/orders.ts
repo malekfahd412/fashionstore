@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, ordersTable, orderItemsTable, productVariantsTable, productsTable, productImagesTable, usersTable, notificationsTable, couponsTable, paymentsTable, userAddressesTable, storeSettingsTable, cartItemsTable } from "@workspace/db";
-import { eq, and, SQL, desc, inArray, gt, isNull, lte } from "drizzle-orm";
+import { eq, and, gte, SQL, desc, inArray, gt, isNull, lte, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, ListOrdersQueryParams } from "@workspace/api-zod";
 import { auditLog } from "../lib/audit";
@@ -203,13 +203,15 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
         lineItems.push({ productVariantId: item.productVariantId, quantity: item.quantity, unitPrice });
       }
 
-      // ── Step 2: Deduct stock ──────────────────────────────────────────────────
+      // ── Step 2: Deduct stock (atomic conditional update prevents race conditions) ─
       for (const li of lineItems) {
-        const [v] = await tx.select({ stockQuantity: productVariantsTable.stockQuantity })
-          .from(productVariantsTable).where(eq(productVariantsTable.id, li.productVariantId));
-        await tx.update(productVariantsTable)
-          .set({ stockQuantity: v!.stockQuantity - li.quantity })
-          .where(eq(productVariantsTable.id, li.productVariantId));
+        const [updated] = await tx.update(productVariantsTable)
+          .set({ stockQuantity: sql`${productVariantsTable.stockQuantity} - ${li.quantity}` })
+          .where(and(eq(productVariantsTable.id, li.productVariantId), gte(productVariantsTable.stockQuantity, li.quantity)))
+          .returning({ stockQuantity: productVariantsTable.stockQuantity });
+        if (!updated) {
+          throw Object.assign(new Error(`Insufficient stock for variant ${li.productVariantId}`), { status: 409 });
+        }
       }
 
       // ── Step 3: Validate and apply coupon ─────────────────────────────────────

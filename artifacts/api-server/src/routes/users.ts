@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable } from "@workspace/db";
-import { eq, ilike, and, SQL } from "drizzle-orm";
+import { eq, ilike, or, and, SQL } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { UpdateUserBody, GetUserParams, DeleteUserParams, UpdateUserParams, ListUsersQueryParams } from "@workspace/api-zod";
 import { auditLog } from "../lib/audit";
@@ -13,7 +13,7 @@ router.get("/users", requireAuth, requireRole("admin"), async (req, res): Promis
   const { role, search, page = 1, limit = 20 } = query.success ? query.data : {};
   const conditions: SQL[] = [];
   if (role) conditions.push(eq(usersTable.role, role));
-  if (search) conditions.push(ilike(usersTable.name, `%${search}%`));
+  if (search) conditions.push(or(ilike(usersTable.name, `%${search}%`), ilike(usersTable.email, `%${search}%`))!);
   const users = await db.select().from(usersTable)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .limit(Number(limit))

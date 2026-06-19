@@ -54,10 +54,12 @@ router.get("/analytics/summary", requireAuth, requireRole("admin"), async (_req,
 
 // ── Revenue timeline ──────────────────────────────────────────────────────────
 router.get("/analytics/sales", requireAuth, requireRole("admin", "vendor"), async (req, res): Promise<void> => {
-  const days = parseInt((req.query.days as string) || "30", 10);
-  const result: { date: string; revenue: number; orders: number }[] = [];
+  const days = Math.min(parseInt((req.query.days as string) || "30", 10), 365);
   const now = new Date();
   const isVendor = req.user!.role === "vendor";
+  const startDate = new Date(now);
+  startDate.setDate(now.getDate() - (days - 1));
+  startDate.setHours(0, 0, 0, 0);
 
   // For vendors, pre-fetch the set of order IDs that contain their products
   let vendorOrderIds: Set<number> | null = null;
@@ -71,35 +73,35 @@ router.get("/analytics/sales", requireAuth, requireRole("admin", "vendor"), asyn
     vendorOrderIds = new Set(rows.map(r => r.orderId));
   }
 
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(now.getDate() - i);
-    date.setHours(0, 0, 0, 0);
-    const nextDay = new Date(date);
-    nextDay.setDate(date.getDate() + 1);
-
-    const dateCondition = and(gte(ordersTable.createdAt, date), lte(ordersTable.createdAt, nextDay));
-    const vendorCondition = vendorOrderIds && vendorOrderIds.size > 0
-      ? and(dateCondition, inArray(ordersTable.id, [...vendorOrderIds]))
-      : vendorOrderIds && vendorOrderIds.size === 0
-        ? undefined
-        : dateCondition;
-
-    if (vendorCondition === undefined) {
-      result.push({ date: date.toISOString().split("T")[0], revenue: 0, orders: 0 });
-      continue;
+  // If vendor has no orders, return all zeros without hitting orders table again
+  if (isVendor && vendorOrderIds!.size === 0) {
+    const result: { date: string; revenue: number; orders: number }[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0, 0, 0, 0);
+      result.push({ date: d.toISOString().split("T")[0], revenue: 0, orders: 0 });
     }
+    res.json(result); return;
+  }
 
-    const [{ revenue, cnt }] = await db.select({
-      revenue: sum(ordersTable.totalPrice),
-      cnt: count(),
-    }).from(ordersTable).where(vendorCondition);
+  // Single GROUP BY query instead of N per-day queries
+  const whereClause = isVendor && vendorOrderIds!.size > 0
+    ? and(gte(ordersTable.createdAt, startDate), inArray(ordersTable.id, [...vendorOrderIds!]))
+    : gte(ordersTable.createdAt, startDate);
 
-    result.push({
-      date: date.toISOString().split("T")[0],
-      revenue: Number(revenue) || 0,
-      orders: Number(cnt) || 0,
-    });
+  const rows = await db.select({
+    day: sql<string>`DATE(${ordersTable.createdAt} AT TIME ZONE 'UTC')`,
+    revenue: sum(ordersTable.totalPrice),
+    cnt: count(),
+  }).from(ordersTable).where(whereClause).groupBy(sql`DATE(${ordersTable.createdAt} AT TIME ZONE 'UTC')`);
+
+  const dayMap = new Map(rows.map(r => [r.day, { revenue: Number(r.revenue) || 0, orders: Number(r.cnt) || 0 }]));
+
+  const result: { date: string; revenue: number; orders: number }[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0, 0, 0, 0);
+    const dateStr = d.toISOString().split("T")[0];
+    const data = dayMap.get(dateStr);
+    result.push({ date: dateStr, revenue: data?.revenue ?? 0, orders: data?.orders ?? 0 });
   }
   res.json(result);
 });
@@ -213,11 +215,13 @@ router.get("/analytics/vendor-performance", requireAuth, requireRole("admin"), a
 
 // ── Order status breakdown ────────────────────────────────────────────────────
 router.get("/analytics/order-status-breakdown", requireAuth, requireRole("admin", "vendor"), async (_req, res): Promise<void> => {
-  const statuses = ["new", "paid", "processing", "shipped", "delivered", "cancelled"];
-  const result = await Promise.all(statuses.map(async (status) => {
-    const [{ v }] = await db.select({ v: count() }).from(ordersTable).where(eq(ordersTable.status, status));
-    return { status, count: Number(v) };
-  }));
+  const ALL_STATUSES = ["new", "paid", "processing", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"];
+  const rows = await db
+    .select({ status: ordersTable.status, cnt: count() })
+    .from(ordersTable)
+    .groupBy(ordersTable.status);
+  const countMap = new Map(rows.map(r => [r.status, Number(r.cnt)]));
+  const result = ALL_STATUSES.map(status => ({ status, count: countMap.get(status) ?? 0 }));
   res.json(result);
 });
 

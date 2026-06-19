@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, cartItemsTable, productVariantsTable, productsTable, productImagesTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { AddToCartBody, UpdateCartItemBody, UpdateCartItemParams, RemoveFromCartParams } from "@workspace/api-zod";
 
@@ -8,19 +8,36 @@ const router: IRouter = Router();
 
 async function buildCart(userId: number) {
   const items = await db.select().from(cartItemsTable).where(eq(cartItemsTable.userId, userId));
-  const enriched = await Promise.all(items.map(async (item) => {
-    const [variant] = await db.select().from(productVariantsTable).where(eq(productVariantsTable.id, item.productVariantId));
+  if (items.length === 0) return { items: [], subtotal: 0, discount: 0, total: 0 };
+
+  const variantIds = items.map(i => i.productVariantId);
+  const variants = await db.select().from(productVariantsTable).where(inArray(productVariantsTable.id, variantIds));
+
+  const productIds = [...new Set(variants.map(v => v.productId))];
+  const [products, images] = productIds.length
+    ? await Promise.all([
+        db.select().from(productsTable).where(inArray(productsTable.id, productIds)),
+        db.select().from(productImagesTable).where(
+          and(inArray(productImagesTable.productId, productIds), eq(productImagesTable.isPrimary, true))
+        ),
+      ])
+    : [[], []];
+
+  const variantMap = new Map(variants.map(v => [v.id, v]));
+  const productMap = new Map(products.map(p => [p.id, p]));
+  const imageMap = new Map(images.map(img => [img.productId, img.imageUrl]));
+
+  const enriched = items.map(item => {
+    const variant = variantMap.get(item.productVariantId);
     if (!variant) return null;
-    const [product] = await db.select().from(productsTable).where(eq(productsTable.id, variant.productId));
+    const product = productMap.get(variant.productId);
     if (!product) return null;
-    const [primaryImage] = await db.select().from(productImagesTable)
-      .where(and(eq(productImagesTable.productId, product.id), eq(productImagesTable.isPrimary, true)));
     return {
       variantId: variant.id,
       productId: product.id,
       nameEn: product.nameEn,
       nameAr: product.nameAr,
-      imageUrl: primaryImage?.imageUrl ?? null,
+      imageUrl: imageMap.get(product.id) ?? null,
       price: Number(product.price),
       salePrice: product.salePrice ? Number(product.salePrice) : null,
       quantity: item.quantity,
@@ -28,7 +45,8 @@ async function buildCart(userId: number) {
       size: variant.size,
       stockQuantity: variant.stockQuantity,
     };
-  }));
+  });
+
   const validItems = enriched.filter(Boolean) as NonNullable<(typeof enriched)[0]>[];
   const subtotal = validItems.reduce((s, i) => s + (i.salePrice ?? i.price) * i.quantity, 0);
   return { items: validItems, subtotal, discount: 0, total: subtotal };

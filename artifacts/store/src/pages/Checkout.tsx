@@ -48,7 +48,7 @@ export default function Checkout() {
   const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState("");
-  const [couponData, setCouponData] = useState<{ discountType: string; discountValue: number } | null>(null);
+  const [couponData, setCouponData] = useState<{ discountType: string; discountValue: number; maxDiscountAmount?: number | null } | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [billing, setBilling] = useState({ firstName: "", lastName: "", address: "", city: "Cairo", phone: "" });
 
@@ -57,6 +57,7 @@ export default function Checkout() {
 
   useEffect(() => {
     if (autoAppliedRef.current) return;
+    if (isLoading || !cart) return;
     const params = new URLSearchParams(search);
     const code = params.get("coupon")?.trim().toUpperCase();
     if (!code) return;
@@ -65,16 +66,16 @@ export default function Checkout() {
     fetch(`${BASE}/api/coupons/validate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
-    }).then(r => r.json() as Promise<{ discountType?: string; discountValue?: number; error?: string }>).then(data => {
+      body: JSON.stringify({ code, orderTotal: cart.subtotal ?? 0 }),
+    }).then(r => r.json() as Promise<{ discountType?: string; discountValue?: number; maxDiscountAmount?: number | null; error?: string }>).then(data => {
       if (data.discountType && data.discountValue !== undefined) {
-        setCouponData({ discountType: data.discountType, discountValue: data.discountValue });
+        setCouponData({ discountType: data.discountType, discountValue: data.discountValue, maxDiscountAmount: data.maxDiscountAmount ?? null });
         setCouponApplied(true);
       } else {
         setCouponError(data.error ?? "Coupon could not be applied");
       }
     }).catch(() => setCouponError("Failed to validate coupon"));
-  }, [search]);
+  }, [search, isLoading, cart]);
 
   useEffect(() => {
     if (!isLoading && (!cart || !cart.items?.length)) {
@@ -126,7 +127,7 @@ export default function Checkout() {
       const res = await fetch(`${BASE}/api/coupons/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, orderTotal: cart?.subtotal ?? 0 }),
       });
       if (!res.ok) {
         const err = await res.json() as { error?: string };
@@ -141,8 +142,11 @@ export default function Checkout() {
   const cartSubtotal = cart!.subtotal ?? 0;
   function calcDiscount(): number {
     if (!couponApplied || !couponData) return 0;
-    if (couponData.discountType === "percentage") return Math.min((cartSubtotal * couponData.discountValue) / 100, cartSubtotal);
-    return Math.min(couponData.discountValue, cartSubtotal);
+    let rawDiscount = couponData.discountType === "percentage"
+      ? (cartSubtotal * couponData.discountValue) / 100
+      : couponData.discountValue;
+    if (couponData.maxDiscountAmount != null) rawDiscount = Math.min(rawDiscount, couponData.maxDiscountAmount);
+    return Math.min(rawDiscount, cartSubtotal);
   }
   const discount = calcDiscount();
   const total = Math.max(0, cartSubtotal - discount);

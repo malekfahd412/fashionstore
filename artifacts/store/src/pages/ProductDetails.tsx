@@ -62,7 +62,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }: {
   const { t } = useLanguage();
   const isOwn = currentUserId === review.userId;
   const [helpful, setHelpful] = useState<'up' | 'down' | null>(null);
-  const [helpfulCount, setHelpfulCount] = useState(Math.floor(Math.random() * 12));
+  const [helpfulCount, setHelpfulCount] = useState(0);
 
   const handleHelpful = (vote: 'up' | 'down') => {
     if (helpful === vote) { if (vote === 'up') setHelpfulCount(c => c - 1); setHelpful(null); return; }

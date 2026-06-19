@@ -220,9 +220,18 @@ export default function Products() {
                   {t("common.previous")}
                 </button>
                 <div className="flex gap-2">
-                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                    const p = totalPages <= 7 ? i + 1 : i === 0 ? 1 : i === 6 ? totalPages : page - 2 + i;
-                    return (
+                  {(() => {
+                    const pages: number[] = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      const start = Math.max(2, Math.min(page - 1, totalPages - 4));
+                      const end = Math.min(totalPages - 1, start + 3);
+                      pages.push(1);
+                      for (let i = start; i <= end; i++) pages.push(i);
+                      if (totalPages > 1) pages.push(totalPages);
+                    }
+                    return pages.map(p => (
                       <button
                         key={p}
                         onClick={() => setPage(p)}
@@ -232,8 +241,8 @@ export default function Products() {
                       >
                         {p}
                       </button>
-                    );
-                  })}
+                    ));
+                  })()}
                 </div>
                 <button
                   onClick={() => setPage(p => p + 1)}

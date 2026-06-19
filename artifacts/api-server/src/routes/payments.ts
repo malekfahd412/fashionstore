@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import crypto from "node:crypto";
 import { db, paymentsTable, ordersTable, usersTable, storeSettingsTable, notificationsTable, manualPaymentsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { logger } from "../lib/logger";
 import { sendPaymentSuccessEmail, sendPaymentFailedEmail } from "../lib/email";
@@ -233,20 +233,19 @@ router.post("/payments/paymob/webhook", async (req, res): Promise<void> => {
     : [];
 
   if (payment) {
+    // Idempotency: if this exact transaction was already processed successfully, skip
+    if (payment.status === "paid" && success) {
+      logger.info({ transactionId }, "Paymob webhook: Payment already processed (idempotency)");
+      res.json({ received: true });
+      return;
+    }
+
     const newStatus = success ? "paid" : "failed";
     await db.update(paymentsTable)
       .set({ status: newStatus, transactionId, rawData: txn })
       .where(eq(paymentsTable.id, payment.id));
 
     if (success) {
-      // Find our payment record again to be sure (within the check)
-      const [p] = await db.select().from(paymentsTable).where(eq(paymentsTable.id, payment.id));
-      if (p.status === "paid") {
-        logger.info({ transactionId }, "Paymob webhook: Payment already processed (idempotency)");
-        res.json({ received: true });
-        return;
-      }
-
       // Advance order to "paid" — aligned with canonical status pipeline
       const [order] = await db.update(ordersTable)
         .set({ status: "paid", paidAt: new Date() })
@@ -328,11 +327,9 @@ router.get("/payments/manual/settings", async (_req, res): Promise<void> => {
     "payment_instapay_enabled", "instapay_address",
     "paymob_integration_id_card",
   ];
+  const rows = await db.select().from(storeSettingsTable).where(inArray(storeSettingsTable.key, keys));
   const map: Record<string, string> = {};
-  for (const k of keys) {
-    const [row] = await db.select().from(storeSettingsTable).where(eq(storeSettingsTable.key, k));
-    map[k] = row?.value ?? "";
-  }
+  for (const row of rows) map[row.key] = row.value ?? "";
   res.json({
     vodafone_cash_enabled: map.payment_vodafone_cash_enabled === "true",
     vodafone_cash_number: map.vodafone_cash_number,

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import rateLimit from "express-rate-limit";
 import { db, contactMessagesTable, storeSettingsTable } from "@workspace/db";
 import { eq, desc, count } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
@@ -6,11 +7,19 @@ import { sendContactConfirmation, sendContactAdminNotification, sendContactReply
 
 const router: IRouter = Router();
 
+const contactRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many contact requests. Please try again later." },
+});
+
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-router.post("/contact", async (req, res): Promise<void> => {
+router.post("/contact", contactRateLimiter, async (req, res): Promise<void> => {
   const { name, email, phone, subject, message } = req.body ?? {};
   if (!name || typeof name !== "string" || name.trim().length < 1) {
     res.status(400).json({ error: "Name is required" }); return;

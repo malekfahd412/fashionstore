@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, productsTable, productVariantsTable, productImagesTable, categoriesTable, usersTable, reviewsTable } from "@workspace/db";
-import { eq, and, ilike, gte, lte, desc, asc, count, avg, inArray, SQL, sql } from "drizzle-orm";
+import { eq, and, or, ilike, gte, lte, desc, asc, count, avg, inArray, SQL, sql } from "drizzle-orm";
 import { requireAuth, requireRole, optionalAuth } from "../middlewares/auth";
 import {
   CreateProductBody, UpdateProductBody, GetProductParams, UpdateProductParams,
@@ -73,16 +73,17 @@ router.get("/products", optionalAuth, async (req, res): Promise<void> => {
   const isAdminShowAll = req.user?.role === "admin" && req.query.showAll === "true";
   const conditions: SQL[] = [];
   if (!isAdminShowAll) conditions.push(eq(productsTable.active, true));
-  if (search) conditions.push(ilike(productsTable.nameEn, `%${search}%`));
+  if (search) conditions.push(or(ilike(productsTable.nameEn, `%${search}%`), ilike(productsTable.nameAr, `%${search}%`))!);
   if (categoryId) conditions.push(eq(productsTable.categoryId, Number(categoryId)));
   if (vendorId) conditions.push(eq(productsTable.vendorId, Number(vendorId)));
   if (minPrice) conditions.push(gte(productsTable.price, String(minPrice)));
   if (maxPrice) conditions.push(lte(productsTable.price, String(maxPrice)));
   if (featured === true || featured === "true" as unknown) conditions.push(eq(productsTable.featured, true));
 
-  let orderBy = desc(productsTable.createdAt);
+  let orderBy: SQL = desc(productsTable.createdAt);
   if (sortBy === "price_asc") orderBy = asc(productsTable.price);
   else if (sortBy === "price_desc") orderBy = desc(productsTable.price);
+  else if (sortBy === "rating") orderBy = desc(sql`(SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE product_id = ${productsTable.id})`);
 
   const [products, total] = await Promise.all([
     db.select().from(productsTable)
@@ -112,10 +113,20 @@ router.get("/products/new-arrivals", async (_req, res): Promise<void> => {
 });
 
 router.get("/products/best-sellers", async (_req, res): Promise<void> => {
-  const products = await db.select().from(productsTable)
-    .where(eq(productsTable.active, true))
-    .orderBy(desc(productsTable.createdAt)).limit(8);
-  res.json(await batchEnrichProducts(products));
+  const rows = await db.execute(sql`
+    SELECT p.id FROM products p
+    LEFT JOIN product_variants pv ON pv.product_id = p.id
+    LEFT JOIN order_items oi ON oi.product_variant_id = pv.id
+    WHERE p.active = true
+    GROUP BY p.id
+    ORDER BY COALESCE(SUM(oi.quantity), 0) DESC, p.created_at DESC
+    LIMIT 8
+  `);
+  const ids = (rows.rows as { id: number }[]).map(r => r.id);
+  if (ids.length === 0) { res.json([]); return; }
+  const products = await db.select().from(productsTable).where(inArray(productsTable.id, ids));
+  const sorted = ids.map(id => products.find(p => p.id === id)).filter(Boolean) as typeof products;
+  res.json(await batchEnrichProducts(sorted));
 });
 
 router.get("/products/:id", optionalAuth, async (req, res): Promise<void> => {

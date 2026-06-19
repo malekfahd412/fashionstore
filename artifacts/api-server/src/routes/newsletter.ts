@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import rateLimit from "express-rate-limit";
 import { db, newsletterSubscribersTable } from "@workspace/db";
 import { eq, desc, count } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
@@ -6,6 +7,14 @@ import { sendNewsletterWelcome } from "../lib/email";
 import crypto from "node:crypto";
 
 const router: IRouter = Router();
+
+const subscribeRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many subscription attempts. Please try again later." },
+});
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -15,7 +24,7 @@ function genToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-router.post("/newsletter/subscribe", async (req, res): Promise<void> => {
+router.post("/newsletter/subscribe", subscribeRateLimiter, async (req, res): Promise<void> => {
   const { email } = req.body ?? {};
   if (!email || typeof email !== "string" || !isValidEmail(email)) {
     res.status(400).json({ error: "Valid email required" }); return;

@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, type Part } from "@google/generative-ai";
 import { db, productsTable, productVariantsTable, productImagesTable, categoriesTable, ordersTable, orderItemsTable, faqsTable } from "@workspace/db";
-import { eq, and, ilike, desc, inArray, asc } from "drizzle-orm";
+import { eq, and, or, ilike, desc, inArray, asc } from "drizzle-orm";
 import { optionalAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
@@ -50,7 +50,7 @@ async function getProductContext(query: string) {
     featured: productsTable.featured,
   })
     .from(productsTable)
-    .where(and(eq(productsTable.active, true), ilike(productsTable.nameEn, `%${query}%`)))
+    .where(and(eq(productsTable.active, true), or(ilike(productsTable.nameEn, `%${query}%`), ilike(productsTable.nameAr, `%${query}%`))))
     .limit(8);
 
   if (products.length === 0) {

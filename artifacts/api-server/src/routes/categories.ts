@@ -1,18 +1,20 @@
 import { Router, type IRouter } from "express";
 import { db, categoriesTable, productsTable } from "@workspace/db";
-import { eq, count } from "drizzle-orm";
+import { eq, count, inArray } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { CreateCategoryBody, UpdateCategoryBody, UpdateCategoryParams, DeleteCategoryParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 async function getCategoriesWithCount() {
-  const cats = await db.select().from(categoriesTable).orderBy(categoriesTable.nameEn);
-  const result = await Promise.all(cats.map(async (cat) => {
-    const [{ value }] = await db.select({ value: count() }).from(productsTable).where(eq(productsTable.categoryId, cat.id));
-    return { ...cat, productCount: Number(value) };
-  }));
-  return result;
+  const [cats, counts] = await Promise.all([
+    db.select().from(categoriesTable).orderBy(categoriesTable.nameEn),
+    db.select({ categoryId: productsTable.categoryId, productCount: count() })
+      .from(productsTable)
+      .groupBy(productsTable.categoryId),
+  ]);
+  const countMap = new Map(counts.map(c => [c.categoryId, Number(c.productCount)]));
+  return cats.map(cat => ({ ...cat, productCount: countMap.get(cat.id) ?? 0 }));
 }
 
 router.get("/categories", async (_req, res): Promise<void> => {

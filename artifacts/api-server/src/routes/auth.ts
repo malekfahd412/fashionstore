@@ -202,7 +202,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   res.json({
     token,
     refreshToken,
-    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, createdAt: user.createdAt },
+    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, emailVerified: user.emailVerified, createdAt: user.createdAt },
   });
 });
 
