@@ -46,7 +46,7 @@ BASE_PATH = "/"
 [[workflows.workflow]]
 name = "artifacts/api-server: API Server"
 author = "agent"
-mode = "parallel"
+mode = "sequential"
 
 [workflows.workflow.metadata]
 outputType = "webview"

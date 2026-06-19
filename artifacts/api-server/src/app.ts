@@ -53,9 +53,9 @@ const customOrigins: string[] = parseAllowedOrigins(process.env.ALLOWED_ORIGINS)
 //   e.g. abc.replit.dev  ✓
 //        abc.xyz.replit.dev  ✓  (actual Replit format: hash.user.replit.dev)
 const REPLIT_PATTERNS: RegExp[] = [
-  /^https?:\/\/(.+\.)?replit\.dev$/,
-  /^https?:\/\/(.+\.)?repl\.co$/,
-  /^https?:\/\/(.+\.)?replit\.app$/,
+  /^https?:\/\/(.+\.)?replit\.dev(:\d+)?$/,
+  /^https?:\/\/(.+\.)?repl\.co(:\d+)?$/,
+  /^https?:\/\/(.+\.)?replit\.app(:\d+)?$/,
 ];
 
 // Local patterns — only in development

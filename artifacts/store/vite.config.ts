@@ -15,7 +15,8 @@ export default defineConfig({
     tailwindcss(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
+    process.env.REPL_ID !== undefined &&
+    port === 5000
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
             m.cartographer({
